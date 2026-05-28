@@ -81,6 +81,31 @@ create table if not exists public.business_profiles (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.site_settings (
+  id text primary key,
+  contact_email text not null,
+  support_email text not null,
+  instagram_handle text not null,
+  business_availability text not null,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.site_settings (
+  id,
+  contact_email,
+  support_email,
+  instagram_handle,
+  business_availability
+)
+values (
+  'default',
+  'hello@bizkitai.it',
+  'hello@bizkitai.it',
+  '@bizkitai',
+  'lun-ven, 9:00 - 18:00'
+)
+on conflict (id) do nothing;
+
 create table if not exists public.saved_contents (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -126,6 +151,7 @@ alter table public.generated_contents enable row level security;
 alter table public.ai_usage_daily enable row level security;
 alter table public.ai_request_logs enable row level security;
 alter table public.business_profiles enable row level security;
+alter table public.site_settings enable row level security;
 alter table public.saved_contents enable row level security;
 alter table public.subscriptions enable row level security;
 
@@ -156,6 +182,10 @@ create policy "ai request logs all own" on public.ai_request_logs
 drop policy if exists "business profiles all own" on public.business_profiles;
 create policy "business profiles all own" on public.business_profiles
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "site settings deny public read" on public.site_settings;
+create policy "site settings deny public read" on public.site_settings
+  for select using (false);
 
 drop policy if exists "saved contents all own" on public.saved_contents;
 create policy "saved contents all own" on public.saved_contents

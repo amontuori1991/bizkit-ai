@@ -7,7 +7,7 @@ import type { DownloadFile } from "@/data/downloads";
 import type { Product } from "@/data/products";
 import type { LeadEntry } from "@/lib/leads";
 import type { DownloadStat, MockSale } from "@/lib/admin-data";
-import type { SiteSettings } from "@/lib/site-settings";
+import type { SiteSettings, SiteSettingsStorageMode } from "@/lib/site-settings";
 
 type AdminDashboardViewProps = {
   stats: {
@@ -24,6 +24,7 @@ type AdminDashboardViewProps = {
   downloads: DownloadStat[];
   kitAssets: DownloadFile[];
   siteSettings: SiteSettings;
+  siteSettingsStorageMode: SiteSettingsStorageMode;
 };
 
 const THEME_KEY = "bizkit-ai-admin-theme";
@@ -36,6 +37,7 @@ export function AdminDashboardView({
   downloads,
   kitAssets,
   siteSettings,
+  siteSettingsStorageMode,
 }: AdminDashboardViewProps) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
@@ -107,7 +109,20 @@ export function AdminDashboardView({
               Modifica qui i contatti pubblici mostrati nelle pagine del sito come `/contatti` e
               l&apos;email supporto usata nelle conferme acquisto.
             </p>
-            <AdminSiteSettingsForm initialSettings={siteSettings} />
+            <p className={`mt-2 text-sm ${subtle}`}>
+              Storage attuale:{" "}
+              <span className="font-semibold text-slate-900">
+                {siteSettingsStorageMode === "supabase"
+                  ? "Supabase"
+                  : siteSettingsStorageMode === "local"
+                    ? "JSON locale"
+                    : "read-only fallback"}
+              </span>
+            </p>
+            <AdminSiteSettingsForm
+              initialSettings={siteSettings}
+              storageMode={siteSettingsStorageMode}
+            />
           </section>
         </div>
 

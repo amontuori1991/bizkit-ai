@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin";
-import { isSiteSettingsWritable, readSiteSettings, writeSiteSettings } from "@/lib/site-settings";
+import { readSiteSettings, writeSiteSettings } from "@/lib/site-settings";
 
 type SiteSettingsBody = {
   contactEmail?: string;
@@ -54,16 +54,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Inserisci la disponibilita." }, { status: 400 });
   }
 
-  if (!isSiteSettingsWritable()) {
-    return NextResponse.json(
-      {
-        error:
-          "Il salvataggio JSON locale non e disponibile su Vercel perche il filesystem runtime e in sola lettura. In produzione sposta queste impostazioni su Supabase o modifica il file in locale e ridistribuisci.",
-      },
-      { status: 503 },
-    );
-  }
-
   try {
     const settings = await writeSiteSettings({
       contactEmail,
@@ -73,11 +63,13 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, settings });
-  } catch {
+  } catch (error) {
     return NextResponse.json(
       {
         error:
-          "Impossibile salvare le impostazioni del sito. Verifica i permessi di scrittura della cartella .data.",
+          error instanceof Error
+            ? error.message
+            : "Impossibile salvare le impostazioni del sito. Se sei in produzione, verifica che la tabella public.site_settings esista in Supabase e che SUPABASE_SERVICE_ROLE_KEY sia configurata correttamente.",
       },
       { status: 500 },
     );

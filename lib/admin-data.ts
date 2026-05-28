@@ -3,7 +3,7 @@ import path from "node:path";
 import { gymKitDownloads } from "@/data/downloads";
 import { products } from "@/data/products";
 import { readLeads, type LeadEntry } from "@/lib/leads";
-import { readSiteSettings } from "@/lib/site-settings";
+import { getSiteSettingsStorageMode, readSiteSettings } from "@/lib/site-settings";
 
 export type MockSale = {
   id: string;
@@ -116,5 +116,6 @@ export async function getAdminDashboardData() {
     downloads,
     kitAssets: gymKitDownloads,
     siteSettings,
+    siteSettingsStorageMode: getSiteSettingsStorageMode(),
   };
 }

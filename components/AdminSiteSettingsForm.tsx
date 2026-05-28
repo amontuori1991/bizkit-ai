@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import type { SiteSettings } from "@/lib/site-settings";
+import type { SiteSettings, SiteSettingsStorageMode } from "@/lib/site-settings";
 
 type AdminSiteSettingsFormProps = {
   initialSettings: SiteSettings;
+  storageMode?: SiteSettingsStorageMode;
 };
 
-export function AdminSiteSettingsForm({ initialSettings }: AdminSiteSettingsFormProps) {
+export function AdminSiteSettingsForm({
+  initialSettings,
+  storageMode = "local",
+}: AdminSiteSettingsFormProps) {
   const [form, setForm] = useState(initialSettings);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -110,9 +114,11 @@ export function AdminSiteSettingsForm({ initialSettings }: AdminSiteSettingsForm
       </button>
 
       <p className="text-sm leading-6 text-slate-500">
-        Nota: questo salvataggio usa un file JSON locale. Funziona in locale, ma su Vercel il
-        filesystem runtime e di sola lettura. Per la modifica live in produzione conviene spostare
-        queste impostazioni su Supabase.
+        {storageMode === "supabase"
+          ? "Le impostazioni vengono salvate su Supabase e sono modificabili anche in produzione."
+          : storageMode === "local"
+            ? "Le impostazioni vengono salvate in un file JSON locale. Ottimo per sviluppo e test rapidi."
+            : "Lo storage attuale e in sola lettura. Configura Supabase service role per rendere queste impostazioni modificabili in produzione."}
       </p>
 
       {message ? (

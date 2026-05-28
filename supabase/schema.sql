@@ -61,6 +61,31 @@ create table if not exists public.leads (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.site_settings (
+  id text primary key,
+  contact_email text not null,
+  support_email text not null,
+  instagram_handle text not null,
+  business_availability text not null,
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+insert into public.site_settings (
+  id,
+  contact_email,
+  support_email,
+  instagram_handle,
+  business_availability
+)
+values (
+  'default',
+  'hello@bizkitai.it',
+  'hello@bizkitai.it',
+  '@bizkitai',
+  'lun-ven, 9:00 - 18:00'
+)
+on conflict (id) do nothing;
+
 create table if not exists public.generated_contents (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -184,6 +209,7 @@ alter table public.products enable row level security;
 alter table public.orders enable row level security;
 alter table public.downloads enable row level security;
 alter table public.leads enable row level security;
+alter table public.site_settings enable row level security;
 alter table public.generated_contents enable row level security;
 alter table public.ai_usage_daily enable row level security;
 alter table public.ai_request_logs enable row level security;
@@ -222,6 +248,11 @@ drop policy if exists "Leads insert open" on public.leads;
 create policy "Leads insert open"
 on public.leads for insert
 with check (true);
+
+drop policy if exists "Site settings deny public read" on public.site_settings;
+create policy "Site settings deny public read"
+on public.site_settings for select
+using (false);
 
 drop policy if exists "Generated contents owned by user" on public.generated_contents;
 create policy "Generated contents owned by user"
