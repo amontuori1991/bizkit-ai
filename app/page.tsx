@@ -86,12 +86,12 @@ export default function HomePage() {
                 <Link href="/signup" className="button-primary">
                   Inizia gratis
                 </Link>
-                <Link href="/dashboard/billing" className="button-secondary">
-                  Vedi i piani
+                <Link href="/demo" className="button-secondary">
+                  Prova la demo
                 </Link>
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
-                {["Starter, Pro, Agency", "OpenAI + Supabase + Stripe", "Dashboard pronta per deploy"].map(
+                {["Starter, Pro, Agency", "Demo gratuita 1 generazione", "OpenAI + Supabase + Stripe"].map(
                   (item) => (
                     <div
                       key={item}
@@ -117,12 +117,12 @@ export default function HomePage() {
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                      <p className="text-sm text-slate-300">Piano Starter</p>
-                      <p className="mt-2 text-2xl font-bold text-white">29 EUR/mese</p>
+                      <p className="text-sm text-slate-300">Pricing</p>
+                      <p className="mt-2 text-2xl font-bold text-white">da 29 EUR/mese</p>
                     </div>
                     <div className="rounded-2xl bg-blue-600 p-4">
-                      <p className="text-sm text-blue-100">Stack</p>
-                      <p className="mt-2 font-semibold">Supabase, Stripe, OpenAI</p>
+                      <p className="text-sm text-blue-100">Demo</p>
+                      <p className="mt-2 font-semibold">1 generazione free senza login</p>
                     </div>
                   </div>
                   <div className="rounded-2xl border border-white/10 p-4">
@@ -219,8 +219,8 @@ export default function HomePage() {
                 Piani pronti per Stripe subscriptions
               </h2>
             </div>
-            <Link href="/dashboard/billing" className="text-sm font-semibold text-blue-700 hover:text-blue-800">
-              Vai al billing
+            <Link href="/pricing" className="text-sm font-semibold text-blue-700 hover:text-blue-800">
+              Apri pricing
             </Link>
           </div>
           <div className="grid gap-6 lg:grid-cols-3">
@@ -311,9 +311,9 @@ export default function HomePage() {
 
       <CTASection
         title="Vuoi vedere BizKit AI come piattaforma SaaS?"
-        description="Registrazione, dashboard, generatori AI, billing subscription e vertical fitness sono gia collegati in una base pronta da far crescere."
+        description="Registrazione, dashboard premium, generatori AI con 3 varianti, demo gratuita e billing subscription sono gia collegati in una base pronta da far crescere."
         primaryCta={{ href: "/signup", label: "Crea il tuo account" }}
-        secondaryCta={{ href: "/dashboard/billing", label: "Esplora i piani" }}
+        secondaryCta={{ href: "/pricing", label: "Esplora i piani" }}
       />
     </>
   );

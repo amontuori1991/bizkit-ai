@@ -8,6 +8,7 @@ import {
   logAIRequest,
   normalizeAIPlanId,
 } from "@/lib/ai-usage";
+import { parseOutputVariants } from "@/lib/ai-output";
 import { buildGenerationSystemPrompt, type BusinessProfile } from "@/lib/business-profile";
 import { isOpenAIConfigured, isSupabaseConfigured } from "@/lib/env";
 import { getOpenAIClient, getOpenAIModel } from "@/lib/openai";
@@ -143,13 +144,14 @@ export async function POST(request: Request) {
     }
 
     const tokenUsage = getTokenUsage(response);
+    const variants = parseOutputVariants(result);
 
     const { data, error } = await supabase
       .from("generated_contents")
       .insert({
         user_id: user.id,
         type: body.type,
-        title: `${body.type} generation`,
+        title: `${body.type} ${new Date().toLocaleDateString("it-IT")}`,
         input_prompt: body.prompt.trim(),
         output_text: result,
         is_saved: false,
@@ -183,6 +185,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       result,
+      variants,
       generationId: data.id,
       usage: {
         planId,

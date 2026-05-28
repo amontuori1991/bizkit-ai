@@ -2,6 +2,8 @@ import Link from "next/link";
 
 const navigation = [
   { href: "/", label: "Home" },
+  { href: "/demo", label: "Demo" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/dashboard", label: "Piattaforma" },
   { href: "/catalogo", label: "Catalogo" },
   { href: "/faq", label: "FAQ" },
@@ -18,7 +20,7 @@ export function Header() {
           </div>
           <div>
             <p className="text-lg font-bold tracking-tight text-slate-950">BizKit AI</p>
-            <p className="text-sm text-slate-500">Kit digitali per piccole attivita</p>
+            <p className="text-sm text-slate-500">AI SaaS operativo per business fitness</p>
           </div>
         </Link>
         <nav className="flex flex-wrap items-center gap-4 text-sm font-semibold text-slate-600">

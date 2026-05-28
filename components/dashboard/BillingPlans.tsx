@@ -52,16 +52,40 @@ export function BillingPlans({ plans, enabled = true, disabledMessage }: Billing
       ) : null}
       <div className="grid gap-5 lg:grid-cols-3">
         {plans.map((plan) => (
-          <div key={plan.id} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-500">
-              {plan.name}
+          <div
+            key={plan.id}
+            className={`relative overflow-hidden rounded-[2rem] border p-6 shadow-soft ${
+              plan.highlight
+                ? "border-blue-500 bg-slate-950 text-white"
+                : "border-slate-200 bg-white text-slate-950"
+            }`}
+          >
+            {plan.highlight ? (
+              <span className="absolute right-5 top-5 rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white">
+                Most popular
+              </span>
+            ) : null}
+            <p className={`text-sm font-semibold uppercase tracking-[0.18em] ${plan.highlight ? "text-blue-200" : "text-blue-500"}`}>
+              {plan.badge}
             </p>
-            <p className="mt-4 text-4xl font-bold text-slate-950">{plan.priceLabel}</p>
-            <p className="mt-2 text-sm text-slate-500">{plan.seats}</p>
-            <p className="mt-4 leading-7 text-slate-600">{plan.description}</p>
+            <h3 className="mt-4 text-3xl font-bold">{plan.name}</h3>
+            <p className={`mt-4 text-4xl font-bold ${plan.highlight ? "text-white" : "text-slate-950"}`}>{plan.priceLabel}</p>
+            <p className={`mt-2 text-sm ${plan.highlight ? "text-slate-300" : "text-slate-500"}`}>{plan.audience}</p>
+            <p className={`mt-4 leading-7 ${plan.highlight ? "text-slate-200" : "text-slate-600"}`}>{plan.description}</p>
+            <div className={`mt-5 rounded-[1.5rem] px-4 py-4 ${plan.highlight ? "bg-white/10" : "bg-slate-50"}`}>
+              <p className={`text-sm font-semibold ${plan.highlight ? "text-white" : "text-slate-900"}`}>{plan.usageLimitLabel}</p>
+              <p className={`mt-1 text-sm ${plan.highlight ? "text-slate-300" : "text-slate-500"}`}>{plan.seats}</p>
+            </div>
             <div className="mt-5 space-y-3">
               {plan.features.map((feature) => (
-                <div key={feature} className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                <div
+                  key={feature}
+                  className={`rounded-2xl px-4 py-3 text-sm ${
+                    plan.highlight
+                      ? "border border-white/10 bg-white/5 text-slate-100"
+                      : "border border-slate-200 bg-slate-50 text-slate-700"
+                  }`}
+                >
                   {feature}
                 </div>
               ))}
@@ -70,13 +94,17 @@ export function BillingPlans({ plans, enabled = true, disabledMessage }: Billing
               type="button"
               onClick={() => handleSubscribe(plan.id)}
               disabled={loadingPlan === plan.id || !enabled}
-              className="button-primary mt-6 w-full disabled:cursor-not-allowed disabled:opacity-70"
+              className={`mt-6 w-full rounded-full px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70 ${
+                plan.highlight
+                  ? "bg-white text-slate-950 hover:bg-slate-100"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
             >
               {!enabled
                 ? "Billing non disponibile"
                 : loadingPlan === plan.id
                   ? "Apertura checkout..."
-                  : `Scegli ${plan.name}`}
+                  : plan.ctaLabel}
             </button>
           </div>
         ))}
@@ -84,3 +112,4 @@ export function BillingPlans({ plans, enabled = true, disabledMessage }: Billing
     </div>
   );
 }
+

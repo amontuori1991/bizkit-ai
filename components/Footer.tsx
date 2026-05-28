@@ -26,7 +26,8 @@ export function Footer() {
           <div className="mt-4 grid gap-3 text-sm">
             <Link href="/signup">Crea account</Link>
             <Link href="/login">Accedi</Link>
-            <Link href="/dashboard/billing">Piani</Link>
+            <Link href="/pricing">Piani</Link>
+            <Link href="/demo">Demo gratuita</Link>
           </div>
         </div>
       </div>
