@@ -11,6 +11,7 @@ type GeneratorWorkspaceProps = {
   placeholder: string;
   enabled?: boolean;
   disabledMessage?: string;
+  profileReady?: boolean;
 };
 
 type GenerateResponse = {
@@ -26,6 +27,7 @@ export function GeneratorWorkspace({
   placeholder,
   enabled = true,
   disabledMessage,
+  profileReady = false,
 }: GeneratorWorkspaceProps) {
   const [input, setInput] = useState("");
   const [result, setResult] = useState("");
@@ -116,6 +118,12 @@ export function GeneratorWorkspace({
       <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
         <h2 className="text-2xl font-bold text-slate-950">{title}</h2>
         <p className="mt-3 leading-7 text-slate-600">{helper}</p>
+        {!profileReady ? (
+          <div className="mt-4 rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-700">
+            Il Business Profile non e ancora completo. Puoi generare comunque, ma per risultati piu
+            coerenti conviene compilare prima nome attivita, citta, tone of voice e target.
+          </div>
+        ) : null}
         <form onSubmit={handleGenerate} className="mt-6 grid gap-4">
           <label className="grid gap-2 text-sm font-medium text-slate-700">
             Prompt operativo

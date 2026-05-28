@@ -33,6 +33,24 @@ create table if not exists public.generated_contents (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.business_profiles (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null unique references auth.users(id) on delete cascade,
+  business_name text,
+  business_type text,
+  city text,
+  address text,
+  website text,
+  instagram text,
+  tone_of_voice text,
+  target_audience text,
+  services text,
+  unique_selling_points text,
+  preferred_cta text,
+  preferred_hashtags text,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.saved_contents (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -75,6 +93,7 @@ create trigger on_auth_user_created
 alter table public.profiles enable row level security;
 alter table public.clients enable row level security;
 alter table public.generated_contents enable row level security;
+alter table public.business_profiles enable row level security;
 alter table public.saved_contents enable row level security;
 alter table public.subscriptions enable row level security;
 
@@ -92,6 +111,10 @@ create policy "clients all own" on public.clients
 
 drop policy if exists "generated contents all own" on public.generated_contents;
 create policy "generated contents all own" on public.generated_contents
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "business profiles all own" on public.business_profiles;
+create policy "business profiles all own" on public.business_profiles
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 drop policy if exists "saved contents all own" on public.saved_contents;

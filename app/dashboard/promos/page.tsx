@@ -1,11 +1,18 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { GeneratorWorkspace } from "@/components/dashboard/GeneratorWorkspace";
+import { isBusinessProfileComplete, type BusinessProfile } from "@/lib/business-profile";
 import { isOpenAIConfigured } from "@/lib/env";
 import { requireDashboardUser } from "@/lib/saas";
 
 export default async function PromosPage() {
-  const { user } = await requireDashboardUser();
+  const { supabase, user } = await requireDashboardUser();
   const aiEnabled = isOpenAIConfigured();
+  const { data: profile } = await supabase
+    .from("business_profiles")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const profileReady = isBusinessProfileComplete((profile as BusinessProfile | null) ?? null);
 
   return (
     <DashboardShell
@@ -16,10 +23,11 @@ export default async function PromosPage() {
       <GeneratorWorkspace
         type="promo"
         title="Generatore promo palestra"
-        helper="Indica il tipo di promozione, il target, la durata e il tono di voce. L'output sara orientato alla conversione."
-        placeholder="Esempio: Crea una promo per settembre dedicata a ex clienti inattivi con tono positivo, invito a tornare e beneficio chiaro."
+        helper="Scrivi solo la richiesta operativa breve. Il sistema usera automaticamente citta, target, tone of voice, USP e CTA dal Business Profile."
+        placeholder="Esempio: Crea una promo per riportare in palestra clienti inattivi a settembre."
         enabled={aiEnabled}
         disabledMessage="OpenAI non e configurato. Aggiungi OPENAI_API_KEY per attivare il generatore promo."
+        profileReady={profileReady}
       />
     </DashboardShell>
   );

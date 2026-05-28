@@ -1,11 +1,18 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { GeneratorWorkspace } from "@/components/dashboard/GeneratorWorkspace";
+import { isBusinessProfileComplete, type BusinessProfile } from "@/lib/business-profile";
 import { isOpenAIConfigured } from "@/lib/env";
 import { requireDashboardUser } from "@/lib/saas";
 
 export default async function CaptionPage() {
-  const { user } = await requireDashboardUser();
+  const { supabase, user } = await requireDashboardUser();
   const aiEnabled = isOpenAIConfigured();
+  const { data: profile } = await supabase
+    .from("business_profiles")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const profileReady = isBusinessProfileComplete((profile as BusinessProfile | null) ?? null);
 
   return (
     <DashboardShell
@@ -16,10 +23,11 @@ export default async function CaptionPage() {
       <GeneratorWorkspace
         type="caption"
         title="Generatore caption"
-        helper="Descrivi promozione, target, tono di voce e obiettivo. Il sistema produce una caption in italiano pronta all'uso."
-        placeholder="Esempio: Scrivi una caption per una promo prova gratuita 7 giorni per una palestra di Torino, target donne 30-45, tono professionale e accogliente."
+        helper="Scrivi solo la richiesta operativa. Il sistema usera automaticamente il Business Profile per citta, tone of voice, target, servizi e CTA."
+        placeholder="Esempio: Scrivi una caption per promuovere la prova gratuita di 7 giorni di questa settimana."
         enabled={aiEnabled}
         disabledMessage="OpenAI non e configurato. Aggiungi OPENAI_API_KEY per attivare il generatore caption."
+        profileReady={profileReady}
       />
     </DashboardShell>
   );

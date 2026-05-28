@@ -11,6 +11,7 @@ const navItems = [
   { href: "/dashboard/promos", label: "Promo AI" },
   { href: "/dashboard/crm", label: "CRM" },
   { href: "/dashboard/history", label: "Cronologia" },
+  { href: "/dashboard/settings/business-profile", label: "Business Profile" },
   { href: "/dashboard/billing", label: "Billing" },
 ];
 

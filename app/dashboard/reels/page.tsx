@@ -1,11 +1,18 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { GeneratorWorkspace } from "@/components/dashboard/GeneratorWorkspace";
+import { isBusinessProfileComplete, type BusinessProfile } from "@/lib/business-profile";
 import { isOpenAIConfigured } from "@/lib/env";
 import { requireDashboardUser } from "@/lib/saas";
 
 export default async function ReelsPage() {
-  const { user } = await requireDashboardUser();
+  const { supabase, user } = await requireDashboardUser();
   const aiEnabled = isOpenAIConfigured();
+  const { data: profile } = await supabase
+    .from("business_profiles")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const profileReady = isBusinessProfileComplete((profile as BusinessProfile | null) ?? null);
 
   return (
     <DashboardShell
@@ -16,10 +23,11 @@ export default async function ReelsPage() {
       <GeneratorWorkspace
         type="reel"
         title="Generatore Reel"
-        helper="Spiega il tema del Reel, il target e l'obiettivo della pubblicazione. Il sistema prepara uno script rapido adatto a Instagram."
-        placeholder="Esempio: Crea un Reel per spiegare la prima visita in palestra a chi si sente intimidito, target principianti 30-50 anni, CTA per prenotare una prova."
+        helper="Scrivi solo il concept operativo del Reel. Il sistema usera automaticamente il Business Profile per target, tono, servizi e CTA."
+        placeholder="Esempio: Crea un Reel per spiegare come funziona la prima visita in palestra."
         enabled={aiEnabled}
         disabledMessage="OpenAI non e configurato. Aggiungi OPENAI_API_KEY per attivare il generatore Reel."
+        profileReady={profileReady}
       />
     </DashboardShell>
   );

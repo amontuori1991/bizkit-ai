@@ -1,18 +1,10 @@
 import { NextResponse } from "next/server";
+import { buildGenerationSystemPrompt, type BusinessProfile } from "@/lib/business-profile";
 import { isOpenAIConfigured, isSupabaseConfigured } from "@/lib/env";
 import { getOpenAIClient, getOpenAIModel } from "@/lib/openai";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type GenerateType = "caption" | "reel" | "promo";
-
-const systemPrompts: Record<GenerateType, string> = {
-  caption:
-    "Sei un copywriter SaaS per il settore fitness. Scrivi caption Instagram in italiano, professionali, chiare, utili e orientate a conversione locale. Evita emoji eccessive e toni generici.",
-  reel:
-    "Sei un content strategist per palestre. Genera idee Reel in italiano con hook iniziale, struttura rapida e CTA finale. Il testo deve essere pratico e pronto all'uso.",
-  promo:
-    "Sei un consulente commerciale per palestre. Genera promozioni, offerte e mini campagne in italiano con tono chiaro, credibile e concreto. Nessuna promessa irrealistica.",
-};
 
 export async function POST(request: Request) {
   try {
@@ -47,13 +39,24 @@ export async function POST(request: Request) {
       prompt?: string;
     };
 
-    if (!body.type || !systemPrompts[body.type]) {
+    if (!body.type || !["caption", "reel", "promo"].includes(body.type)) {
       return NextResponse.json({ error: "Tipo di generazione non valido." }, { status: 400 });
     }
 
     if (!body.prompt?.trim()) {
       return NextResponse.json({ error: "Prompt obbligatorio." }, { status: 400 });
     }
+
+    const { data: profile } = await supabase
+      .from("business_profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const systemPrompt = buildGenerationSystemPrompt(
+      body.type,
+      (profile as BusinessProfile | null) ?? null,
+    );
 
     const client = getOpenAIClient();
     if (!client) {
@@ -67,7 +70,7 @@ export async function POST(request: Request) {
       input: [
         {
           role: "system",
-          content: [{ type: "input_text", text: systemPrompts[body.type] }],
+          content: [{ type: "input_text", text: systemPrompt }],
         },
         {
           role: "user",

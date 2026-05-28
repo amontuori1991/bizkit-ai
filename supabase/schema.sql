@@ -72,6 +72,24 @@ create table if not exists public.generated_contents (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.business_profiles (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null unique references auth.users(id) on delete cascade,
+  business_name text,
+  business_type text,
+  city text,
+  address text,
+  website text,
+  instagram text,
+  tone_of_voice text,
+  target_audience text,
+  services text,
+  unique_selling_points text,
+  preferred_cta text,
+  preferred_hashtags text,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
 create table if not exists public.clients (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -137,6 +155,7 @@ alter table public.orders enable row level security;
 alter table public.downloads enable row level security;
 alter table public.leads enable row level security;
 alter table public.generated_contents enable row level security;
+alter table public.business_profiles enable row level security;
 alter table public.clients enable row level security;
 alter table public.saved_contents enable row level security;
 alter table public.customers enable row level security;
@@ -181,6 +200,21 @@ drop policy if exists "Generated contents insert owned by user" on public.genera
 create policy "Generated contents insert owned by user"
 on public.generated_contents for insert
 with check (auth.uid() = user_id);
+
+drop policy if exists "Business profiles owned by user" on public.business_profiles;
+create policy "Business profiles owned by user"
+on public.business_profiles for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Business profiles insert owned by user" on public.business_profiles;
+create policy "Business profiles insert owned by user"
+on public.business_profiles for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Business profiles update owned by user" on public.business_profiles;
+create policy "Business profiles update owned by user"
+on public.business_profiles for update
+using (auth.uid() = user_id);
 
 drop policy if exists "Clients owned by user" on public.clients;
 create policy "Clients owned by user"
