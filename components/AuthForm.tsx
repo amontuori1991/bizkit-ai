@@ -140,7 +140,7 @@ export function AuthForm({ mode, disabled = false, disabledMessage }: AuthFormPr
       >
         {disabled ? "Configura Supabase" : isLoading ? "Attendi..." : mode === "login" ? "Accedi" : "Crea account"}
       </button>
-      {disabledMessage ? (
+      {disabled && disabledMessage ? (
         <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
           {disabledMessage}
         </p>
