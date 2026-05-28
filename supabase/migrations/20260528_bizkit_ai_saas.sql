@@ -5,7 +5,7 @@ create table if not exists public.profiles (
   email text,
   full_name text,
   business_name text,
-  subscription_tier text not null default 'starter',
+  subscription_tier text not null default 'free',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -30,6 +30,36 @@ create table if not exists public.generated_contents (
   input_prompt text,
   output_text text not null,
   is_saved boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.ai_usage_daily (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  usage_date date not null,
+  plan_id text not null default 'free',
+  generation_count integer not null default 0,
+  input_tokens integer not null default 0,
+  output_tokens integer not null default 0,
+  total_tokens integer not null default 0,
+  last_generation_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (user_id, usage_date)
+);
+
+create table if not exists public.ai_request_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  ip_hash text not null,
+  generation_type text not null,
+  prompt_preview text,
+  plan_id text not null default 'free',
+  status text not null default 'success',
+  input_tokens integer not null default 0,
+  output_tokens integer not null default 0,
+  total_tokens integer not null default 0,
+  error_message text,
   created_at timestamptz not null default now()
 );
 
@@ -93,6 +123,8 @@ create trigger on_auth_user_created
 alter table public.profiles enable row level security;
 alter table public.clients enable row level security;
 alter table public.generated_contents enable row level security;
+alter table public.ai_usage_daily enable row level security;
+alter table public.ai_request_logs enable row level security;
 alter table public.business_profiles enable row level security;
 alter table public.saved_contents enable row level security;
 alter table public.subscriptions enable row level security;
@@ -111,6 +143,14 @@ create policy "clients all own" on public.clients
 
 drop policy if exists "generated contents all own" on public.generated_contents;
 create policy "generated contents all own" on public.generated_contents
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "ai usage daily all own" on public.ai_usage_daily;
+create policy "ai usage daily all own" on public.ai_usage_daily
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "ai request logs all own" on public.ai_request_logs;
+create policy "ai request logs all own" on public.ai_request_logs
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 drop policy if exists "business profiles all own" on public.business_profiles;

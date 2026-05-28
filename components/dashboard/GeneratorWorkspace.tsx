@@ -18,6 +18,14 @@ type GenerateResponse = {
   result?: string;
   generationId?: string;
   error?: string;
+  usage?: {
+    planId: string;
+    usedToday: number;
+    dailyLimit: number;
+    remainingToday: number;
+    totalTokens?: number;
+  };
+  retryAfterSeconds?: number | null;
 };
 
 export function GeneratorWorkspace({
@@ -67,6 +75,11 @@ export function GeneratorWorkspace({
       setGenerationId(data.generationId ?? null);
       setIsSaved(false);
       setSaveTitle("");
+      if (data.usage) {
+        setMessage(
+          `Generazione completata. Piano ${data.usage.planId}: ${data.usage.usedToday}/${data.usage.dailyLimit} usi oggi.`,
+        );
+      }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Errore durante la generazione.");
     } finally {

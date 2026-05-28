@@ -5,7 +5,7 @@ create table if not exists public.profiles (
   email text,
   full_name text,
   business_name text,
-  subscription_tier text default 'starter',
+  subscription_tier text default 'free',
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
@@ -69,6 +69,36 @@ create table if not exists public.generated_contents (
   input_prompt text,
   output_text text not null,
   is_saved boolean not null default false,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create table if not exists public.ai_usage_daily (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  usage_date date not null,
+  plan_id text not null default 'free',
+  generation_count integer not null default 0,
+  input_tokens integer not null default 0,
+  output_tokens integer not null default 0,
+  total_tokens integer not null default 0,
+  last_generation_at timestamptz,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now()),
+  unique (user_id, usage_date)
+);
+
+create table if not exists public.ai_request_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  ip_hash text not null,
+  generation_type text not null,
+  prompt_preview text,
+  plan_id text not null default 'free',
+  status text not null default 'success',
+  input_tokens integer not null default 0,
+  output_tokens integer not null default 0,
+  total_tokens integer not null default 0,
+  error_message text,
   created_at timestamptz not null default timezone('utc', now())
 );
 
@@ -155,6 +185,8 @@ alter table public.orders enable row level security;
 alter table public.downloads enable row level security;
 alter table public.leads enable row level security;
 alter table public.generated_contents enable row level security;
+alter table public.ai_usage_daily enable row level security;
+alter table public.ai_request_logs enable row level security;
 alter table public.business_profiles enable row level security;
 alter table public.clients enable row level security;
 alter table public.saved_contents enable row level security;
@@ -205,6 +237,32 @@ drop policy if exists "Generated contents update owned by user" on public.genera
 create policy "Generated contents update owned by user"
 on public.generated_contents for update
 using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop policy if exists "AI usage daily owned by user" on public.ai_usage_daily;
+create policy "AI usage daily owned by user"
+on public.ai_usage_daily for select
+using (auth.uid() = user_id);
+
+drop policy if exists "AI usage daily insert owned by user" on public.ai_usage_daily;
+create policy "AI usage daily insert owned by user"
+on public.ai_usage_daily for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "AI usage daily update owned by user" on public.ai_usage_daily;
+create policy "AI usage daily update owned by user"
+on public.ai_usage_daily for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop policy if exists "AI request logs owned by user" on public.ai_request_logs;
+create policy "AI request logs owned by user"
+on public.ai_request_logs for select
+using (auth.uid() = user_id);
+
+drop policy if exists "AI request logs insert owned by user" on public.ai_request_logs;
+create policy "AI request logs insert owned by user"
+on public.ai_request_logs for insert
 with check (auth.uid() = user_id);
 
 drop policy if exists "Business profiles owned by user" on public.business_profiles;

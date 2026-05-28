@@ -1,9 +1,17 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { getCurrentUsageDate, normalizeAIPlanId } from "@/lib/ai-usage";
 import { requireDashboardUser } from "@/lib/saas";
 
 export default async function DashboardPage() {
   const { supabase, user } = await requireDashboardUser();
-  const [{ data: profile }, { count: clientsCount }, { count: generatedCount }, { count: savedCount }] =
+  const usageDate = getCurrentUsageDate();
+  const [
+    { data: profile },
+    { count: clientsCount },
+    { count: generatedCount },
+    { count: savedCount },
+    { data: usageToday },
+  ] =
     await Promise.all([
       supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
       supabase.from("clients").select("*", { count: "exact", head: true }).eq("user_id", user.id),
@@ -12,7 +20,14 @@ export default async function DashboardPage() {
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id),
       supabase.from("saved_contents").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase
+        .from("ai_usage_daily")
+        .select("generation_count,total_tokens")
+        .eq("user_id", user.id)
+        .eq("usage_date", usageDate)
+        .maybeSingle(),
     ]);
+  const aiPlan = normalizeAIPlanId(profile?.subscription_tier);
 
   return (
     <DashboardShell
@@ -20,12 +35,17 @@ export default async function DashboardPage() {
       description="Una vista rapida del tuo workspace AI: contenuti generati, clienti gestiti e materiali salvati."
       userEmail={user.email ?? "utente"}
     >
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        {[
-          { label: "Piano attuale", value: profile?.subscription_tier || "starter", helper: "Stripe subscriptions ready" },
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+        {[ 
+          { label: "Piano AI", value: aiPlan, helper: "Tier limiti e rate limiting" },
           { label: "Clienti CRM", value: clientsCount || 0, helper: "Lead e clienti gestiti" },
           { label: "Generazioni AI", value: generatedCount || 0, helper: "Storico completo" },
           { label: "Contenuti salvati", value: savedCount || 0, helper: "Libreria personale" },
+          {
+            label: "Uso oggi",
+            value: usageToday?.generation_count || 0,
+            helper: `${usageToday?.total_tokens || 0} token usati oggi`,
+          },
         ].map((item) => (
           <div key={item.label} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
             <p className="text-sm text-slate-500">{item.label}</p>
