@@ -37,9 +37,12 @@ export async function readSiteSettings() {
         parsed.businessAvailability || defaultSiteSettings.businessAvailability,
     } satisfies SiteSettings;
   } catch {
-    await writeSiteSettings(defaultSiteSettings);
     return defaultSiteSettings;
   }
+}
+
+export function isSiteSettingsWritable() {
+  return !process.env.VERCEL;
 }
 
 export async function writeSiteSettings(input: SiteSettings) {
@@ -55,4 +58,3 @@ export async function writeSiteSettings(input: SiteSettings) {
   await writeFile(siteSettingsFile, JSON.stringify(normalized, null, 2), "utf8");
   return normalized;
 }
-

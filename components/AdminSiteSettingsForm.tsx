@@ -109,6 +109,12 @@ export function AdminSiteSettingsForm({ initialSettings }: AdminSiteSettingsForm
         {isSaving ? "Salvataggio..." : "Salva contatti sito"}
       </button>
 
+      <p className="text-sm leading-6 text-slate-500">
+        Nota: questo salvataggio usa un file JSON locale. Funziona in locale, ma su Vercel il
+        filesystem runtime e di sola lettura. Per la modifica live in produzione conviene spostare
+        queste impostazioni su Supabase.
+      </p>
+
       {message ? (
         <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
           {message}
@@ -122,4 +128,3 @@ export function AdminSiteSettingsForm({ initialSettings }: AdminSiteSettingsForm
     </form>
   );
 }
-

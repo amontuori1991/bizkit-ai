@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin";
-import { readSiteSettings, writeSiteSettings } from "@/lib/site-settings";
+import { isSiteSettingsWritable, readSiteSettings, writeSiteSettings } from "@/lib/site-settings";
 
 type SiteSettingsBody = {
   contactEmail?: string;
@@ -54,13 +54,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Inserisci la disponibilita." }, { status: 400 });
   }
 
-  const settings = await writeSiteSettings({
-    contactEmail,
-    supportEmail,
-    instagramHandle,
-    businessAvailability,
-  });
+  if (!isSiteSettingsWritable()) {
+    return NextResponse.json(
+      {
+        error:
+          "Il salvataggio JSON locale non e disponibile su Vercel perche il filesystem runtime e in sola lettura. In produzione sposta queste impostazioni su Supabase o modifica il file in locale e ridistribuisci.",
+      },
+      { status: 503 },
+    );
+  }
 
-  return NextResponse.json({ success: true, settings });
+  try {
+    const settings = await writeSiteSettings({
+      contactEmail,
+      supportEmail,
+      instagramHandle,
+      businessAvailability,
+    });
+
+    return NextResponse.json({ success: true, settings });
+  } catch {
+    return NextResponse.json(
+      {
+        error:
+          "Impossibile salvare le impostazioni del sito. Verifica i permessi di scrittura della cartella .data.",
+      },
+      { status: 500 },
+    );
+  }
 }
-
