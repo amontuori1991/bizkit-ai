@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const navigation = [
   { href: "/", label: "Home" },
@@ -10,7 +11,10 @@ const navigation = [
   { href: "/contatti", label: "Contatti" },
 ];
 
-export function Header() {
+export async function Header() {
+  const supabase = await createSupabaseServerClient();
+  const user = supabase ? (await supabase.auth.getUser()).data.user : null;
+
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">
       <div className="container-shell flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -29,12 +33,27 @@ export function Header() {
               {item.label}
             </Link>
           ))}
-          <Link href="/login" className="button-secondary">
-            Accedi
-          </Link>
-          <Link href="/signup" className="button-primary">
-            Inizia gratis
-          </Link>
+          {user ? (
+            <>
+              <form action="/auth/logout" method="post">
+                <button type="submit" className="button-secondary">
+                  Esci
+                </button>
+              </form>
+              <Link href="/dashboard" className="button-primary">
+                Dashboard
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="button-secondary">
+                Accedi
+              </Link>
+              <Link href="/signup" className="button-primary">
+                Inizia gratis
+              </Link>
+            </>
+          )}
         </nav>
       </div>
     </header>
