@@ -3,11 +3,14 @@ import { requireDashboardUser } from "@/lib/saas";
 
 export default async function DashboardPage() {
   const { supabase, user } = await requireDashboardUser();
-  const [{ data: profile }, { count: clientsCount }, { count: generationsCount }, { count: savedCount }] =
+  const [{ data: profile }, { count: clientsCount }, { count: generatedCount }, { count: savedCount }] =
     await Promise.all([
       supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
       supabase.from("clients").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-      supabase.from("generations").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase
+        .from("generated_contents")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id),
       supabase.from("saved_contents").select("*", { count: "exact", head: true }).eq("user_id", user.id),
     ]);
 
@@ -21,7 +24,7 @@ export default async function DashboardPage() {
         {[
           { label: "Piano attuale", value: profile?.subscription_tier || "starter", helper: "Stripe subscriptions ready" },
           { label: "Clienti CRM", value: clientsCount || 0, helper: "Lead e clienti gestiti" },
-          { label: "Generazioni AI", value: generationsCount || 0, helper: "Storico completo" },
+          { label: "Generazioni AI", value: generatedCount || 0, helper: "Storico completo" },
           { label: "Contenuti salvati", value: savedCount || 0, helper: "Libreria personale" },
         ].map((item) => (
           <div key={item.label} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">

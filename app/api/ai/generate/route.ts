@@ -82,13 +82,14 @@ export async function POST(request: Request) {
     }
 
     const { data, error } = await supabase
-      .from("generations")
+      .from("generated_contents")
       .insert({
         user_id: user.id,
         type: body.type,
         title: `${body.type} generation`,
         input_prompt: body.prompt.trim(),
         output_text: result,
+        is_saved: false,
       })
       .select("id")
       .single();

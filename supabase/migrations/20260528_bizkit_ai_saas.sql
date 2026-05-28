@@ -22,20 +22,21 @@ create table if not exists public.clients (
   created_at timestamptz not null default now()
 );
 
-create table if not exists public.generations (
+create table if not exists public.generated_contents (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   type text not null,
   title text,
-  input_prompt text not null,
+  input_prompt text,
   output_text text not null,
+  is_saved boolean not null default false,
   created_at timestamptz not null default now()
 );
 
 create table if not exists public.saved_contents (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  generation_id uuid references public.generations(id) on delete set null,
+  generation_id uuid references public.generated_contents(id) on delete set null,
   type text not null,
   title text not null,
   content text not null,
@@ -73,7 +74,7 @@ create trigger on_auth_user_created
 
 alter table public.profiles enable row level security;
 alter table public.clients enable row level security;
-alter table public.generations enable row level security;
+alter table public.generated_contents enable row level security;
 alter table public.saved_contents enable row level security;
 alter table public.subscriptions enable row level security;
 
@@ -89,8 +90,8 @@ drop policy if exists "clients all own" on public.clients;
 create policy "clients all own" on public.clients
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
-drop policy if exists "generations all own" on public.generations;
-create policy "generations all own" on public.generations
+drop policy if exists "generated contents all own" on public.generated_contents;
+create policy "generated contents all own" on public.generated_contents
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 drop policy if exists "saved contents all own" on public.saved_contents;

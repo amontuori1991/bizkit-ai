@@ -3,8 +3,13 @@ import { requireDashboardUser } from "@/lib/saas";
 
 export default async function HistoryPage() {
   const { supabase, user } = await requireDashboardUser();
-  const [{ data: generations }, { data: savedContents }] = await Promise.all([
-    supabase.from("generations").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
+  const [{ data: generatedContents }, { data: savedContents }] = await Promise.all([
+    supabase
+      .from("generated_contents")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20),
     supabase.from("saved_contents").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
   ]);
 
@@ -18,12 +23,12 @@ export default async function HistoryPage() {
         <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
           <h2 className="text-2xl font-bold text-slate-950">Generazioni recenti</h2>
           <div className="mt-5 grid gap-4">
-            {(generations ?? []).length === 0 ? (
+            {(generatedContents ?? []).length === 0 ? (
               <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">
                 Nessuna generazione ancora registrata.
               </div>
             ) : (
-              generations?.map((item) => (
+              generatedContents?.map((item) => (
                 <div key={item.id} className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
                   <div className="flex items-center justify-between gap-4">
                     <p className="font-semibold text-slate-950">{item.type}</p>

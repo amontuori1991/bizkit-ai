@@ -46,6 +46,14 @@ export async function POST(request: Request) {
       throw error;
     }
 
+    if (body.generationId) {
+      await supabase
+        .from("generated_contents")
+        .update({ is_saved: true })
+        .eq("id", body.generationId)
+        .eq("user_id", user.id);
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Save content error:", error);
