@@ -71,7 +71,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Sessione non associata al prodotto corretto." }, { status: 403 });
     }
 
-    const filePath = path.join(process.cwd(), ".secure-downloads", "ai-kit-per-palestre.zip");
+    const filePath = path.join(process.cwd(), "public", "downloads", "ai-kit-per-palestre.zip");
     let fileBuffer: Buffer;
 
     try {
