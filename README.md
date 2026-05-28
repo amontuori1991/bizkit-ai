@@ -191,3 +191,5 @@ npm run build
 ## Guida dettagliata
 
 Per la configurazione step-by-step dei servizi esterni, leggi [SETUP.md](C:/Users/Alex/Documents/BizKit%20AI/SETUP.md).
+
+Nota tecnica: questo repository include configurazione pronta per deploy continuo su Vercel.
