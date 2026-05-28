@@ -3,6 +3,7 @@ import path from "node:path";
 import { gymKitDownloads } from "@/data/downloads";
 import { products } from "@/data/products";
 import { readLeads, type LeadEntry } from "@/lib/leads";
+import { readSiteSettings } from "@/lib/site-settings";
 
 export type MockSale = {
   id: string;
@@ -88,10 +89,11 @@ export async function getDownloadStats() {
 }
 
 export async function getAdminDashboardData() {
-  const [sales, downloads, leads] = await Promise.all([
+  const [sales, downloads, leads, siteSettings] = await Promise.all([
     getMockSales(),
     getDownloadStats(),
     readLeads(),
+    readSiteSettings(),
   ]);
 
   const paidSales = sales.filter((sale) => sale.status === "paid");
@@ -113,5 +115,6 @@ export async function getAdminDashboardData() {
     sales,
     downloads,
     kitAssets: gymKitDownloads,
+    siteSettings,
   };
 }

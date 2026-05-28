@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AdminSiteSettingsForm } from "@/components/AdminSiteSettingsForm";
 import { AdminThemeToggle } from "@/components/AdminThemeToggle";
 import type { DownloadFile } from "@/data/downloads";
 import type { Product } from "@/data/products";
 import type { LeadEntry } from "@/lib/leads";
 import type { DownloadStat, MockSale } from "@/lib/admin-data";
+import type { SiteSettings } from "@/lib/site-settings";
 
 type AdminDashboardViewProps = {
   stats: {
@@ -21,6 +23,7 @@ type AdminDashboardViewProps = {
   sales: MockSale[];
   downloads: DownloadStat[];
   kitAssets: DownloadFile[];
+  siteSettings: SiteSettings;
 };
 
 const THEME_KEY = "bizkit-ai-admin-theme";
@@ -32,6 +35,7 @@ export function AdminDashboardView({
   sales,
   downloads,
   kitAssets,
+  siteSettings,
 }: AdminDashboardViewProps) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
@@ -94,6 +98,17 @@ export function AdminDashboardView({
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="mt-8">
+          <section className={`rounded-[2rem] border p-6 shadow-soft ${surface}`}>
+            <h2 className="text-2xl font-bold">Contatti sito</h2>
+            <p className={`mt-3 max-w-2xl leading-7 ${subtle}`}>
+              Modifica qui i contatti pubblici mostrati nelle pagine del sito come `/contatti` e
+              l&apos;email supporto usata nelle conferme acquisto.
+            </p>
+            <AdminSiteSettingsForm initialSettings={siteSettings} />
+          </section>
         </div>
 
         <div className="mt-8 grid gap-6 xl:grid-cols-2">

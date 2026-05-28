@@ -5,6 +5,7 @@ import { ProtectedDownloadButton } from "@/components/ProtectedDownloadButton";
 import { PurchaseTracker } from "@/components/PurchaseTracker";
 import { gymKitDownloads } from "@/data/downloads";
 import { isStripeCheckoutConfigured } from "@/lib/env";
+import { readSiteSettings } from "@/lib/site-settings";
 import { getStripeServer, STRIPE_PRODUCT } from "@/lib/stripe";
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ type SuccessPageProps = {
 };
 
 export default async function SuccessPage({ searchParams }: SuccessPageProps) {
+  const siteSettings = await readSiteSettings();
   const params = searchParams ? await searchParams : {};
   const rawSessionId = params.session_id;
   const sessionId = Array.isArray(rawSessionId) ? rawSessionId[0] : rawSessionId;
@@ -84,7 +86,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
             </div>
             <div className="rounded-2xl border border-white/60 bg-white/80 p-4">
               <p className="text-sm text-slate-500">Supporto</p>
-              <p className="mt-2 font-semibold text-slate-950">hello@bizkitai.it</p>
+              <p className="mt-2 font-semibold text-slate-950">{siteSettings.supportEmail}</p>
             </div>
           </div>
 
@@ -167,8 +169,8 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
           </div>
           <p className="mt-5 text-sm text-slate-500">
             Supporto:{" "}
-            <a href="mailto:hello@bizkitai.it" className="font-semibold text-blue-700">
-              hello@bizkitai.it
+            <a href={`mailto:${siteSettings.supportEmail}`} className="font-semibold text-blue-700">
+              {siteSettings.supportEmail}
             </a>
           </p>
         </div>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { readSiteSettings } from "@/lib/site-settings";
 
 export const metadata: Metadata = {
   title: "Contatti",
@@ -6,7 +7,9 @@ export const metadata: Metadata = {
     "Contatta BizKit AI per richiedere nuovi verticali SaaS, kit digitali, partnership o informazioni commerciali.",
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const siteSettings = await readSiteSettings();
+
   return (
     <section className="section-shell pt-12 sm:pt-16">
       <div className="container-shell grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
@@ -24,9 +27,9 @@ export default function ContactPage() {
               Contatti diretti
             </p>
             <div className="mt-4 space-y-3 text-slate-700">
-              <p>Email: hello@bizkitai.it</p>
-              <p>Instagram: @bizkitai</p>
-              <p>Disponibilita: lun-ven, 9:00 - 18:00</p>
+              <p>Email: {siteSettings.contactEmail}</p>
+              <p>Instagram: {siteSettings.instagramHandle}</p>
+              <p>Disponibilita: {siteSettings.businessAvailability}</p>
             </div>
           </div>
         </div>
