@@ -201,6 +201,12 @@ create policy "Generated contents insert owned by user"
 on public.generated_contents for insert
 with check (auth.uid() = user_id);
 
+drop policy if exists "Generated contents update owned by user" on public.generated_contents;
+create policy "Generated contents update owned by user"
+on public.generated_contents for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
 drop policy if exists "Business profiles owned by user" on public.business_profiles;
 create policy "Business profiles owned by user"
 on public.business_profiles for select

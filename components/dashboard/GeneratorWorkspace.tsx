@@ -32,6 +32,7 @@ export function GeneratorWorkspace({
   const [input, setInput] = useState("");
   const [result, setResult] = useState("");
   const [generationId, setGenerationId] = useState<string | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
   const [saveTitle, setSaveTitle] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -64,6 +65,7 @@ export function GeneratorWorkspace({
 
       setResult(data.result);
       setGenerationId(data.generationId ?? null);
+      setIsSaved(false);
       setSaveTitle("");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Errore durante la generazione.");
@@ -100,12 +102,17 @@ export function GeneratorWorkspace({
         }),
       });
 
-      const data = (await response.json()) as { error?: string; success?: boolean };
+      const data = (await response.json()) as {
+        error?: string;
+        success?: boolean;
+        alreadySaved?: boolean;
+      };
       if (!response.ok || !data.success) {
         throw new Error(data.error ?? "Salvataggio non riuscito.");
       }
 
-      setMessage("Contenuto salvato nella libreria.");
+      setIsSaved(true);
+      setMessage(data.alreadySaved ? "Contenuto gia presente in libreria." : "Contenuto salvato nella libreria.");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Errore durante il salvataggio.");
     } finally {
@@ -178,10 +185,10 @@ export function GeneratorWorkspace({
           <button
             type="button"
             onClick={handleSave}
-            disabled={!result || isSaving || !enabled}
+            disabled={!result || isSaving || !enabled || isSaved}
             className="button-secondary disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {isSaving ? "Salvataggio..." : "Salva contenuto"}
+            {isSaving ? "Salvataggio..." : isSaved ? "Salvato" : "Salva contenuto"}
           </button>
         </div>
         {message ? (
