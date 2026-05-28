@@ -228,8 +228,8 @@ export function GeneratorWorkspace({
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-      <div className="space-y-6">
+    <div className="grid gap-6 2xl:grid-cols-[minmax(0,0.95fr)_minmax(30rem,1.05fr)]">
+      <div className="space-y-6 min-w-0">
         <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
           <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-blue-600/10 via-cyan-400/10 to-transparent" />
           <div className="relative">
@@ -344,7 +344,7 @@ export function GeneratorWorkspace({
         </form>
       </div>
 
-      <div className="space-y-6">
+      <div className="min-w-0 space-y-6">
         <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
           <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-slate-950 via-slate-900 to-blue-900" />
           <div className="relative">
@@ -368,8 +368,8 @@ export function GeneratorWorkspace({
                   <div className="h-36 rounded-[1.5rem] bg-white" />
                 </div>
               ) : variants.length > 0 && activeVariant ? (
-                <div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap gap-2">
                     {variants.map((variant) => {
                       const active = variant.id === activeVariant.id;
                       return (
@@ -388,7 +388,7 @@ export function GeneratorWorkspace({
                       );
                     })}
                   </div>
-                  <div className="mt-4 rounded-[1.5rem] border border-slate-200 bg-white p-5">
+                  <div className="mt-4 min-w-0 rounded-[1.5rem] border border-slate-200 bg-white p-5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p className="text-lg font-bold text-slate-950">{activeVariant.label}</p>
@@ -398,13 +398,13 @@ export function GeneratorWorkspace({
                         {activeVariant.content.split(/\s+/).filter(Boolean).length} parole
                       </span>
                     </div>
-                    <pre className="mt-5 whitespace-pre-wrap font-sans text-sm leading-7 text-slate-700">
+                    <pre className="mt-5 overflow-x-auto whitespace-pre-wrap break-words font-sans text-sm leading-7 text-slate-700">
                       {activeVariant.content}
                     </pre>
                   </div>
                 </div>
               ) : rawResult ? (
-                <pre className="whitespace-pre-wrap font-sans text-sm leading-7 text-slate-700">
+                <pre className="overflow-x-auto whitespace-pre-wrap break-words font-sans text-sm leading-7 text-slate-700">
                   {rawResult}
                 </pre>
               ) : (
@@ -497,4 +497,3 @@ export function GeneratorWorkspace({
     </div>
   );
 }
-
