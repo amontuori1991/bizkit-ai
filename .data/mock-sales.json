@@ -1,0 +1,26 @@
+[
+  {
+    "id": "sale_001",
+    "customer": "Marco Bianchi",
+    "productSlug": "ai-kit-per-palestre",
+    "amount": 29,
+    "status": "paid",
+    "purchasedAt": "2026-05-20T09:30:00.000Z"
+  },
+  {
+    "id": "sale_002",
+    "customer": "Giulia Serra",
+    "productSlug": "ai-kit-per-palestre",
+    "amount": 29,
+    "status": "paid",
+    "purchasedAt": "2026-05-22T15:10:00.000Z"
+  },
+  {
+    "id": "sale_003",
+    "customer": "Luca Moretti",
+    "productSlug": "ai-kit-per-palestre",
+    "amount": 29,
+    "status": "pending",
+    "purchasedAt": "2026-05-27T11:45:00.000Z"
+  }
+]

@@ -1,0 +1,39 @@
+{
+  "name": "bizkit-ai",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build:kit": "node scripts/build-kit.js",
+    "check:env": "tsx scripts/check-env.ts",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json"
+  },
+  "dependencies": {
+    "@stripe/stripe-js": "7.3.1",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.106.2",
+    "adm-zip": "0.5.16",
+    "next": "15.5.18",
+    "openai": "^6.39.0",
+    "pdfkit": "0.17.2",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "stripe": "18.2.1",
+    "xlsx": "0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.30",
+    "@types/react": "19.1.6",
+    "@types/react-dom": "19.1.5",
+    "autoprefixer": "10.4.21",
+    "eslint": "9.28.0",
+    "eslint-config-next": "15.5.18",
+    "postcss": "8.5.4",
+    "tailwindcss": "3.4.13",
+    "tsx": "^4.22.3",
+    "typescript": "5.8.3"
+  }
+}

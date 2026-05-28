@@ -1,0 +1,21 @@
+<svg width="800" height="520" viewBox="0 0 800 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="520" rx="36" fill="#F8FBFF"/>
+  <rect x="24" y="24" width="752" height="472" rx="30" fill="url(#a)"/>
+  <circle cx="677" cy="111" r="90" fill="#BFDBFE" fill-opacity=".55"/>
+  <circle cx="150" cy="430" r="130" fill="#1D4ED8" fill-opacity=".13"/>
+  <rect x="70" y="74" width="178" height="42" rx="21" fill="#E0ECFF"/>
+  <text x="93" y="101" fill="#1D4ED8" font-family="Arial, sans-serif" font-size="18" font-weight="700">GUIDA PREMIUM</text>
+  <text x="70" y="190" fill="white" font-family="Arial, sans-serif" font-size="46" font-weight="700">AI Kit per Palestre</text>
+  <text x="70" y="246" fill="#DBEAFE" font-family="Arial, sans-serif" font-size="26" font-weight="400">Guida operativa, onboarding e piano d'uso</text>
+  <rect x="70" y="314" width="282" height="114" rx="24" fill="white" fill-opacity=".12"/>
+  <text x="98" y="360" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="700">Step-by-step</text>
+  <text x="98" y="397" fill="#DBEAFE" font-family="Arial, sans-serif" font-size="18">Setup, utilizzo e esempi pratici</text>
+  <text x="70" y="468" fill="#BFDBFE" font-family="Arial, sans-serif" font-size="18" font-weight="700">BizKit AI</text>
+  <defs>
+    <linearGradient id="a" x1="64" y1="40" x2="752" y2="480" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset=".52" stop-color="#1D4ED8"/>
+      <stop offset="1" stop-color="#60A5FA"/>
+    </linearGradient>
+  </defs>
+</svg>

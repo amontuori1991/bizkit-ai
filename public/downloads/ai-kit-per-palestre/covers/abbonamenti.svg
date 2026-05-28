@@ -1,0 +1,18 @@
+<svg width="800" height="520" viewBox="0 0 800 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="520" rx="36" fill="#F8FBFF"/>
+  <rect x="24" y="24" width="752" height="472" rx="30" fill="url(#a)"/>
+  <circle cx="654" cy="122" r="100" fill="#E0F2FE" fill-opacity=".35"/>
+  <text x="72" y="98" fill="#E0ECFF" font-family="Arial, sans-serif" font-size="18" font-weight="700">SUBSCRIPTION TRACKER</text>
+  <text x="72" y="188" fill="white" font-family="Arial, sans-serif" font-size="46" font-weight="700">Gestione Abbonamenti</text>
+  <text x="72" y="244" fill="#DBEAFE" font-family="Arial, sans-serif" font-size="26">Monitoraggio scadenze, pagamenti e piani</text>
+  <rect x="72" y="318" width="320" height="112" rx="24" fill="white" fill-opacity=".12"/>
+  <text x="100" y="364" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="700">Sheet operativo</text>
+  <text x="100" y="400" fill="#DBEAFE" font-family="Arial, sans-serif" font-size="18">Pronto da importare o duplicare online</text>
+  <defs>
+    <linearGradient id="a" x1="24" y1="24" x2="776" y2="496" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#172554"/>
+      <stop offset=".54" stop-color="#1E40AF"/>
+      <stop offset="1" stop-color="#60A5FA"/>
+    </linearGradient>
+  </defs>
+</svg>

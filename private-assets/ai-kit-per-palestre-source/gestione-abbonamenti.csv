@@ -1,0 +1,11 @@
+Cliente,Piano,Prezzo,Data inizio,Data fine,Pagato,Metodo pagamento,Note
+Mario Rossi,Mensile,59,2026-05-01,2026-05-31,Si,Carta,Rinnovo possibile con PT
+Giulia Bianchi,Trimestrale,159,2026-04-15,2026-07-15,Si,Bonifico,Valutare rinnovo anticipato
+Luca Verdi,Prova 7 giorni,0,2026-05-20,2026-05-27,Si,Promo interna,Follow-up commerciale
+Sara Neri,Mensile,59,2026-03-10,2026-04-10,Si,Contanti,Cliente fermo da riattivare
+Elena Gallo,Semestrale,299,2026-02-01,2026-08-01,Si,Carta,Possibile upsell PT
+Andrea Fontana,PT 10 sessioni,350,2026-05-05,2026-07-05,Parziale,Bonifico,Saldo da completare
+Chiara Greco,Mensile,59,2026-05-12,2026-06-12,Si,Carta,Inviare proposta rinnovo
+Matteo Riva,Trimestrale,159,2026-01-20,2026-04-20,Si,Carta,Scaduto senza rinnovo
+Laura Conti,Prova gratuita,0,2026-05-18,2026-05-25,Si,Promo lead,Da convertire in mensile
+Davide Moretti,Annuale,599,2026-01-01,2026-12-31,Si,Bonifico,Cliente ambassador

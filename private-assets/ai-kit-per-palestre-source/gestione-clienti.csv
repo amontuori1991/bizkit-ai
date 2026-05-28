@@ -1,0 +1,11 @@
+Nome,Telefono,Email,Tipo abbonamento,Data iscrizione,Scadenza,Stato,Note
+Mario Rossi,3331112233,mario.rossi@email.it,Mensile,2026-05-01,2026-05-31,Attivo,Interessato a PT
+Giulia Bianchi,3331112234,giulia.bianchi@email.it,Trimestrale,2026-04-15,2026-07-15,Attivo,Preferisce fascia serale
+Luca Verdi,3331112235,luca.verdi@email.it,Prova 7 giorni,2026-05-20,2026-05-27,Da convertire,Follow-up entro 48h
+Sara Neri,3331112236,sara.neri@email.it,Mensile,2026-03-10,2026-04-10,Inattivo,Da ricontattare
+Elena Gallo,3331112237,elena.gallo@email.it,Semestrale,2026-02-01,2026-08-01,Attivo,Interesse lezione gruppo
+Andrea Fontana,3331112238,andrea.fontana@email.it,PT 10 sessioni,2026-05-05,2026-07-05,Attivo,Vuole focus dimagrimento
+Chiara Greco,3331112239,chiara.greco@email.it,Mensile,2026-05-12,2026-06-12,Attivo,Nuova iscritta
+Matteo Riva,3331112240,matteo.riva@email.it,Trimestrale,2026-01-20,2026-04-20,Scaduto,Valutare promo rientro
+Laura Conti,3331112241,laura.conti@email.it,Prova gratuita,2026-05-18,2026-05-25,Lead caldo,Ha chiesto info prezzi
+Davide Moretti,3331112242,davide.moretti@email.it,Annuale,2026-01-01,2026-12-31,Attivo,Cliente fidelizzato
