@@ -5,6 +5,7 @@ type DashboardIconName =
   | "promo"
   | "crm"
   | "message"
+  | "calendar"
   | "history"
   | "settings"
   | "billing"
@@ -63,6 +64,19 @@ export function DashboardIcon({ name, className = "h-5 w-5" }: DashboardIconProp
         <path d="M4 6h16v10H8l-4 4V6z" />
         <path d="M8 10h8" />
         <path d="M8 13h5" />
+      </>
+    ),
+    calendar: (
+      <>
+        <rect x="3" y="5" width="18" height="16" rx="3" />
+        <path d="M8 3v4" />
+        <path d="M16 3v4" />
+        <path d="M3 10h18" />
+        <path d="M8 14h.01" />
+        <path d="M12 14h.01" />
+        <path d="M16 14h.01" />
+        <path d="M8 18h.01" />
+        <path d="M12 18h.01" />
       </>
     ),
     history: (

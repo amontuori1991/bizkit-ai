@@ -160,7 +160,7 @@ export function GeneratorWorkspace({
 
       if (data.usage) {
         setMessage(
-          `Generazione completata. Piano ${data.usage.planId}: ${data.usage.usedToday}/${data.usage.dailyLimit} usi oggi. Rimangono ${data.usage.remainingToday}.`,
+          `Generazione completata. Piano ${data.usage.planId}: ${data.usage.usedToday}/${data.usage.dailyLimit} crediti AI usati oggi. Ne restano ${data.usage.remainingToday}.`,
         );
       } else if (endpoint.includes("/demo")) {
         setMessage("Demo completata. Hai sbloccato le 3 varianti gratuite di questo prompt.");
@@ -593,4 +593,3 @@ export function GeneratorWorkspace({
     </div>
   );
 }
-

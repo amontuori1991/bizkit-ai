@@ -180,6 +180,16 @@ create table if not exists public.saved_contents (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.content_calendars (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  business_type text,
+  title text not null,
+  period_days integer not null,
+  calendar_json jsonb not null,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
 create table if not exists public.subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -229,6 +239,7 @@ alter table public.ai_request_logs enable row level security;
 alter table public.business_profiles enable row level security;
 alter table public.clients enable row level security;
 alter table public.saved_contents enable row level security;
+alter table public.content_calendars enable row level security;
 alter table public.customers enable row level security;
 alter table public.subscriptions enable row level security;
 
@@ -347,6 +358,16 @@ using (auth.uid() = user_id);
 drop policy if exists "Saved contents insert owned by user" on public.saved_contents;
 create policy "Saved contents insert owned by user"
 on public.saved_contents for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Content calendars owned by user" on public.content_calendars;
+create policy "Content calendars owned by user"
+on public.content_calendars for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Content calendars insert owned by user" on public.content_calendars;
+create policy "Content calendars insert owned by user"
+on public.content_calendars for insert
 with check (auth.uid() = user_id);
 
 drop policy if exists "Customers owned by user" on public.customers;

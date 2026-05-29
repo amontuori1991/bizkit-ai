@@ -4,6 +4,11 @@ import { buildGenerationSystemPrompt, type BusinessProfile } from "@/lib/busines
 import { type AIContentType } from "@/lib/business-verticals";
 import { isOpenAIConfigured } from "@/lib/env";
 import { getOpenAIClient, getOpenAIModel } from "@/lib/openai";
+import {
+  buildCalendarSystemPrompt,
+  parseSocialCalendarResponse,
+  type SocialCalendarDays,
+} from "@/lib/social-calendar";
 
 const DEMO_COOKIE = "bizkit_ai_demo_used";
 
@@ -82,18 +87,15 @@ export async function POST(request: NextRequest) {
       prompt?: string;
       vertical?: DemoVertical;
       businessType?: string;
+      mode?: "content" | "calendar";
+      days?: SocialCalendarDays;
+      objective?: string;
     };
 
-    if (!body.type) {
-      return NextResponse.json({ error: "Tipo di generazione non valido." }, { status: 400 });
-    }
-
-    if (!body.prompt?.trim()) {
-      return NextResponse.json({ error: "Prompt obbligatorio." }, { status: 400 });
-    }
-
     const vertical =
-      body.vertical === "hair" || body.businessType?.startsWith("hair") || body.type.startsWith("hair_")
+      body.vertical === "hair" ||
+      body.businessType?.startsWith("hair") ||
+      body.type?.startsWith("hair_")
         ? "hair"
         : "gym";
     const profile = buildDemoProfile(vertical);
@@ -105,30 +107,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await client.responses.create({
-      model: getOpenAIModel(),
-      input: [
-        {
-          role: "system",
-          content: [{ type: "input_text", text: buildGenerationSystemPrompt(body.type, profile) }],
-        },
-        {
-          role: "user",
-          content: [{ type: "input_text", text: body.prompt.trim() }],
-        },
-      ],
-    });
-
-    const result = response.output_text?.trim();
-    if (!result) {
-      return NextResponse.json({ error: "Nessun contenuto generato." }, { status: 500 });
-    }
-
-    const payload = NextResponse.json({
-      result,
-      variants: parseOutputVariants(result),
-      demo: true,
-    });
+    const payload =
+      body.mode === "calendar"
+        ? await handleDemoCalendar(client, profile, body.objective, body.days ?? 7)
+        : await handleDemoContent(client, body.type, body.prompt, profile);
 
     payload.cookies.set({
       name: DEMO_COOKIE,
@@ -145,4 +127,79 @@ export async function POST(request: NextRequest) {
     console.error("AI demo generation error:", error);
     return NextResponse.json({ error: "Errore durante la demo AI." }, { status: 500 });
   }
+}
+
+async function handleDemoContent(
+  client: NonNullable<ReturnType<typeof getOpenAIClient>>,
+  type: AIContentType | undefined,
+  prompt: string | undefined,
+  profile: BusinessProfile,
+) {
+  if (!type) {
+    return NextResponse.json({ error: "Tipo di generazione non valido." }, { status: 400 });
+  }
+
+  if (!prompt?.trim()) {
+    return NextResponse.json({ error: "Prompt obbligatorio." }, { status: 400 });
+  }
+
+  const response = await client.responses.create({
+    model: getOpenAIModel(),
+    input: [
+      {
+        role: "system",
+        content: [{ type: "input_text", text: buildGenerationSystemPrompt(type, profile) }],
+      },
+      {
+        role: "user",
+        content: [{ type: "input_text", text: prompt.trim() }],
+      },
+    ],
+  });
+
+  const result = response.output_text?.trim();
+  if (!result) {
+    return NextResponse.json({ error: "Nessun contenuto generato." }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    result,
+    variants: parseOutputVariants(result),
+    demo: true,
+  });
+}
+
+async function handleDemoCalendar(
+  client: NonNullable<ReturnType<typeof getOpenAIClient>>,
+  profile: BusinessProfile,
+  objective: string | undefined,
+  days: SocialCalendarDays,
+) {
+  if (!objective?.trim()) {
+    return NextResponse.json({ error: "Obiettivo obbligatorio." }, { status: 400 });
+  }
+
+  const response = await client.responses.create({
+    model: getOpenAIModel(),
+    input: [
+      {
+        role: "system",
+        content: [{ type: "input_text", text: buildCalendarSystemPrompt(profile, days, objective.trim()) }],
+      },
+      {
+        role: "user",
+        content: [{ type: "input_text", text: `Genera un mini calendario di ${days} giorni con focus su: ${objective.trim()}.` }],
+      },
+    ],
+  });
+
+  const result = response.output_text?.trim();
+  if (!result) {
+    return NextResponse.json({ error: "Nessun calendario generato." }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    calendar: parseSocialCalendarResponse(result),
+    demo: true,
+  });
 }

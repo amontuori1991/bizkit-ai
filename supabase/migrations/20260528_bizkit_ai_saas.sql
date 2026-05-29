@@ -129,6 +129,16 @@ create table if not exists public.saved_contents (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.content_calendars (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  business_type text,
+  title text not null,
+  period_days integer not null,
+  calendar_json jsonb not null,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -166,6 +176,7 @@ alter table public.ai_request_logs enable row level security;
 alter table public.business_profiles enable row level security;
 alter table public.site_settings enable row level security;
 alter table public.saved_contents enable row level security;
+alter table public.content_calendars enable row level security;
 alter table public.subscriptions enable row level security;
 
 drop policy if exists "profiles select own" on public.profiles;
@@ -202,6 +213,10 @@ create policy "site settings deny public read" on public.site_settings
 
 drop policy if exists "saved contents all own" on public.saved_contents;
 create policy "saved contents all own" on public.saved_contents
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "content calendars all own" on public.content_calendars;
+create policy "content calendars all own" on public.content_calendars
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 drop policy if exists "subscriptions select own" on public.subscriptions;

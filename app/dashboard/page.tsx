@@ -15,6 +15,7 @@ export default async function DashboardPage() {
     { count: generatedCount },
     { count: savedCount },
     { data: usageToday },
+    { count: calendarsCount },
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     supabase.from("business_profiles").select("*").eq("user_id", user.id).maybeSingle(),
@@ -27,6 +28,7 @@ export default async function DashboardPage() {
       .eq("user_id", user.id)
       .eq("usage_date", usageDate)
       .maybeSingle(),
+    supabase.from("content_calendars").select("*", { count: "exact", head: true }).eq("user_id", user.id),
   ]);
 
   const aiPlan = normalizeAIPlanId(profile?.subscription_tier);
@@ -52,6 +54,11 @@ export default async function DashboardPage() {
       label: "Aggiungi il primo cliente CRM",
       done: (clientsCount || 0) > 0,
       href: "/dashboard/crm",
+    },
+    {
+      label: "Genera il primo social calendar",
+      done: (calendarsCount || 0) > 0,
+      href: "/dashboard/social-calendar",
     },
   ];
 
@@ -86,7 +93,7 @@ export default async function DashboardPage() {
           <div className="grid gap-4 px-6 py-6 sm:grid-cols-3 sm:px-8">
             {[
               { title: "Piano attivo", value: aiPlan.toUpperCase(), helper: "tier AI e limiti operativi" },
-              { title: "Uso oggi", value: usageToday?.generation_count || 0, helper: `${usageToday?.total_tokens || 0} token consumati` },
+              { title: "Crediti oggi", value: usageToday?.generation_count || 0, helper: `${usageToday?.total_tokens || 0} token consumati` },
               { title: "Stato setup", value: businessReady ? "Pronto" : "Da completare", helper: "profilo business e onboarding" },
             ].map((item) => (
               <div key={item.title} className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
@@ -139,6 +146,7 @@ export default async function DashboardPage() {
           { label: "Clienti CRM", value: clientsCount || 0, helper: "lead e clienti gestiti" },
           { label: "Generazioni AI", value: generatedCount || 0, helper: "storico completo" },
           { label: "Contenuti salvati", value: savedCount || 0, helper: "libreria riutilizzabile" },
+          { label: "Calendari salvati", value: calendarsCount || 0, helper: "piani editoriali pronti" },
           { label: "Business Profile", value: businessReady ? "OK" : "Pending", helper: "contesto automatico AI" },
         ].map((item) => (
           <div key={item.label} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
@@ -174,6 +182,12 @@ export default async function DashboardPage() {
             copy: "Attiva la verticale parrucchieri con caption, Reel, promo e messaggi clienti orientati a booking.",
             href: "/dashboard/hair-captions",
             icon: "caption" as const,
+          },
+          {
+            title: "Social Calendar",
+            copy: "Pianifica 7, 14 o 30 giorni di contenuti e organizza caption, Reel, Story e TikTok in un calendario completo.",
+            href: "/dashboard/social-calendar",
+            icon: "calendar" as const,
           },
         ].map((item) => (
           <Link key={item.title} href={item.href} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft transition hover:-translate-y-0.5 hover:border-blue-300">

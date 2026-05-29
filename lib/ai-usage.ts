@@ -95,6 +95,7 @@ export async function checkAIUsageAccess(
   userId: string,
   planId: AIPlanId,
   ipHash: string,
+  costUnits = 1,
 ) {
   const limit = AI_LIMITS[planId];
   const usageDate = getCurrentUsageDate();
@@ -123,11 +124,11 @@ export async function checkAIUsageAccess(
   const usageToday = usageRow?.generation_count ?? 0;
   const remainingToday = Math.max(0, limit.dailyGenerations - usageToday);
 
-  if (usageToday >= limit.dailyGenerations) {
+  if (usageToday + costUnits > limit.dailyGenerations) {
     return {
       allowed: false,
       reason: "daily_limit",
-      message: `Hai raggiunto il limite giornaliero del piano ${planId}: ${limit.dailyGenerations} generazioni oggi.`,
+      message: `Hai raggiunto il limite giornaliero del piano ${planId}: ${limit.dailyGenerations} crediti AI oggi.`,
       planId,
       limit,
       usageToday,
@@ -215,12 +216,14 @@ export async function incrementAIUsageDaily(
   input: {
     userId: string;
     planId: AIPlanId;
+    costUnits?: number;
     inputTokens: number;
     outputTokens: number;
     totalTokens: number;
   },
 ) {
   const usageDate = getCurrentUsageDate();
+  const costUnits = input.costUnits ?? 1;
   const { data: existingRow, error: selectError } = await supabase
     .from("ai_usage_daily")
     .select("*")
@@ -237,7 +240,7 @@ export async function incrementAIUsageDaily(
       user_id: input.userId,
       usage_date: usageDate,
       plan_id: input.planId,
-      generation_count: 1,
+      generation_count: costUnits,
       input_tokens: input.inputTokens,
       output_tokens: input.outputTokens,
       total_tokens: input.totalTokens,
@@ -250,12 +253,12 @@ export async function incrementAIUsageDaily(
 
     return {
       usageDate,
-      generationCount: 1,
+      generationCount: costUnits,
       dailyLimit: AI_LIMITS[input.planId].dailyGenerations,
     };
   }
 
-  const nextGenerationCount = (existingRow.generation_count ?? 0) + 1;
+  const nextGenerationCount = (existingRow.generation_count ?? 0) + costUnits;
   const { error: updateError } = await supabase
     .from("ai_usage_daily")
     .update({

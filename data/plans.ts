@@ -26,10 +26,11 @@ export const plans: Plan[] = [
     seats: "1 utente",
     audience: "Freelance, PT e studi fitness",
     ctaLabel: "Inizia con Starter",
-    usageLimitLabel: "Fino a 100 generazioni AI al giorno",
+    usageLimitLabel: "Fino a 100 crediti AI al giorno",
     features: [
       "Generatori AI verticali per fitness e hair/beauty con 3 varianti",
       "Business Profile AI Context",
+      "Social Calendar Generator da 7, 14 e 30 giorni",
       "CRM clienti essenziale",
       "Cronologia generazioni",
       "Salvataggio contenuti",
@@ -47,11 +48,12 @@ export const plans: Plan[] = [
     audience: "Palestre strutturate e team marketing",
     ctaLabel: "Passa a Pro",
     highlight: true,
-    usageLimitLabel: "Fino a 100 generazioni AI al giorno con priorita Pro",
+    usageLimitLabel: "Fino a 100 crediti AI al giorno con priorita Pro",
     features: [
       "Tutto in Starter",
       "Workspace premium con onboarding guidato",
       "Template e libreria piu organizzati",
+      "Calendari editoriali con storico dedicato",
       "Messaggi clienti, Reel e promo automatiche",
       "Priorita per nuovi template",
       "Esperienza ottimizzata per team piccoli",
@@ -67,11 +69,12 @@ export const plans: Plan[] = [
     seats: "10 utenti",
     audience: "Agenzie e consulenti multi-cliente",
     ctaLabel: "Sblocca Agency",
-    usageLimitLabel: "Fino a 500 generazioni AI al giorno",
+    usageLimitLabel: "Fino a 500 crediti AI al giorno",
     features: [
       "Tutto in Pro",
       "Workflow per piu clienti",
       "Setup per team e collaboratori",
+      "Pianificazione contenuti ad alto volume",
       "Base ideale per scalare verticali",
       "Maggiore throughput per uso operativo intenso",
     ],
@@ -80,7 +83,7 @@ export const plans: Plan[] = [
 
 export const planMatrix = [
   {
-    label: "Generazioni AI giornaliere",
+    label: "Crediti AI giornalieri",
     values: { starter: "100", pro: "100", agency: "500" },
   },
   {
@@ -101,6 +104,10 @@ export const planMatrix = [
   },
   {
     label: "Cronologia e contenuti salvati",
+    values: { starter: "Si", pro: "Si", agency: "Si" },
+  },
+  {
+    label: "Social Calendar Generator",
     values: { starter: "Si", pro: "Si", agency: "Si" },
   },
   {

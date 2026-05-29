@@ -14,6 +14,8 @@ const navItems = [
   { href: "/dashboard/hair-reels", label: "Hair Reels", icon: "reel" },
   { href: "/dashboard/hair-promos", label: "Hair Promos", icon: "promo" },
   { href: "/dashboard/hair-client-messages", label: "Hair Messages", icon: "message" },
+  { href: "/dashboard/social-calendar", label: "Social Calendar", icon: "calendar" },
+  { href: "/dashboard/calendars", label: "Calendars", icon: "history" },
   { href: "/dashboard/crm", label: "CRM", icon: "crm" },
   { href: "/dashboard/history", label: "Cronologia", icon: "history" },
   { href: "/dashboard/settings/business-profile", label: "Business Profile", icon: "settings" },
