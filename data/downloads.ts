@@ -10,6 +10,11 @@ export type DownloadFile = {
   metrics: string[];
 };
 
+export type ProductDownloadBundle = {
+  files: DownloadFile[];
+  zipFileName: string;
+};
+
 export const gymKitDownloads: DownloadFile[] = [
   {
     id: "guide",
@@ -113,3 +118,85 @@ export const gymKitDownloads: DownloadFile[] = [
     metrics: ["Panoramica", "Come usare", "Workflow rapido"],
   },
 ];
+
+export const hairKitDownloads: DownloadFile[] = [
+  {
+    id: "prompts",
+    label: "80 prompt AI hair",
+    description: "Prompt pronti per caption, promo, TikTok hook e messaggi clienti per saloni e barber shop.",
+    fileName: "prompt-ai-parrucchieri.md",
+    type: "prompt",
+    coverHref: "/downloads/ai-kit-per-palestre/covers/prompt.svg",
+    badges: ["Ready to Use", "Markdown"],
+    metrics: ["80 prompt", "Beauty tone", "Booking oriented"],
+  },
+  {
+    id: "captions",
+    label: "30 caption Instagram beauty",
+    description: "Caption con hook, CTA e hashtag pensate per colore, taglio, piega e trasformazioni.",
+    fileName: "caption-instagram-parrucchieri.csv",
+    type: "sheet",
+    coverHref: "/downloads/ai-kit-per-palestre/covers/caption.svg",
+    badges: ["AI Powered", "CSV"],
+    metrics: ["30 caption", "CTA booking", "Beauty hashtags"],
+  },
+  {
+    id: "reels",
+    label: "20 idee Reel e TikTok",
+    description: "Hook e script rapidi per before/after, trend, promo stagionali e prova servizi.",
+    fileName: "idee-reel-parrucchieri.csv",
+    type: "sheet",
+    coverHref: "/downloads/ai-kit-per-palestre/covers/reel.svg",
+    badges: ["Social First", "CSV"],
+    metrics: ["20 Reel", "Hook virali", "TikTok ready"],
+  },
+  {
+    id: "messages",
+    label: "Messaggi clienti e reminder",
+    description: "Template WhatsApp pronti per reminder appuntamento, promo last minute e recupero clienti.",
+    fileName: "messaggi-clienti-parrucchieri.md",
+    type: "whatsapp",
+    coverHref: "/downloads/ai-kit-per-palestre/covers/whatsapp.svg",
+    badges: ["Ready to Use", "Markdown"],
+    metrics: ["Reminder", "Retention", "WhatsApp friendly"],
+  },
+  {
+    id: "offers",
+    label: "Promo parrucchieri pronte",
+    description: "Offerte per balayage, piega, barber fade, trattamenti e pacchetti colore orientati a conversione.",
+    fileName: "promo-parrucchieri.md",
+    type: "offer",
+    coverHref: "/downloads/ai-kit-per-palestre/covers/offerte.svg",
+    badges: ["Professional Toolkit", "Markdown"],
+    metrics: ["12 offerte", "Booking focus", "Adattabili"],
+  },
+  {
+    id: "readme",
+    label: "Guida rapida del kit",
+    description: "Come usare il pacchetto, quali generatori attivare e come trasformarlo in prenotazioni.",
+    fileName: "README.txt",
+    type: "guide",
+    coverHref: "/downloads/ai-kit-per-palestre/covers/readme.svg",
+    badges: ["Quick Start", "TXT"],
+    metrics: ["Workflow rapido", "Uso immediato", "Best practices"],
+  },
+];
+
+export const downloadsByProductSlug: Record<string, ProductDownloadBundle> = {
+  "ai-kit-per-palestre": {
+    files: gymKitDownloads,
+    zipFileName: "ai-kit-per-palestre.zip",
+  },
+  "ai-kit-per-parrucchieri": {
+    files: hairKitDownloads,
+    zipFileName: "ai-kit-per-parrucchieri.zip",
+  },
+};
+
+export function getDownloadsByProductSlug(slug?: string | null) {
+  if (!slug) {
+    return null;
+  }
+
+  return downloadsByProductSlug[slug] ?? null;
+}

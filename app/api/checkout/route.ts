@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isStripeCheckoutConfigured } from "@/lib/env";
-import { getStripeServer, STRIPE_PRODUCT } from "@/lib/stripe";
+import { getStripeProductBySlug, getStripeServer } from "@/lib/stripe";
 import { getRequestOrigin } from "@/lib/site";
 
 type CheckoutBody = {
@@ -22,7 +22,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Stripe non disponibile." }, { status: 503 });
     }
 
-    if (body.productSlug && body.productSlug !== STRIPE_PRODUCT.slug) {
+    const product = getStripeProductBySlug(body.productSlug);
+
+    if (!product) {
       return NextResponse.json({ error: "Prodotto non valido." }, { status: 400 });
     }
 
@@ -31,22 +33,22 @@ export async function POST(request: Request) {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/cancel`,
+      cancel_url: `${origin}/cancel?product=${product.slug}`,
       line_items: [
         {
           quantity: 1,
           price_data: {
-            currency: STRIPE_PRODUCT.currency,
-            unit_amount: STRIPE_PRODUCT.amount,
+            currency: product.currency,
+            unit_amount: product.amount,
             product_data: {
-              name: STRIPE_PRODUCT.name,
-              description: STRIPE_PRODUCT.description,
+              name: product.name,
+              description: product.description,
             },
           },
         },
       ],
       metadata: {
-        productSlug: STRIPE_PRODUCT.slug,
+        productSlug: product.slug,
       },
     });
 

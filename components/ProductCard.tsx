@@ -28,17 +28,31 @@ export function ProductCard({ product }: ProductCardProps) {
         </span>
       </div>
       <p className="mt-4 flex-1 leading-7 text-slate-600">{product.shortDescription}</p>
-      <div className="mt-6 flex items-center justify-between gap-4">
-        <div>
-          <p className="text-sm text-slate-500">Prezzo</p>
-          <p className="text-3xl font-bold text-slate-950">{product.price}</p>
+      <div className="mt-6 flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm text-slate-500">Prezzo</p>
+            <p className="text-3xl font-bold text-slate-950">{product.price}</p>
+          </div>
+          <Link
+            href={isAvailable ? `/prodotto/${product.slug}` : "/contatti"}
+            className={isAvailable ? "button-primary" : "button-secondary"}
+          >
+            {isAvailable ? "Dettagli" : "Richiedi"}
+          </Link>
         </div>
-        <Link
-          href={isAvailable ? `/prodotto/${product.slug}` : "/contatti"}
-          className={isAvailable ? "button-primary" : "button-secondary"}
-        >
-          {isAvailable ? "Dettagli" : "Richiedi"}
-        </Link>
+        {isAvailable ? (
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link href={`/checkout?product=${product.slug}`} className="button-secondary w-full sm:w-auto">
+              Acquista
+            </Link>
+            {product.demoHref ? (
+              <Link href={product.demoHref} className="button-secondary w-full sm:w-auto">
+                Prova demo
+              </Link>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </article>
   );

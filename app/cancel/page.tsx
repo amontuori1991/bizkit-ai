@@ -1,17 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { products } from "@/data/products";
 
 export const metadata: Metadata = {
   title: "Pagamento annullato",
   description:
-    "Il pagamento per AI Kit per Palestre e stato annullato. Torna al prodotto per riprovare il checkout.",
+    "Il pagamento del kit digitale e stato annullato. Torna al prodotto per riprovare il checkout.",
   robots: {
     index: false,
     follow: false,
   },
 };
 
-export default function CancelPage() {
+type CancelPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function CancelPage({ searchParams }: CancelPageProps) {
+  const params = searchParams ? await searchParams : {};
+  const rawProduct = params.product;
+  const productSlug = Array.isArray(rawProduct) ? rawProduct[0] : rawProduct;
+  const product = products.find((item) => item.slug === productSlug);
+
   return (
     <section className="section-shell pt-12 sm:pt-16">
       <div className="container-shell">
@@ -26,7 +36,7 @@ export default function CancelPage() {
             Hai interrotto il checkout prima della conferma. Puoi tornare alla pagina prodotto e
             riprovare quando vuoi.
           </p>
-          <Link href="/prodotto/ai-kit-per-palestre" className="button-primary mt-8">
+          <Link href={`/prodotto/${product?.slug ?? "ai-kit-per-palestre"}`} className="button-primary mt-8">
             Torna al prodotto
           </Link>
         </div>

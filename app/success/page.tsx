@@ -3,15 +3,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ProtectedDownloadButton } from "@/components/ProtectedDownloadButton";
 import { PurchaseTracker } from "@/components/PurchaseTracker";
-import { gymKitDownloads } from "@/data/downloads";
+import { getDownloadsByProductSlug } from "@/data/downloads";
 import { isStripeCheckoutConfigured } from "@/lib/env";
 import { readSiteSettings } from "@/lib/site-settings";
-import { getStripeServer, STRIPE_PRODUCT } from "@/lib/stripe";
+import { getStripeProductBySlug, getStripeServer } from "@/lib/stripe";
 
 export const metadata: Metadata = {
   title: "Pagamento completato",
   description:
-    "Conferma acquisto completato per AI Kit per Palestre con accesso protetto al download del kit.",
+    "Conferma acquisto completato con accesso protetto al download del kit digitale acquistato.",
   robots: {
     index: false,
     follow: false,
@@ -38,6 +38,8 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
     redirect("/checkout");
   }
 
+  let productSlug: string | null = null;
+
   try {
     const stripe = getStripeServer();
     if (!stripe) {
@@ -45,10 +47,19 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
     }
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-    if (session.payment_status !== "paid" || session.metadata?.productSlug !== STRIPE_PRODUCT.slug) {
+    productSlug = session.metadata?.productSlug ?? null;
+
+    if (session.payment_status !== "paid" || !productSlug) {
       redirect("/");
     }
   } catch {
+    redirect("/");
+  }
+
+  const stripeProduct = getStripeProductBySlug(productSlug);
+  const downloadBundle = getDownloadsByProductSlug(productSlug);
+
+  if (!stripeProduct || !downloadBundle) {
     redirect("/");
   }
 
@@ -56,10 +67,10 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
     <section className="section-shell pt-10 sm:pt-14">
       <PurchaseTracker
         sessionId={sessionId}
-        itemId={STRIPE_PRODUCT.slug}
-        itemName={STRIPE_PRODUCT.name}
-        category="Fitness"
-        price={29}
+        itemId={stripeProduct.slug}
+        itemName={stripeProduct.name}
+        category={stripeProduct.successCategory}
+        price={stripeProduct.amount / 100}
       />
       <div className="container-shell space-y-8">
         <div className="overflow-hidden rounded-[2rem] border border-emerald-100 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.96),_rgba(220,252,231,0.84)_28%,_rgba(15,23,42,0.04)_100%)] p-8 shadow-soft sm:p-10">
@@ -78,11 +89,13 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             <div className="rounded-2xl border border-white/60 bg-white/80 p-4">
               <p className="text-sm text-slate-500">Prodotto</p>
-              <p className="mt-2 font-semibold text-slate-950">{STRIPE_PRODUCT.name}</p>
+              <p className="mt-2 font-semibold text-slate-950">{stripeProduct.name}</p>
             </div>
             <div className="rounded-2xl border border-white/60 bg-white/80 p-4">
               <p className="text-sm text-slate-500">Importo pagato</p>
-              <p className="mt-2 font-semibold text-slate-950">29 EUR</p>
+              <p className="mt-2 font-semibold text-slate-950">
+                {(stripeProduct.amount / 100).toFixed(0)} EUR
+              </p>
             </div>
             <div className="rounded-2xl border border-white/60 bg-white/80 p-4">
               <p className="text-sm text-slate-500">Supporto</p>
@@ -105,7 +118,12 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                   stesso dominio.
                 </p>
               </div>
-              <ProtectedDownloadButton sessionId={sessionId} />
+              <ProtectedDownloadButton
+                sessionId={sessionId}
+                productSlug={stripeProduct.slug}
+                productName={stripeProduct.name}
+                assetName={downloadBundle.zipFileName}
+              />
             </div>
           </div>
         </div>
@@ -121,12 +139,12 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
               </h2>
             </div>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-600">
-              {gymKitDownloads.length} risorse premium
+              {downloadBundle.files.length} risorse premium
             </span>
           </div>
 
           <div className="mt-6 grid gap-4">
-            {gymKitDownloads.map((file) => (
+            {downloadBundle.files.map((file) => (
               <div
                 key={file.id}
                 className="flex flex-col gap-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between"
@@ -157,13 +175,14 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
           </p>
           <p className="mt-3 max-w-2xl leading-7 text-slate-600">
             Se vuoi trasformare il kit in un flusso continuativo, puoi anche passare alla
-            piattaforma SaaS BizKit AI con dashboard, generatori AI e CRM dedicato al fitness.
+            piattaforma SaaS BizKit AI con dashboard, generatori AI e CRM dedicato al tuo
+            business.
           </p>
           <div className="mt-5 flex flex-col gap-3 sm:flex-row">
             <Link href="/signup" className="button-primary">
               Prova la piattaforma
             </Link>
-            <Link href="/prodotto/ai-kit-per-palestre" className="button-secondary">
+            <Link href={`/prodotto/${stripeProduct.slug}`} className="button-secondary">
               Torna al prodotto
             </Link>
           </div>

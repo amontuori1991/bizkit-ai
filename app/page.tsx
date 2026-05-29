@@ -10,7 +10,7 @@ import { faqs, products } from "@/data/products";
 export const metadata: Metadata = {
   title: "Home",
   description:
-    "BizKit AI e la piattaforma SaaS per palestre che vogliono creare caption, Reel, promozioni e gestire clienti con l'AI in un unico workspace.",
+    "BizKit AI e la piattaforma SaaS per palestre e parrucchieri che vogliono creare caption, Reel, promozioni e gestire clienti con l'AI in un unico workspace.",
   alternates: {
     canonical: "/",
   },
@@ -20,12 +20,12 @@ const workflowSteps = [
   {
     title: "Attiva il tuo workspace",
     description:
-      "Registrati, scegli un piano e accedi a una dashboard pensata per piccole attivita fitness.",
+      "Registrati, scegli un piano e accedi a una dashboard pensata per business locali come palestre e saloni parrucchieri.",
   },
   {
     title: "Genera contenuti e promo",
     description:
-      "Crea caption, Reel e offerte commerciali con strumenti AI costruiti per palestre e personal trainer.",
+      "Crea caption, Reel e offerte commerciali con strumenti AI costruiti per fitness e verticali hair/beauty.",
   },
   {
     title: "Salva, organizza e ripeti",
@@ -76,15 +76,15 @@ export default function HomePage() {
         <div className="container-shell">
           <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div className="space-y-8">
-              <span className="eyebrow">AI workspace per palestre e business fitness</span>
+              <span className="eyebrow">AI workspace per palestre, parrucchieri e business locali</span>
               <div className="space-y-5">
                 <h1 className="max-w-4xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
                   Trasforma contenuti, promozioni e gestione clienti in un workflow AI semplice.
                 </h1>
                 <p className="max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
                   BizKit AI unisce generatori AI, dashboard operativa, CRM leggero e libreria
-                  contenuti in una piattaforma pensata per palestre, personal trainer e team
-                  fitness.
+                  contenuti in una piattaforma pensata per palestre, personal trainer, saloni
+                  parrucchieri e barber shop.
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row">
@@ -298,7 +298,7 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="grid gap-6 lg:grid-cols-3">
-            {products.slice(0, 3).map((product) => (
+            {products.filter((product) => product.status === "available").slice(0, 3).map((product) => (
               <ProductCard key={product.slug} product={product} />
             ))}
           </div>

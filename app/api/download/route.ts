@@ -1,8 +1,9 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
+import { getDownloadsByProductSlug } from "@/data/downloads";
 import { isStripeCheckoutConfigured } from "@/lib/env";
-import { getStripeServer, STRIPE_PRODUCT } from "@/lib/stripe";
+import { getStripeProductBySlug, getStripeServer } from "@/lib/stripe";
 
 function isAllowedOrigin(request: Request) {
   const requestUrl = new URL(request.url);
@@ -67,11 +68,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Pagamento non valido o non completato." }, { status: 403 });
     }
 
-    if (session.metadata?.productSlug !== STRIPE_PRODUCT.slug) {
+    const productSlug = session.metadata?.productSlug;
+    const product = getStripeProductBySlug(productSlug);
+    const bundle = getDownloadsByProductSlug(productSlug);
+
+    if (!product || !bundle) {
       return NextResponse.json({ error: "Sessione non associata al prodotto corretto." }, { status: 403 });
     }
 
-    const filePath = path.join(process.cwd(), "public", "downloads", "ai-kit-per-palestre.zip");
+    const filePath = path.join(process.cwd(), "public", "downloads", bundle.zipFileName);
     let fileBuffer: Buffer;
 
     try {
@@ -84,7 +89,7 @@ export async function GET(request: Request) {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
-        "Content-Disposition": 'attachment; filename="ai-kit-per-palestre.zip"',
+        "Content-Disposition": `attachment; filename="${bundle.zipFileName}"`,
         "Cache-Control": "private, no-store, no-cache, must-revalidate",
         "X-Content-Type-Options": "nosniff",
       },

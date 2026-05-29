@@ -5,9 +5,17 @@ import { trackDownload } from "@/lib/analytics";
 
 type ProtectedDownloadButtonProps = {
   sessionId: string;
+  productSlug: string;
+  productName: string;
+  assetName: string;
 };
 
-export function ProtectedDownloadButton({ sessionId }: ProtectedDownloadButtonProps) {
+export function ProtectedDownloadButton({
+  sessionId,
+  productSlug,
+  productName,
+  assetName,
+}: ProtectedDownloadButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
@@ -33,16 +41,16 @@ export function ProtectedDownloadButton({ sessionId }: ProtectedDownloadButtonPr
       const downloadUrl = window.URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = downloadUrl;
-      anchor.download = "ai-kit-per-palestre.zip";
+      anchor.download = assetName;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
       window.URL.revokeObjectURL(downloadUrl);
 
       trackDownload({
-        itemId: "ai-kit-per-palestre",
-        itemName: "AI Kit per Palestre",
-        assetName: "ai-kit-per-palestre.zip",
+        itemId: productSlug,
+        itemName: productName,
+        assetName,
       });
 
       setStatus("success");

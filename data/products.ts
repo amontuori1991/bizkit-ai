@@ -17,6 +17,7 @@ export type Product = {
   shortDescription: string;
   includes: string[];
   status: ProductStatus;
+  demoHref?: string;
 };
 
 export const products: Product[] = [
@@ -43,6 +44,7 @@ export const products: Product[] = [
       "Mini guida PDF all'uso",
     ],
     status: "available",
+    demoHref: "/demo?vertical=gym",
   },
   {
     id: "restaurant-kit-001",
@@ -66,11 +68,21 @@ export const products: Product[] = [
     niche: "parrucchieri",
     price: "29 EUR",
     description:
-      "Kit in preparazione per saloni e hairstylist che vogliono promuovere servizi, appuntamenti e offerte.",
+      "Un kit digitale operativo per saloni parrucchieri, barber shop e hair stylist che vogliono creare contenuti, promozioni, reminder appuntamenti e messaggi clienti con l'AI.",
     shortDescription:
-      "Una prossima uscita dedicata a contenuti, appuntamenti e promo per saloni.",
-    includes: ["Prompt promozioni", "Caption prima/dopo", "Template reminder", "Mini calendario"],
-    status: "coming-soon",
+      "Prompt, caption, Reel, promo e messaggi clienti per promuovere servizi hair e aumentare le prenotazioni.",
+    includes: [
+      "80 prompt AI per parrucchieri e barber shop",
+      "30 caption Instagram beauty/hair",
+      "20 idee Reel e TikTok hook",
+      "Template WhatsApp clienti e reminder",
+      "Promo pronte per colore, piega e trattamenti",
+      "Mini calendario contenuti per salone",
+      "Script prima/dopo e recensioni",
+      "Guida rapida all'uso del kit",
+    ],
+    status: "available",
+    demoHref: "/demo?vertical=hair",
   },
   {
     id: "beauty-kit-001",

@@ -7,7 +7,7 @@ import { isStripeCheckoutConfigured } from "@/lib/env";
 export const metadata: Metadata = {
   title: "Checkout",
   description:
-    "Completa l'acquisto di AI Kit per Palestre con Stripe Checkout in modo semplice e sicuro.",
+    "Completa l'acquisto del tuo AI Kit con Stripe Checkout in modo semplice e sicuro.",
   robots: {
     index: false,
     follow: false,
@@ -72,14 +72,17 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
               productSlug={product.slug}
               productName={product.name}
               category={product.category}
-              price={29}
+              price={Number.parseInt(product.price, 10) || 29}
               disabled={!stripeConfigured}
               disabledMessage="Configura NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY e STRIPE_SECRET_KEY per attivare il checkout."
             />
           </div>
 
           <div className="mt-4">
-            <Link href="/prodotto/ai-kit-per-palestre" className="text-sm font-semibold text-blue-700 hover:text-blue-800">
+            <Link
+              href={`/prodotto/${product.slug}`}
+              className="text-sm font-semibold text-blue-700 hover:text-blue-800"
+            >
               Torna al prodotto
             </Link>
           </div>

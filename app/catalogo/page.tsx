@@ -19,8 +19,9 @@ export default function CatalogPage() {
             Kit e verticali pensati per nicchie specifiche
           </h1>
           <p className="max-w-3xl text-lg leading-8 text-slate-600">
-            Il primo kit e disponibile ora. Le prossime nicchie hanno gia una struttura pronta,
-            cosi puoi ampliare il catalogo e trasformarlo in nuovi moduli o offerte per il SaaS.
+            I kit per palestre e parrucchieri sono gia disponibili. Le prossime nicchie hanno una
+            struttura pronta, cosi puoi ampliare il catalogo e trasformarlo in nuovi moduli o
+            offerte per il SaaS.
           </p>
         </div>
       </section>
