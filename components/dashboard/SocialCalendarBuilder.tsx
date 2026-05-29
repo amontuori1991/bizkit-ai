@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { DashboardIcon } from "@/components/dashboard/DashboardIcon";
+import { FloatingFeedback } from "@/components/ui/FloatingFeedback";
 import { trackEvent } from "@/lib/analytics";
 import type { BusinessProfile } from "@/lib/business-profile";
 import {
@@ -81,6 +82,8 @@ export function SocialCalendarBuilder({
   const [generatedRows, setGeneratedRows] = useState<Record<number, GeneratedRowState>>({});
 
   const vertical = inferCalendarVertical(profile);
+  const clearMessage = useCallback(() => setMessage(null), []);
+  const clearError = useCallback(() => setErrorMessage(null), []);
 
   async function handleGenerate(event?: React.FormEvent<HTMLFormElement>) {
     event?.preventDefault();
@@ -394,6 +397,8 @@ export function SocialCalendarBuilder({
 
   return (
     <div className="space-y-6">
+      <FloatingFeedback type="success" message={message} onClose={clearMessage} />
+      <FloatingFeedback type="error" message={errorMessage} onClose={clearError} />
       <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
         <div className="flex flex-wrap items-center gap-3">
           <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
@@ -484,17 +489,6 @@ export function SocialCalendarBuilder({
           </p>
         ) : null}
       </form>
-
-      {message ? (
-        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          {message}
-        </p>
-      ) : null}
-      {errorMessage ? (
-        <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {errorMessage}
-        </p>
-      ) : null}
 
       {calendar ? (
         <div className="space-y-5">

@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { DashboardIcon } from "@/components/dashboard/DashboardIcon";
+import { FloatingFeedback } from "@/components/ui/FloatingFeedback";
 import { trackEvent } from "@/lib/analytics";
 import type { OutputVariant, OutputVariantId } from "@/lib/ai-output";
 import {
@@ -104,6 +105,9 @@ export function GeneratorWorkspace({
 
   const activeVariant =
     variants.find((item) => item.id === activeVariantId) ?? variants[0] ?? null;
+
+  const clearMessage = useCallback(() => setMessage(null), []);
+  const clearError = useCallback(() => setErrorMessage(null), []);
 
   async function handleGenerate(event?: React.FormEvent<HTMLFormElement>) {
     event?.preventDefault();
@@ -260,6 +264,8 @@ export function GeneratorWorkspace({
 
   return (
     <div className="grid gap-6 2xl:grid-cols-[minmax(0,0.95fr)_minmax(30rem,1.05fr)]">
+      <FloatingFeedback type="success" message={message} onClose={clearMessage} />
+      <FloatingFeedback type="error" message={errorMessage} onClose={clearError} />
       <div className="min-w-0 space-y-6">
         <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
           <div
@@ -578,17 +584,6 @@ export function GeneratorWorkspace({
             )}
           </div>
         </div>
-
-        {message ? (
-          <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {message}
-          </p>
-        ) : null}
-        {errorMessage ? (
-          <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {errorMessage}
-          </p>
-        ) : null}
       </div>
     </div>
   );
