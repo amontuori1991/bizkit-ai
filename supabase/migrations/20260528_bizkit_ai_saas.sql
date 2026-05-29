@@ -78,8 +78,21 @@ create table if not exists public.business_profiles (
   unique_selling_points text,
   preferred_cta text,
   preferred_hashtags text,
+  salon_specialties text,
+  booking_link text,
+  opening_hours text,
+  stylist_names text,
+  products_used text,
+  salon_style text,
   created_at timestamptz not null default now()
 );
+
+alter table public.business_profiles add column if not exists salon_specialties text;
+alter table public.business_profiles add column if not exists booking_link text;
+alter table public.business_profiles add column if not exists opening_hours text;
+alter table public.business_profiles add column if not exists stylist_names text;
+alter table public.business_profiles add column if not exists products_used text;
+alter table public.business_profiles add column if not exists salon_style text;
 
 create table if not exists public.site_settings (
   id text primary key,

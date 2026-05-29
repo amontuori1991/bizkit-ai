@@ -10,6 +10,10 @@ const navItems = [
   { href: "/dashboard/caption", label: "Caption AI", icon: "caption" },
   { href: "/dashboard/reels", label: "Reel AI", icon: "reel" },
   { href: "/dashboard/promos", label: "Promo AI", icon: "promo" },
+  { href: "/dashboard/hair-captions", label: "Hair Captions", icon: "caption" },
+  { href: "/dashboard/hair-reels", label: "Hair Reels", icon: "reel" },
+  { href: "/dashboard/hair-promos", label: "Hair Promos", icon: "promo" },
+  { href: "/dashboard/hair-client-messages", label: "Hair Messages", icon: "message" },
   { href: "/dashboard/crm", label: "CRM", icon: "crm" },
   { href: "/dashboard/history", label: "Cronologia", icon: "history" },
   { href: "/dashboard/settings/business-profile", label: "Business Profile", icon: "settings" },
@@ -72,7 +76,7 @@ export function DashboardShell({
               </div>
               <div>
                 <p className="text-lg font-bold tracking-tight">BizKit AI</p>
-                <p className={`text-sm ${subtle}`}>Notion x Stripe x Linear for fitness</p>
+                <p className={`text-sm ${subtle}`}>Notion x Stripe x Linear for local verticals</p>
               </div>
             </Link>
             <button type="button" onClick={toggleTheme} className="button-secondary px-4 py-2">
@@ -186,4 +190,3 @@ export function DashboardShell({
     </div>
   );
 }
-

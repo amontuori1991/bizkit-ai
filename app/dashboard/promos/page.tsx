@@ -28,6 +28,7 @@ export default async function PromosPage() {
         enabled={aiEnabled}
         disabledMessage="OpenAI non e configurato. Aggiungi OPENAI_API_KEY per attivare il generatore promo."
         profileReady={profileReady}
+        businessType={profile?.business_type ?? "gym"}
       />
     </DashboardShell>
   );

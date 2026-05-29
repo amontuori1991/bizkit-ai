@@ -28,12 +28,12 @@ export const plans: Plan[] = [
     ctaLabel: "Inizia con Starter",
     usageLimitLabel: "Fino a 100 generazioni AI al giorno",
     features: [
-      "Generatori AI per caption, Reel e promo con 3 varianti",
+      "Generatori AI verticali per fitness e hair/beauty con 3 varianti",
       "Business Profile AI Context",
       "CRM clienti essenziale",
       "Cronologia generazioni",
       "Salvataggio contenuti",
-      "Template rapidi per promo e open day",
+      "Template rapidi per promo, open day e booking",
     ],
   },
   {
@@ -52,6 +52,7 @@ export const plans: Plan[] = [
       "Tutto in Starter",
       "Workspace premium con onboarding guidato",
       "Template e libreria piu organizzati",
+      "Messaggi clienti, Reel e promo automatiche",
       "Priorita per nuovi template",
       "Esperienza ottimizzata per team piccoli",
     ],
@@ -91,6 +92,10 @@ export const planMatrix = [
     values: { starter: "Si", pro: "Si", agency: "Si" },
   },
   {
+    label: "Verticali contenuto AI",
+    values: { starter: "Fitness + Hair", pro: "Fitness + Hair", agency: "Multi business" },
+  },
+  {
     label: "CRM clienti",
     values: { starter: "Base", pro: "Avanzato light", agency: "Per team" },
   },
@@ -100,7 +105,11 @@ export const planMatrix = [
   },
   {
     label: "Template rapidi pronti",
-    values: { starter: "5", pro: "5 + onboarding", agency: "5 + onboarding" },
+    values: { starter: "Fitness + Hair", pro: "Fitness + Hair", agency: "Multi verticale" },
+  },
+  {
+    label: "Messaggi clienti e promo automatiche",
+    values: { starter: "Si", pro: "Si", agency: "Si" },
   },
   {
     label: "Ideale per",

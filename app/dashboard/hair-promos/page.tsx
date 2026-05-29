@@ -4,7 +4,7 @@ import { isBusinessProfileComplete, type BusinessProfile } from "@/lib/business-
 import { isOpenAIConfigured } from "@/lib/env";
 import { requireDashboardUser } from "@/lib/saas";
 
-export default async function ReelsPage() {
+export default async function HairPromosPage() {
   const { supabase, user } = await requireDashboardUser();
   const aiEnabled = isOpenAIConfigured();
   const { data: profile } = await supabase
@@ -16,20 +16,21 @@ export default async function ReelsPage() {
 
   return (
     <DashboardShell
-      title="Reel AI"
-      description="Crea idee Reel con hook iniziali, struttura e CTA per attirare lead locali e migliorare la comunicazione."
+      title="Hair Promos AI"
+      description="Lancia promo colore, piega, trattamenti e offerte last minute con stile beauty/fashion orientato a prenotazioni."
       userEmail={user.email ?? "utente"}
     >
       <GeneratorWorkspace
-        type="reel"
-        title="Generatore Reel"
-        helper="Scrivi solo il concept operativo del Reel. Il sistema usera automaticamente il Business Profile per target, tono, servizi e CTA."
-        placeholder="Esempio: Crea un Reel per spiegare come funziona la prima visita in palestra."
+        type="hair_promo"
+        title="Generatore promo parrucchieri"
+        helper="Scrivi solo la richiesta operativa breve. Il sistema usera stile salone, specialita, target, CTA e booking link dal Business Profile."
+        placeholder="Esempio: Crea una promo last minute per riempire due slot piega oggi pomeriggio."
         enabled={aiEnabled}
-        disabledMessage="OpenAI non e configurato. Aggiungi OPENAI_API_KEY per attivare il generatore Reel."
+        disabledMessage="OpenAI non e configurato. Aggiungi OPENAI_API_KEY per attivare il generatore hair promos."
         profileReady={profileReady}
-        businessType={profile?.business_type ?? "gym"}
+        businessType={profile?.business_type ?? "hair_salon"}
       />
     </DashboardShell>
   );
 }
+

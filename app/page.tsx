@@ -55,6 +55,11 @@ const workspaceFeatures = [
     description:
       "Gestisci lead e clienti dentro il prodotto, senza strumenti esterni per partire.",
   },
+  {
+    title: "Verticale Hair",
+    description:
+      "Generatori specializzati per saloni parrucchieri, barber shop e hair stylist con CTA orientate a booking.",
+  },
 ];
 
 const outcomes = [
@@ -175,13 +180,44 @@ export default function HomePage() {
               la piattaforma a ristoranti, saloni, beauty, real estate e hospitality.
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
             {workspaceFeatures.map((feature) => (
               <div key={feature.title} className="card-surface p-6">
                 <h3 className="text-xl font-semibold text-slate-950">{feature.title}</h3>
                 <p className="mt-3 leading-7 text-slate-600">{feature.description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section-shell">
+        <div className="container-shell">
+          <div className="mb-10 space-y-3">
+            <span className="eyebrow">Verticali attive</span>
+            <h2 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+              Perfetto per palestre e saloni parrucchieri
+            </h2>
+            <p className="max-w-3xl leading-7 text-slate-600">
+              La piattaforma ora supporta due flussi reali: fitness e hair/beauty. Ogni verticale
+              ha generatori, tone of voice, template rapidi e Business Profile intelligente.
+            </p>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="card-surface p-8">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">Fitness</p>
+              <h3 className="mt-4 text-2xl font-bold text-slate-950">Palestre e personal trainer</h3>
+              <p className="mt-3 leading-7 text-slate-600">
+                Caption, Reel, promo e CRM orientati a prove gratuite, open day, rinnovi e recupero clienti inattivi.
+              </p>
+            </div>
+            <div className="card-surface p-8">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-pink-600">Hair & Beauty</p>
+              <h3 className="mt-4 text-2xl font-bold text-slate-950">Saloni parrucchieri e barber shop</h3>
+              <p className="mt-3 leading-7 text-slate-600">
+                Caption Instagram, Reel, TikTok hook, promo colore/taglio e messaggi clienti orientati a booking e fidelizzazione.
+              </p>
+            </div>
           </div>
         </div>
       </section>

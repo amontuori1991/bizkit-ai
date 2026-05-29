@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DashboardIcon } from "@/components/dashboard/DashboardIcon";
+import { trackEvent } from "@/lib/analytics";
 import type { OutputVariant, OutputVariantId } from "@/lib/ai-output";
-
-type GeneratorType = "caption" | "reel" | "promo";
-
-type QuickTemplate = {
-  label: string;
-  prompt: string;
-};
+import {
+  getQuickTemplatesForType,
+  isHairBusinessType,
+  type AIContentType,
+  type QuickTemplate,
+} from "@/lib/business-verticals";
 
 type GeneratorWorkspaceProps = {
-  type: GeneratorType;
+  type: AIContentType;
   title: string;
   helper: string;
   placeholder: string;
@@ -24,6 +24,8 @@ type GeneratorWorkspaceProps = {
   onboardingTitle?: string;
   onboardingSteps?: string[];
   quickTemplates?: QuickTemplate[];
+  typeOptions?: Array<{ value: AIContentType; label: string }>;
+  businessType?: string | null;
 };
 
 type GenerateResponse = {
@@ -41,38 +43,14 @@ type GenerateResponse = {
   retryAfterSeconds?: number | null;
 };
 
-const defaultTemplates: Record<GeneratorType, QuickTemplate[]> = {
-  caption: [
-    { label: "Promo estate", prompt: "Scrivi una caption per lanciare una promo estate con iscrizione agevolata entro domenica." },
-    { label: "Open day", prompt: "Scrivi una caption per promuovere un open day con consulenza gratuita e visita guidata." },
-    { label: "Trasformazione cliente", prompt: "Scrivi una caption che racconti la trasformazione di un cliente in modo credibile e motivante." },
-    { label: "Prova gratuita", prompt: "Scrivi una caption per promuovere una prova gratuita di 7 giorni con CTA a DM o WhatsApp." },
-    { label: "Recupero inattivi", prompt: "Scrivi una caption per riattivare clienti inattivi con una promo rientro limitata." },
-  ],
-  reel: [
-    { label: "Promo estate", prompt: "Crea un Reel per annunciare una promo estate e spingere DM immediati." },
-    { label: "Open day", prompt: "Crea un Reel per invitare le persone a un open day con visita e prova guidata." },
-    { label: "Trasformazione cliente", prompt: "Crea un Reel storytelling su una trasformazione cliente prima/dopo." },
-    { label: "Prova gratuita", prompt: "Crea un Reel per promuovere la prova gratuita di 7 giorni." },
-    { label: "Recupero inattivi", prompt: "Crea un Reel per riportare in palestra clienti inattivi con una proposta semplice." },
-  ],
-  promo: [
-    { label: "Promo estate", prompt: "Crea una promo estate per nuovi iscritti con urgenza chiara e valore percepito alto." },
-    { label: "Open day", prompt: "Crea una promo open day con bonus iscrizione valido solo in giornata." },
-    { label: "Trasformazione cliente", prompt: "Crea una promo che usi il risultato di un cliente come leva di conversione." },
-    { label: "Prova gratuita", prompt: "Crea una promo commerciale per una prova gratuita di 7 giorni." },
-    { label: "Recupero inattivi", prompt: "Crea una promo win-back per clienti inattivi con messaggio caldo e deciso." },
-  ],
-};
-
 const outputLabels: Record<OutputVariantId, string> = {
   short: "Short",
   medium: "Medium",
   long: "Long",
 };
 
-function getDefaultVariant(input: GeneratorType): OutputVariantId {
-  if (input === "reel") {
+function getDefaultVariant(input: AIContentType): OutputVariantId {
+  if (input.includes("reel") || input.includes("tiktok")) {
     return "medium";
   }
 
@@ -96,6 +74,8 @@ export function GeneratorWorkspace({
     "Genera 3 varianti, copia la migliore e salva quella che vuoi riutilizzare.",
   ],
   quickTemplates,
+  typeOptions,
+  businessType,
 }: GeneratorWorkspaceProps) {
   const [input, setInput] = useState("");
   const [rawResult, setRawResult] = useState("");
@@ -108,8 +88,20 @@ export function GeneratorWorkspace({
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<AIContentType>(type);
+  const [lastTemplateLabel, setLastTemplateLabel] = useState<string | null>(null);
 
-  const templates = quickTemplates ?? defaultTemplates[type];
+  const inferredBusinessType = businessType ?? (selectedType.startsWith("hair_") ? "hair_salon" : "gym");
+  const isHairFlow = isHairBusinessType(inferredBusinessType) || selectedType.startsWith("hair_");
+
+  const templates = useMemo(() => {
+    if (quickTemplates && selectedType === type) {
+      return quickTemplates;
+    }
+
+    return getQuickTemplatesForType(selectedType);
+  }, [quickTemplates, selectedType, type]);
+
   const activeVariant =
     variants.find((item) => item.id === activeVariantId) ?? variants[0] ?? null;
 
@@ -128,10 +120,21 @@ export function GeneratorWorkspace({
     setMessage(null);
 
     try {
+      trackEvent("ai_generate_requested", {
+        business_type: inferredBusinessType,
+        generation_type: selectedType,
+        template_used: lastTemplateLabel ?? "custom",
+      });
+
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, prompt: input }),
+        body: JSON.stringify({
+          type: selectedType,
+          prompt: input,
+          businessType: inferredBusinessType,
+          templateLabel: lastTemplateLabel,
+        }),
       });
 
       const data = (await response.json()) as GenerateResponse;
@@ -141,10 +144,20 @@ export function GeneratorWorkspace({
 
       setRawResult(data.result);
       setVariants(data.variants ?? []);
-      setActiveVariantId((data.variants?.[0]?.id as OutputVariantId | undefined) ?? getDefaultVariant(type));
+      setActiveVariantId(
+        (data.variants?.[0]?.id as OutputVariantId | undefined) ?? getDefaultVariant(selectedType),
+      );
       setGenerationId(data.generationId ?? null);
       setIsSaved(false);
       setSaveTitle("");
+
+      trackEvent("ai_generate_completed", {
+        business_type: inferredBusinessType,
+        generation_type: selectedType,
+        template_used: lastTemplateLabel ?? "custom",
+        variant_count: data.variants?.length ?? 0,
+      });
+
       if (data.usage) {
         setMessage(
           `Generazione completata. Piano ${data.usage.planId}: ${data.usage.usedToday}/${data.usage.dailyLimit} usi oggi. Rimangono ${data.usage.remainingToday}.`,
@@ -180,7 +193,7 @@ export function GeneratorWorkspace({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type,
+          type: selectedType,
           title: saveTitle || `${title} - ${outputLabels[activeVariant.id]}`,
           content: activeVariant.content,
           generationId,
@@ -196,8 +209,16 @@ export function GeneratorWorkspace({
         throw new Error(data.error ?? "Salvataggio non riuscito.");
       }
 
+      trackEvent("ai_feature_used", {
+        feature_name: "save_content",
+        business_type: inferredBusinessType,
+        generation_type: selectedType,
+      });
+
       setIsSaved(true);
-      setMessage(data.alreadySaved ? "Contenuto gia presente in libreria." : "Contenuto salvato nella libreria.");
+      setMessage(
+        data.alreadySaved ? "Contenuto gia presente in libreria." : "Contenuto salvato nella libreria.",
+      );
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Errore durante il salvataggio.");
     } finally {
@@ -212,6 +233,11 @@ export function GeneratorWorkspace({
 
     try {
       await navigator.clipboard.writeText(activeVariant.content);
+      trackEvent("ai_feature_used", {
+        feature_name: "copy_output",
+        business_type: inferredBusinessType,
+        generation_type: selectedType,
+      });
       setMessage(`Versione ${activeVariant.label} copiata negli appunti.`);
     } catch {
       setErrorMessage("Impossibile copiare il contenuto negli appunti.");
@@ -223,18 +249,35 @@ export function GeneratorWorkspace({
       return;
     }
 
+    trackEvent("ai_feature_used", {
+      feature_name: "duplicate_output",
+      business_type: inferredBusinessType,
+      generation_type: selectedType,
+    });
     setInput(activeVariant.content);
     setMessage("Versione duplicata nel prompt per una nuova iterazione.");
   }
 
   return (
     <div className="grid gap-6 2xl:grid-cols-[minmax(0,0.95fr)_minmax(30rem,1.05fr)]">
-      <div className="space-y-6 min-w-0">
+      <div className="min-w-0 space-y-6">
         <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
-          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-blue-600/10 via-cyan-400/10 to-transparent" />
+          <div
+            className={`absolute inset-x-0 top-0 h-24 ${
+              isHairFlow
+                ? "bg-gradient-to-r from-pink-500/10 via-rose-300/10 to-transparent"
+                : "bg-gradient-to-r from-blue-600/10 via-cyan-400/10 to-transparent"
+            }`}
+          />
           <div className="relative">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
+              <span
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${
+                  isHairFlow
+                    ? "border border-pink-200 bg-pink-50 text-pink-700"
+                    : "border border-blue-200 bg-blue-50 text-blue-700"
+                }`}
+              >
                 <DashboardIcon name="spark" className="h-4 w-4" />
                 AI Composer
               </span>
@@ -250,7 +293,7 @@ export function GeneratorWorkspace({
             {!profileReady ? (
               <div className="mt-5 rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-700">
                 Il Business Profile non e ancora completo. Puoi generare comunque, ma per risultati piu
-                coerenti conviene compilare prima nome attivita, citta, tone of voice e target.
+                coerenti conviene compilare prima nome attivita, tipo business, citta, tone of voice e target.
               </div>
             ) : null}
           </div>
@@ -259,19 +302,58 @@ export function GeneratorWorkspace({
         <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Quick templates</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Quick templates
+              </p>
               <h3 className="mt-2 text-xl font-bold text-slate-950">Avvia da un caso reale</h3>
             </div>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-              5 prompt pronti
+              {templates.length} prompt pronti
             </span>
           </div>
+          {typeOptions?.length ? (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {typeOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    setSelectedType(option.value);
+                    setLastTemplateLabel(null);
+                    setMessage(null);
+                    setVariants([]);
+                    setRawResult("");
+                    trackEvent("ai_feature_used", {
+                      feature_name: "switch_generator_type",
+                      business_type: inferredBusinessType,
+                      generation_type: option.value,
+                    });
+                  }}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    selectedType === option.value
+                      ? "bg-slate-950 text-white"
+                      : "border border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-300 hover:text-blue-700"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
           <div className="mt-5 flex gap-3 overflow-x-auto pb-2">
             {templates.map((template) => (
               <button
                 key={template.label}
                 type="button"
-                onClick={() => setInput(template.prompt)}
+                onClick={() => {
+                  setInput(template.prompt);
+                  setLastTemplateLabel(template.label);
+                  trackEvent("ai_template_used", {
+                    business_type: inferredBusinessType,
+                    generation_type: selectedType,
+                    template_used: template.label,
+                  });
+                }}
                 className="min-w-[12rem] rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-left transition hover:border-blue-300 hover:bg-blue-50"
               >
                 <p className="text-sm font-semibold text-slate-950">{template.label}</p>
@@ -284,7 +366,9 @@ export function GeneratorWorkspace({
         <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">{onboardingTitle}</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                {onboardingTitle}
+              </p>
               <h3 className="mt-2 text-xl font-bold text-slate-950">First generation tutorial</h3>
             </div>
             <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white">
@@ -308,7 +392,12 @@ export function GeneratorWorkspace({
             Richiesta operativa
             <textarea
               value={input}
-              onChange={(event) => setInput(event.target.value)}
+              onChange={(event) => {
+                setInput(event.target.value);
+                if (!event.target.value.trim()) {
+                  setLastTemplateLabel(null);
+                }
+              }}
               rows={8}
               placeholder={placeholder}
               className="rounded-[1.5rem] border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500"
@@ -330,6 +419,7 @@ export function GeneratorWorkspace({
                 setInput("");
                 setMessage(null);
                 setErrorMessage(null);
+                setLastTemplateLabel(null);
               }}
               className="button-secondary"
             >
@@ -346,7 +436,13 @@ export function GeneratorWorkspace({
 
       <div className="min-w-0 space-y-6">
         <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
-          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-slate-950 via-slate-900 to-blue-900" />
+          <div
+            className={`absolute inset-x-0 top-0 h-24 ${
+              isHairFlow
+                ? "bg-gradient-to-r from-slate-950 via-pink-800 to-rose-500"
+                : "bg-gradient-to-r from-slate-950 via-slate-900 to-blue-900"
+            }`}
+          />
           <div className="relative">
             <div className="flex flex-wrap items-center justify-between gap-3 text-white">
               <div>
@@ -360,7 +456,7 @@ export function GeneratorWorkspace({
 
             <div className="mt-6 rounded-[1.75rem] bg-slate-50 p-4 sm:p-5">
               {isLoading ? (
-                <div className="space-y-4 animate-pulse">
+                <div className="animate-pulse space-y-4">
                   <div className="h-4 w-32 rounded-full bg-slate-200" />
                   <div className="h-4 w-full rounded-full bg-slate-200" />
                   <div className="h-4 w-11/12 rounded-full bg-slate-200" />
@@ -368,8 +464,8 @@ export function GeneratorWorkspace({
                   <div className="h-36 rounded-[1.5rem] bg-white" />
                 </div>
               ) : variants.length > 0 && activeVariant ? (
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap gap-2">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap gap-2">
                     {variants.map((variant) => {
                       const active = variant.id === activeVariant.id;
                       return (
@@ -409,7 +505,7 @@ export function GeneratorWorkspace({
                 </pre>
               ) : (
                 <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-white px-5 py-10 text-center">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                  <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${isHairFlow ? "bg-pink-50 text-pink-600" : "bg-blue-50 text-blue-600"}`}>
                     <DashboardIcon name="spark" className="h-7 w-7" />
                   </div>
                   <p className="mt-4 text-lg font-semibold text-slate-950">Nessun contenuto ancora generato</p>
@@ -497,3 +593,4 @@ export function GeneratorWorkspace({
     </div>
   );
 }
+

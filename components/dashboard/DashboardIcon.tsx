@@ -4,6 +4,7 @@ type DashboardIconName =
   | "reel"
   | "promo"
   | "crm"
+  | "message"
   | "history"
   | "settings"
   | "billing"
@@ -55,6 +56,13 @@ export function DashboardIcon({ name, className = "h-5 w-5" }: DashboardIconProp
         <path d="M16 13a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
         <path d="M3.5 19a4.5 4.5 0 019 0" />
         <path d="M13 19a3.5 3.5 0 017 0" />
+      </>
+    ),
+    message: (
+      <>
+        <path d="M4 6h16v10H8l-4 4V6z" />
+        <path d="M8 10h8" />
+        <path d="M8 13h5" />
       </>
     ),
     history: (
@@ -127,4 +135,3 @@ export function DashboardIcon({ name, className = "h-5 w-5" }: DashboardIconProp
   );
 }
 import type { ReactNode } from "react";
-

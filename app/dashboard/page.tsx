@@ -69,9 +69,9 @@ export default async function DashboardPage() {
               Welcome flow
             </span>
             <h2 className="mt-4 text-3xl font-bold tracking-tight">Benvenuto, {firstName}</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-200 sm:text-base">
-              Hai una base premium pronta per creare contenuti fitness, salvare le idee migliori e
-              far lavorare l&apos;AI con il contesto reale della tua attivita.
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-200 sm:text-base">
+              Hai una base premium pronta per creare contenuti fitness o hair/beauty, salvare le
+              idee migliori e far lavorare l&apos;AI con il contesto reale della tua attivita.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link href="/dashboard/caption" className="button-primary">
@@ -169,6 +169,12 @@ export default async function DashboardPage() {
             href: "/dashboard/promos",
             icon: "promo" as const,
           },
+          {
+            title: "Hair AI",
+            copy: "Attiva la verticale parrucchieri con caption, Reel, promo e messaggi clienti orientati a booking.",
+            href: "/dashboard/hair-captions",
+            icon: "caption" as const,
+          },
         ].map((item) => (
           <Link key={item.title} href={item.href} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft transition hover:-translate-y-0.5 hover:border-blue-300">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
@@ -183,4 +189,3 @@ export default async function DashboardPage() {
     </DashboardShell>
   );
 }
-

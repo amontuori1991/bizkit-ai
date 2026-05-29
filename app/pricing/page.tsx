@@ -22,7 +22,8 @@ export default function PricingPage() {
             </h1>
             <p className="mt-5 text-lg leading-8 text-slate-600">
               Scegli un piano pensato per contenuti, promo e CRM fitness. Ogni tier include output
-              AI in 3 varianti, Business Profile context e un&apos;esperienza piu professionale.
+              AI in 3 varianti, Business Profile intelligente, generatori Reel e messaggi clienti
+              per palestre e saloni parrucchieri.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Link href="/signup" className="button-primary">
@@ -134,4 +135,3 @@ export default function PricingPage() {
     </>
   );
 }
-

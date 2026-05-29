@@ -15,6 +15,12 @@ type BusinessProfileBody = {
   unique_selling_points?: string;
   preferred_cta?: string;
   preferred_hashtags?: string;
+  salon_specialties?: string;
+  booking_link?: string;
+  opening_hours?: string;
+  stylist_names?: string;
+  products_used?: string;
+  salon_style?: string;
 };
 
 function normalizeValue(value?: string) {
@@ -60,6 +66,12 @@ export async function POST(request: Request) {
       unique_selling_points: normalizeValue(body.unique_selling_points),
       preferred_cta: normalizeValue(body.preferred_cta),
       preferred_hashtags: normalizeValue(body.preferred_hashtags),
+      salon_specialties: normalizeValue(body.salon_specialties),
+      booking_link: normalizeValue(body.booking_link),
+      opening_hours: normalizeValue(body.opening_hours),
+      stylist_names: normalizeValue(body.stylist_names),
+      products_used: normalizeValue(body.products_used),
+      salon_style: normalizeValue(body.salon_style),
     };
 
     const { data, error } = await supabase

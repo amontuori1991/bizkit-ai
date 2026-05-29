@@ -10,11 +10,24 @@ import {
 } from "@/lib/ai-usage";
 import { parseOutputVariants } from "@/lib/ai-output";
 import { buildGenerationSystemPrompt, type BusinessProfile } from "@/lib/business-profile";
+import { type AIContentType } from "@/lib/business-verticals";
 import { isOpenAIConfigured, isSupabaseConfigured } from "@/lib/env";
 import { getOpenAIClient, getOpenAIModel } from "@/lib/openai";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-type GenerateType = "caption" | "reel" | "promo";
+const supportedTypes: AIContentType[] = [
+  "caption",
+  "reel",
+  "promo",
+  "hair_caption",
+  "hair_reel_script",
+  "hair_promo",
+  "hair_client_message",
+  "hair_appointment_reminder",
+  "hair_review_request",
+  "hair_stories_idea",
+  "hair_tiktok_hook",
+];
 
 export async function POST(request: Request) {
   let supabase: Awaited<ReturnType<typeof createSupabaseServerClient>> | null = null;
@@ -53,12 +66,14 @@ export async function POST(request: Request) {
     userId = user.id;
 
     const body = (await request.json().catch(() => ({}))) as {
-      type?: GenerateType;
+      type?: AIContentType;
       prompt?: string;
+      templateLabel?: string;
+      businessType?: string;
     };
     generationType = body.type ?? "unknown";
 
-    if (!body.type || !["caption", "reel", "promo"].includes(body.type)) {
+    if (!body.type || !supportedTypes.includes(body.type)) {
       return NextResponse.json({ error: "Tipo di generazione non valido." }, { status: 400 });
     }
 
@@ -67,7 +82,9 @@ export async function POST(request: Request) {
     }
 
     ipHash = getIpHash(request);
-    promptPreview = getPromptPreview(body.prompt);
+    promptPreview = getPromptPreview(
+      body.templateLabel ? `[template: ${body.templateLabel}] ${body.prompt}` : body.prompt,
+    );
     const [{ data: profile }, { data: accountProfile }] = await Promise.all([
       supabase.from("business_profiles").select("*").eq("user_id", user.id).maybeSingle(),
       supabase.from("profiles").select("subscription_tier").eq("id", user.id).maybeSingle(),

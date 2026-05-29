@@ -25,7 +25,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
   return (
     <DashboardShell
       title="Billing"
-      description="Scegli un piano SaaS e collega il billing ricorrente a Stripe subscriptions."
+      description="Scegli un piano SaaS per contenuti AI verticali, Business Profile intelligente, Reel, promo automatiche e messaggi clienti."
       userEmail={user.email ?? "utente"}
     >
       {status === "success" ? (

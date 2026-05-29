@@ -14,7 +14,7 @@ export default async function BusinessProfilePage() {
   return (
     <DashboardShell
       title="Business Profile AI Context"
-      description="Salva una volta i dati della tua attivita e lascia che i generatori AI li usino automaticamente in caption, Reel e promozioni."
+      description="Salva una volta i dati della tua attivita e lascia che i generatori AI li usino automaticamente in caption, Reel, promozioni e messaggi clienti per fitness o hair/beauty."
       userEmail={user.email ?? "utente"}
     >
       <div className="space-y-6">
@@ -22,7 +22,7 @@ export default async function BusinessProfilePage() {
           <h2 className="text-2xl font-bold text-slate-950">Profilo attivita</h2>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">
             Questo profilo diventa il contesto base di tutte le generazioni AI. Compilalo bene per
-            ottenere output piu coerenti con il tuo business.
+            ottenere output piu coerenti con il tuo business, che sia palestra, barber shop o salone parrucchieri.
           </p>
         </div>
         <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft sm:p-8">

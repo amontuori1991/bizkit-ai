@@ -36,6 +36,26 @@ const events = [
     trigger: "Submit popup lead magnet",
     destination: "GA4 + Meta Pixel (Lead)",
   },
+  {
+    name: "ai_template_used",
+    trigger: "Click su quick template nei generatori",
+    destination: "GA4 con business_type, generation_type e template_used",
+  },
+  {
+    name: "ai_generate_requested",
+    trigger: "Submit generazione AI",
+    destination: "GA4 con business_type, tipo generazione e template",
+  },
+  {
+    name: "ai_generate_completed",
+    trigger: "Generazione AI completata",
+    destination: "GA4 con verticale e feature piu usate",
+  },
+  {
+    name: "ai_feature_used",
+    trigger: "Copy, save, duplicate o switch tipo contenuto",
+    destination: "GA4 con business_type, generation_type e feature_name",
+  },
 ];
 
 export default function AnalyticsEventsPage() {
