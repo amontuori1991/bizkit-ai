@@ -1,5 +1,7 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardIcon } from "@/components/dashboard/DashboardIcon";
+import { UsageMeter } from "@/components/dashboard/UsageMeter";
+import { getPlanUsageSummary } from "@/lib/plan-limits";
 import { requireDashboardUser } from "@/lib/saas";
 
 type CalendarRow = {
@@ -16,12 +18,19 @@ type CalendarRow = {
 
 export default async function CalendarsHistoryPage() {
   const { supabase, user } = await requireDashboardUser();
-  const { data: calendars } = await supabase
-    .from("content_calendars")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(20);
+  const [{ data: calendars }, { data: accountProfile }] = await Promise.all([
+    supabase
+      .from("content_calendars")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20),
+    supabase.from("profiles").select("subscription_tier").eq("id", user.id).maybeSingle(),
+  ]);
+  const usage = await getPlanUsageSummary(supabase, {
+    userId: user.id,
+    subscriptionTier: accountProfile?.subscription_tier,
+  });
 
   const rows = (calendars as CalendarRow[] | null) ?? [];
 
@@ -31,6 +40,15 @@ export default async function CalendarsHistoryPage() {
       description="Rivedi i piani editoriali generati, confronta periodi e recupera le idee migliori già organizzate per giorno."
       userEmail={user.email ?? "utente"}
     >
+      <div className="mb-6">
+        <UsageMeter
+          title="Calendari salvati"
+          progress={usage.progress.calendars}
+          helper="Ogni calendario resta disponibile in history per riuso e iterazioni future."
+          accent="emerald"
+          upgradeLabel={usage.limits.nextUpgrade?.toUpperCase() ?? null}
+        />
+      </div>
       <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
         <div className="flex items-center justify-between gap-3">
           <div>

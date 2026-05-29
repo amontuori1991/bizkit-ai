@@ -29,11 +29,12 @@ export const plans: Plan[] = [
     usageLimitLabel: "Fino a 100 crediti AI al giorno",
     features: [
       "Generatori AI verticali per fitness e hair/beauty con 3 varianti",
-      "Business Profile AI Context",
+      "1 Business Profile AI Context",
       "Social Calendar Generator da 7, 14 e 30 giorni",
-      "CRM clienti essenziale",
+      "Fino a 100 contenuti salvati",
+      "Fino a 20 calendari salvati",
+      "CRM fino a 100 clienti",
       "Cronologia generazioni",
-      "Salvataggio contenuti",
       "Template rapidi per promo, open day e booking",
     ],
   },
@@ -48,15 +49,15 @@ export const plans: Plan[] = [
     audience: "Palestre strutturate e team marketing",
     ctaLabel: "Passa a Pro",
     highlight: true,
-    usageLimitLabel: "Fino a 100 crediti AI al giorno con priorita Pro",
+    usageLimitLabel: "Fino a 300 crediti AI al giorno con cooldown ridotto",
     features: [
       "Tutto in Starter",
-      "Workspace premium con onboarding guidato",
-      "Template e libreria piu organizzati",
-      "Calendari editoriali con storico dedicato",
-      "Messaggi clienti, Reel e promo automatiche",
-      "Priorita per nuovi template",
-      "Esperienza ottimizzata per team piccoli",
+      "Fino a 3 Business Profile",
+      "Fino a 1000 contenuti salvati",
+      "Fino a 200 calendari salvati",
+      "CRM fino a 1000 clienti",
+      "Cooldown piu rapido per uso quotidiano",
+      "Esperienza ottimizzata per team piccoli da 3 utenti",
     ],
   },
   {
@@ -69,14 +70,15 @@ export const plans: Plan[] = [
     seats: "10 utenti",
     audience: "Agenzie e consulenti multi-cliente",
     ctaLabel: "Sblocca Agency",
-    usageLimitLabel: "Fino a 500 crediti AI al giorno",
+    usageLimitLabel: "Fino a 1000 crediti AI al giorno",
     features: [
       "Tutto in Pro",
-      "Workflow per piu clienti",
-      "Setup per team e collaboratori",
-      "Pianificazione contenuti ad alto volume",
-      "Base ideale per scalare verticali",
-      "Maggiore throughput per uso operativo intenso",
+      "Business Profile illimitati",
+      "Contenuti salvati illimitati",
+      "Calendari illimitati",
+      "Clienti CRM illimitati",
+      "Cooldown minimo e throughput alto",
+      "Setup ideale per team e collaboratori fino a 10 utenti",
     ],
   },
 ];
@@ -84,7 +86,7 @@ export const plans: Plan[] = [
 export const planMatrix = [
   {
     label: "Crediti AI giornalieri",
-    values: { starter: "100", pro: "100", agency: "500" },
+    values: { starter: "100", pro: "300", agency: "1000" },
   },
   {
     label: "Varianti per output",
@@ -92,7 +94,7 @@ export const planMatrix = [
   },
   {
     label: "Business Profile AI Context",
-    values: { starter: "Si", pro: "Si", agency: "Si" },
+    values: { starter: "1", pro: "3", agency: "Illimitati" },
   },
   {
     label: "Verticali contenuto AI",
@@ -100,15 +102,15 @@ export const planMatrix = [
   },
   {
     label: "CRM clienti",
-    values: { starter: "Base", pro: "Avanzato light", agency: "Per team" },
+    values: { starter: "100 clienti", pro: "1000 clienti", agency: "Illimitato" },
   },
   {
     label: "Cronologia e contenuti salvati",
-    values: { starter: "Si", pro: "Si", agency: "Si" },
+    values: { starter: "100 asset", pro: "1000 asset", agency: "Illimitati" },
   },
   {
     label: "Social Calendar Generator",
-    values: { starter: "Si", pro: "Si", agency: "Si" },
+    values: { starter: "20 calendari", pro: "200 calendari", agency: "Illimitati" },
   },
   {
     label: "Template rapidi pronti",
@@ -117,6 +119,14 @@ export const planMatrix = [
   {
     label: "Messaggi clienti e promo automatiche",
     values: { starter: "Si", pro: "Si", agency: "Si" },
+  },
+  {
+    label: "Utenti inclusi",
+    values: {
+      starter: "1",
+      pro: "3",
+      agency: "10",
+    },
   },
   {
     label: "Ideale per",

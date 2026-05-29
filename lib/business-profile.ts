@@ -7,6 +7,7 @@ import {
 export type BusinessProfile = {
   id: string;
   user_id: string;
+  is_primary: boolean;
   business_name: string | null;
   business_type: string | null;
   city: string | null;
@@ -27,6 +28,20 @@ export type BusinessProfile = {
   salon_style: string | null;
   created_at: string;
 };
+
+export function pickPrimaryBusinessProfile(profiles: BusinessProfile[] | null | undefined) {
+  if (!profiles || profiles.length === 0) {
+    return null;
+  }
+
+  return (
+    profiles.find((profile) => profile.is_primary) ??
+    [...profiles].sort((first, second) => {
+      return new Date(second.created_at).getTime() - new Date(first.created_at).getTime();
+    })[0] ??
+    null
+  );
+}
 
 function formatValue(label: string, value: string | null | undefined) {
   if (!value?.trim()) {
@@ -173,4 +188,3 @@ export function buildGenerationSystemPrompt(type: AIContentType, profile: Busine
     .filter((item) => item && item.trim())
     .join("\n\n");
 }
-

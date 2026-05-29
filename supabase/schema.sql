@@ -129,7 +129,8 @@ create table if not exists public.ai_request_logs (
 
 create table if not exists public.business_profiles (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null unique references auth.users(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  is_primary boolean not null default false,
   business_name text,
   business_type text,
   city text,
@@ -151,12 +152,38 @@ create table if not exists public.business_profiles (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+do $$
+begin
+  if exists (
+    select 1
+    from pg_constraint
+    where conname = 'business_profiles_user_id_key'
+      and conrelid = 'public.business_profiles'::regclass
+  ) then
+    alter table public.business_profiles drop constraint business_profiles_user_id_key;
+  end if;
+end $$;
+
+alter table public.business_profiles add column if not exists is_primary boolean not null default false;
 alter table public.business_profiles add column if not exists salon_specialties text;
 alter table public.business_profiles add column if not exists booking_link text;
 alter table public.business_profiles add column if not exists opening_hours text;
 alter table public.business_profiles add column if not exists stylist_names text;
 alter table public.business_profiles add column if not exists products_used text;
 alter table public.business_profiles add column if not exists salon_style text;
+
+create unique index if not exists business_profiles_one_primary_per_user_idx
+  on public.business_profiles(user_id)
+  where is_primary = true;
+
+with primary_profiles as (
+  select distinct on (user_id) id
+  from public.business_profiles
+  order by user_id, is_primary desc, created_at desc
+)
+update public.business_profiles
+set is_primary = true
+where id in (select id from primary_profiles);
 
 create table if not exists public.clients (
   id uuid primary key default gen_random_uuid(),

@@ -9,7 +9,11 @@ import {
   normalizeAIPlanId,
 } from "@/lib/ai-usage";
 import { parseOutputVariants } from "@/lib/ai-output";
-import { buildGenerationSystemPrompt, type BusinessProfile } from "@/lib/business-profile";
+import {
+  buildGenerationSystemPrompt,
+  pickPrimaryBusinessProfile,
+  type BusinessProfile,
+} from "@/lib/business-profile";
 import { type AIContentType } from "@/lib/business-verticals";
 import { isOpenAIConfigured, isSupabaseConfigured } from "@/lib/env";
 import { getOpenAIClient, getOpenAIModel } from "@/lib/openai";
@@ -32,7 +36,7 @@ const supportedTypes: AIContentType[] = [
 export async function POST(request: Request) {
   let supabase: Awaited<ReturnType<typeof createSupabaseServerClient>> | null = null;
   let userId: string | null = null;
-  let planId: "free" | "pro" | "agency" = "free";
+  let planId: "free" | "starter" | "pro" | "agency" = "free";
   let ipHash = "unknown";
   let promptPreview = "";
   let generationType = "unknown";
@@ -85,12 +89,19 @@ export async function POST(request: Request) {
     promptPreview = getPromptPreview(
       body.templateLabel ? `[template: ${body.templateLabel}] ${body.prompt}` : body.prompt,
     );
-    const [{ data: profile }, { data: accountProfile }] = await Promise.all([
-      supabase.from("business_profiles").select("*").eq("user_id", user.id).maybeSingle(),
+    const [{ data: profiles }, { data: accountProfile }] = await Promise.all([
+      supabase
+        .from("business_profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("is_primary", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(5),
       supabase.from("profiles").select("subscription_tier").eq("id", user.id).maybeSingle(),
     ]);
 
     planId = normalizeAIPlanId(accountProfile?.subscription_tier);
+    const profile = pickPrimaryBusinessProfile((profiles as BusinessProfile[] | null) ?? []);
     const usageStatus = await checkAIUsageAccess(supabase, user.id, planId, ipHash);
 
     if (!usageStatus.allowed) {
@@ -114,6 +125,8 @@ export async function POST(request: Request) {
             dailyLimit: usageStatus.limit.dailyGenerations,
             remainingToday: usageStatus.remainingToday,
           },
+          upgradePlan: usageStatus.upgradePlan ?? null,
+          upgradeUrl: usageStatus.upgradeUrl ?? null,
           retryAfterSeconds: usageStatus.retryAfterSeconds ?? null,
         },
         { status: usageStatus.reason === "daily_limit" ? 429 : 429 },
@@ -122,7 +135,7 @@ export async function POST(request: Request) {
 
     const systemPrompt = buildGenerationSystemPrompt(
       body.type,
-      (profile as BusinessProfile | null) ?? null,
+      profile,
     );
 
     const client = getOpenAIClient();

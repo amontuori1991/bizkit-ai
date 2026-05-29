@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DashboardIcon } from "@/components/dashboard/DashboardIcon";
 import { FloatingFeedback } from "@/components/ui/FloatingFeedback";
 import { trackEvent } from "@/lib/analytics";
@@ -29,6 +30,8 @@ type CalendarResponse = {
     totalTokens?: number;
     costUnits?: number;
   };
+  upgradePlan?: string | null;
+  upgradeUrl?: string | null;
 };
 
 type GeneratedRowState = {
@@ -77,13 +80,32 @@ export function SocialCalendarBuilder({
   const [calendar, setCalendar] = useState<SocialCalendarPayload | null>(null);
   const [calendarId, setCalendarId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [upgradePlan, setUpgradePlan] = useState<string | null>(null);
+  const [upgradeUrl, setUpgradeUrl] = useState<string | null>(null);
   const [generatedRows, setGeneratedRows] = useState<Record<number, GeneratedRowState>>({});
+  const [focusedOutputDay, setFocusedOutputDay] = useState<number | null>(null);
+  const outputRowRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
   const vertical = inferCalendarVertical(profile);
   const clearMessage = useCallback(() => setMessage(null), []);
   const clearError = useCallback(() => setErrorMessage(null), []);
+  const clearLoadingMessage = useCallback(() => setLoadingMessage(null), []);
+
+  useEffect(() => {
+    if (!focusedOutputDay) {
+      return;
+    }
+
+    const target = outputRowRefs.current[focusedOutputDay];
+    if (!target) {
+      return;
+    }
+
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [focusedOutputDay, generatedRows]);
 
   async function handleGenerate(event?: React.FormEvent<HTMLFormElement>) {
     event?.preventDefault();
@@ -96,8 +118,15 @@ export function SocialCalendarBuilder({
     }
 
     setIsLoading(true);
+    setLoadingMessage(
+      demoMode
+        ? "Sto creando il mini calendario demo. Potrebbero volerci alcuni secondi."
+        : "Sto creando il calendario social completo. Potrebbero volerci alcuni secondi.",
+    );
     setErrorMessage(null);
     setMessage(null);
+    setUpgradePlan(null);
+    setUpgradeUrl(null);
 
     try {
       trackEvent("ai_calendar_requested", {
@@ -121,6 +150,8 @@ export function SocialCalendarBuilder({
 
       const data = (await response.json()) as CalendarResponse;
       if (!response.ok || !data.calendar) {
+        setUpgradePlan(data.upgradePlan ?? null);
+        setUpgradeUrl(data.upgradeUrl ?? null);
         throw new Error(data.error ?? "Generazione calendario non riuscita.");
       }
 
@@ -149,6 +180,7 @@ export function SocialCalendarBuilder({
       );
     } finally {
       setIsLoading(false);
+      setLoadingMessage(null);
     }
   }
 
@@ -182,8 +214,15 @@ export function SocialCalendarBuilder({
         }),
       });
 
-      const data = (await response.json()) as { success?: boolean; error?: string };
+      const data = (await response.json()) as {
+        success?: boolean;
+        error?: string;
+        upgradePlan?: string | null;
+        upgradeUrl?: string | null;
+      };
       if (!response.ok || !data.success) {
+        setUpgradePlan(data.upgradePlan ?? null);
+        setUpgradeUrl(data.upgradeUrl ?? null);
         throw new Error(data.error ?? "Salvataggio non riuscito.");
       }
 
@@ -205,6 +244,8 @@ export function SocialCalendarBuilder({
       ...current,
       [rowKey]: { ...current[rowKey], loading: true, error: null },
     }));
+    setFocusedOutputDay(rowKey);
+    setLoadingMessage(`Sto creando il contenuto completo del giorno ${entry.day}. Ti porto automaticamente all'output appena e pronto.`);
     setErrorMessage(null);
 
     try {
@@ -223,9 +264,13 @@ export function SocialCalendarBuilder({
         result?: string;
         generationId?: string;
         error?: string;
+        upgradePlan?: string | null;
+        upgradeUrl?: string | null;
       };
 
       if (!response.ok || !data.result) {
+        setUpgradePlan(data.upgradePlan ?? null);
+        setUpgradeUrl(data.upgradeUrl ?? null);
         throw new Error(data.error ?? "Generazione contenuto non riuscita.");
       }
 
@@ -240,6 +285,7 @@ export function SocialCalendarBuilder({
         },
       }));
       setMessage(`Contenuto completo generato per il giorno ${entry.day}.`);
+      setLoadingMessage(null);
       trackEvent("ai_feature_used", {
         feature_name: "generate_calendar_row_content",
         business_type: profile?.business_type ?? "gym",
@@ -255,6 +301,7 @@ export function SocialCalendarBuilder({
           error: error instanceof Error ? error.message : "Errore durante la generazione.",
         },
       }));
+      setLoadingMessage(null);
     }
   }
 
@@ -276,8 +323,15 @@ export function SocialCalendarBuilder({
         }),
       });
 
-      const data = (await response.json()) as { success?: boolean; error?: string };
+      const data = (await response.json()) as {
+        success?: boolean;
+        error?: string;
+        upgradePlan?: string | null;
+        upgradeUrl?: string | null;
+      };
       if (!response.ok || !data.success) {
+        setUpgradePlan(data.upgradePlan ?? null);
+        setUpgradeUrl(data.upgradeUrl ?? null);
         throw new Error(data.error ?? "Salvataggio non riuscito.");
       }
 
@@ -295,7 +349,15 @@ export function SocialCalendarBuilder({
     const rowState = generatedRows[entry.day];
 
     return (
-      <div key={`${entry.day}-${entry.date}`} className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+      <div
+        key={`${entry.day}-${entry.date}`}
+        ref={(node) => {
+          outputRowRefs.current[entry.day] = node;
+        }}
+        className={`rounded-[1.5rem] border bg-white p-4 shadow-sm transition ${
+          focusedOutputDay === entry.day ? "border-blue-300 ring-2 ring-blue-100" : "border-slate-200"
+        }`}
+      >
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -354,6 +416,17 @@ export function SocialCalendarBuilder({
           </div>
         </div>
 
+        {rowState?.loading ? (
+          <div className="mt-4 rounded-[1.5rem] border border-blue-200 bg-blue-50 px-4 py-4 text-sm text-blue-800">
+            <div className="flex items-center gap-3">
+              <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-blue-500" />
+              <p className="font-medium">
+                Sto generando il contenuto completo per questo giorno. Ti mostro qui l&apos;output appena pronto.
+              </p>
+            </div>
+          </div>
+        ) : null}
+
         {rowState?.content ? (
           <div className="mt-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -397,6 +470,7 @@ export function SocialCalendarBuilder({
 
   return (
     <div className="space-y-6">
+      <FloatingFeedback type="loading" message={loadingMessage} onClose={clearLoadingMessage} />
       <FloatingFeedback type="success" message={message} onClose={clearMessage} />
       <FloatingFeedback type="error" message={errorMessage} onClose={clearError} />
       <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
@@ -487,6 +561,14 @@ export function SocialCalendarBuilder({
           <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
             {disabledMessage}
           </p>
+        ) : null}
+        {errorMessage && upgradePlan ? (
+          <div className="mt-4 rounded-[1.5rem] border border-blue-200 bg-blue-50 px-4 py-4 text-sm text-blue-800">
+            <p>{errorMessage}</p>
+            <Link href={upgradeUrl ?? "/dashboard/billing"} className="mt-2 inline-flex font-semibold underline underline-offset-4">
+              Passa a {upgradePlan.toUpperCase()}
+            </Link>
+          </div>
         ) : null}
       </form>
 

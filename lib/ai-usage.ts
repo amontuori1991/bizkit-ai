@@ -1,7 +1,14 @@
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  buildPlanLimitMessage,
+  getCurrentUsageDate,
+  getPlanLimits,
+  type RuntimePlanId,
+  normalizePlanId,
+} from "@/lib/plan-limits";
 
-export type AIPlanId = "free" | "pro" | "agency";
+export type AIPlanId = RuntimePlanId;
 
 export type AILimitConfig = {
   dailyGenerations: number;
@@ -11,24 +18,10 @@ export type AILimitConfig = {
 };
 
 export const AI_LIMITS: Record<AIPlanId, AILimitConfig> = {
-  free: {
-    dailyGenerations: 10,
-    cooldownSeconds: 45,
-    ipWindowMinutes: 10,
-    ipMaxRequests: 15,
-  },
-  pro: {
-    dailyGenerations: 100,
-    cooldownSeconds: 12,
-    ipWindowMinutes: 10,
-    ipMaxRequests: 40,
-  },
-  agency: {
-    dailyGenerations: 500,
-    cooldownSeconds: 3,
-    ipWindowMinutes: 10,
-    ipMaxRequests: 120,
-  },
+  free: mapPlanToAiConfig("free"),
+  starter: mapPlanToAiConfig("starter"),
+  pro: mapPlanToAiConfig("pro"),
+  agency: mapPlanToAiConfig("agency"),
 };
 
 export type UsageStatus =
@@ -42,22 +35,22 @@ export type UsageStatus =
       usageToday: number;
       remainingToday: number;
       retryAfterSeconds?: number;
+      upgradePlan?: "starter" | "pro" | "agency" | null;
+      upgradeUrl?: string;
     };
 
-export function normalizeAIPlanId(subscriptionTier?: string | null): AIPlanId {
-  if (subscriptionTier === "agency") {
-    return "agency";
-  }
-
-  if (subscriptionTier === "pro" || subscriptionTier === "starter") {
-    return "pro";
-  }
-
-  return "free";
+function mapPlanToAiConfig(planId: AIPlanId): AILimitConfig {
+  const limits = getPlanLimits(planId);
+  return {
+    dailyGenerations: limits.aiDailyCredits,
+    cooldownSeconds: limits.cooldownSeconds,
+    ipWindowMinutes: limits.ipWindowMinutes,
+    ipMaxRequests: limits.ipMaxRequests,
+  };
 }
 
-export function getCurrentUsageDate() {
-  return new Date().toISOString().slice(0, 10);
+export function normalizeAIPlanId(subscriptionTier?: string | null): AIPlanId {
+  return normalizePlanId(subscriptionTier);
 }
 
 export function getIpHash(request: Request) {
@@ -125,14 +118,17 @@ export async function checkAIUsageAccess(
   const remainingToday = Math.max(0, limit.dailyGenerations - usageToday);
 
   if (usageToday + costUnits > limit.dailyGenerations) {
+    const planLimits = getPlanLimits(planId);
     return {
       allowed: false,
       reason: "daily_limit",
-      message: `Hai raggiunto il limite giornaliero del piano ${planId}: ${limit.dailyGenerations} crediti AI oggi.`,
+      message: buildPlanLimitMessage(planId, "aiDailyCredits", limit.dailyGenerations),
       planId,
       limit,
       usageToday,
       remainingToday,
+      upgradePlan: planLimits.nextUpgrade,
+      upgradeUrl: "/dashboard/billing",
     } satisfies UsageStatus;
   }
 

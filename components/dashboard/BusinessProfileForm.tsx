@@ -1,11 +1,29 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import type { BusinessProfile } from "@/lib/business-profile";
+import { type PaidPlanId, type RuntimePlanId, type UsageProgress } from "@/lib/plan-limits";
 import { businessTypeOptions, isHairBusinessType, type BusinessType } from "@/lib/business-verticals";
 
 type BusinessProfileFormProps = {
-  initialProfile: BusinessProfile | null;
+  initialProfiles: BusinessProfile[];
+  planId: RuntimePlanId;
+  usageProgress: UsageProgress;
+  upgradePlan: PaidPlanId | null;
+};
+
+type SaveProfileResponse = {
+  success?: boolean;
+  error?: string;
+  profile?: BusinessProfile;
+  usage?: {
+    progress: {
+      businessProfiles: UsageProgress;
+    };
+  };
+  upgradePlan?: PaidPlanId | null;
+  upgradeUrl?: string;
 };
 
 type FormState = {
@@ -27,6 +45,7 @@ type FormState = {
   stylist_names: string;
   products_used: string;
   salon_style: string;
+  is_primary: boolean;
 };
 
 function getInitialForm(profile: BusinessProfile | null): FormState {
@@ -49,16 +68,49 @@ function getInitialForm(profile: BusinessProfile | null): FormState {
     stylist_names: profile?.stylist_names ?? "",
     products_used: profile?.products_used ?? "",
     salon_style: profile?.salon_style ?? "",
+    is_primary: profile?.is_primary ?? false,
   };
 }
 
-export function BusinessProfileForm({ initialProfile }: BusinessProfileFormProps) {
-  const [form, setForm] = useState<FormState>(getInitialForm(initialProfile));
+function sortProfiles(profiles: BusinessProfile[]) {
+  return [...profiles].sort((first, second) => {
+    if (first.is_primary !== second.is_primary) {
+      return first.is_primary ? -1 : 1;
+    }
+
+    return new Date(second.created_at).getTime() - new Date(first.created_at).getTime();
+  });
+}
+
+export function BusinessProfileForm({
+  initialProfiles,
+  planId,
+  usageProgress,
+  upgradePlan,
+}: BusinessProfileFormProps) {
+  const sortedInitialProfiles = useMemo(() => sortProfiles(initialProfiles), [initialProfiles]);
+  const [profiles, setProfiles] = useState(sortedInitialProfiles);
+  const [selectedProfileId, setSelectedProfileId] = useState<string>(
+    sortedInitialProfiles[0]?.id ?? "new",
+  );
+  const [form, setForm] = useState<FormState>(getInitialForm(sortedInitialProfiles[0] ?? null));
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [usage, setUsage] = useState<UsageProgress>(usageProgress);
+  const [nextUpgradePlan, setNextUpgradePlan] = useState<PaidPlanId | null>(upgradePlan);
+
+  const selectedProfile =
+    selectedProfileId === "new"
+      ? null
+      : profiles.find((profile) => profile.id === selectedProfileId) ?? null;
+
+  useEffect(() => {
+    setForm(getInitialForm(selectedProfile));
+  }, [selectedProfile]);
 
   const isHairProfile = useMemo(() => isHairBusinessType(form.business_type), [form.business_type]);
+  const canCreateAnotherProfile = usage.limit === null || profiles.length < usage.limit;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -70,16 +122,32 @@ export function BusinessProfileForm({ initialProfile }: BusinessProfileFormProps
       const response = await fetch("/api/business-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          profile_id: selectedProfileId === "new" ? undefined : selectedProfileId,
+        }),
       });
 
-      const data = (await response.json()) as { success?: boolean; error?: string };
-      if (!response.ok || !data.success) {
+      const data = (await response.json()) as SaveProfileResponse;
+      if (!response.ok || !data.success || !data.profile) {
+        setNextUpgradePlan(data.upgradePlan ?? nextUpgradePlan);
         throw new Error(data.error ?? "Salvataggio non riuscito.");
       }
 
+      const nextProfiles = sortProfiles(
+        selectedProfileId === "new"
+          ? [data.profile, ...profiles]
+          : profiles.map((profile) => (profile.id === data.profile?.id ? data.profile : profile)),
+      );
+
+      setProfiles(nextProfiles);
+      setSelectedProfileId(data.profile.id);
+      setForm(getInitialForm(data.profile));
+      setUsage(data.usage?.progress.businessProfiles ?? usageProgress);
       setMessage(
-        "Profilo business aggiornato. Le prossime generazioni useranno automaticamente questo contesto.",
+        data.profile.is_primary
+          ? "Business profile salvato come contesto primario per tutte le generazioni AI."
+          : "Business profile aggiornato correttamente.",
       );
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Errore durante il salvataggio.");
@@ -89,235 +157,294 @@ export function BusinessProfileForm({ initialProfile }: BusinessProfileFormProps
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6">
-      <div className="grid gap-6 lg:grid-cols-2">
-        <label className="grid gap-2 text-sm font-medium text-slate-700">
-          Nome attivita
-          <input
-            value={form.business_name}
-            onChange={(event) => setForm((current) => ({ ...current, business_name: event.target.value }))}
-            type="text"
-            placeholder={isHairProfile ? "Atelier Hair Milano" : "Palestra Energia"}
-            className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500"
-          />
-        </label>
+    <div className="space-y-6">
+      <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Piano {planId.toUpperCase()}
+            </p>
+            <h3 className="mt-2 text-2xl font-bold text-slate-950">Capacita business profile</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Ogni profilo puo diventare il contesto AI di una singola attivita o verticale.
+            </p>
+          </div>
+          <div className="rounded-[1.5rem] border border-slate-200 bg-white px-5 py-4">
+            <p className="text-sm font-medium text-slate-500">Utilizzo attuale</p>
+            <p className="mt-2 text-3xl font-bold text-slate-950">
+              {usage.limit === null ? `${usage.used} / illimitato` : `${usage.used} / ${usage.limit}`}
+            </p>
+            <div className="mt-3 h-3 rounded-full bg-slate-100">
+              <div
+                className="h-3 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500"
+                style={{ width: `${usage.limit === null ? 100 : Math.max(8, usage.percent)}%` }}
+              />
+            </div>
+          </div>
+        </div>
+        {usage.reached && nextUpgradePlan ? (
+          <div className="mt-4 rounded-[1.5rem] border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-700">
+            Hai raggiunto il limite del piano {planId.toUpperCase()}.{" "}
+            <Link href="/dashboard/billing" className="font-semibold underline underline-offset-4">
+              Passa a {nextUpgradePlan.toUpperCase()}
+            </Link>{" "}
+            per aggiungere altri business profile.
+          </div>
+        ) : null}
+      </div>
 
-        <label className="grid gap-2 text-sm font-medium text-slate-700">
-          Tipo di business
-          <select
-            value={form.business_type}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                business_type: event.target.value as BusinessType | "",
-              }))
-            }
-            className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500"
+      <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h3 className="text-xl font-bold text-slate-950">Profili disponibili</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Seleziona un contesto esistente oppure crea un nuovo profilo per un altro brand o attivita.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedProfileId("new");
+              setForm(getInitialForm(null));
+              setMessage(null);
+              setErrorMessage(null);
+            }}
+            disabled={!canCreateAnotherProfile}
+            className="button-secondary disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <option value="">Seleziona un tipo di business</option>
-            <optgroup label="Fitness">
-              {businessTypeOptions
-                .filter((item) => item.vertical === "fitness")
-                .map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-            </optgroup>
-            <optgroup label="Hair & Beauty">
-              {businessTypeOptions
-                .filter((item) => item.vertical === "hair")
-                .map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-            </optgroup>
-          </select>
-        </label>
+            Nuovo profilo
+          </button>
+        </div>
+        <div className="mt-5 flex flex-wrap gap-3">
+          {profiles.map((profile) => {
+            const active = selectedProfileId === profile.id;
+            return (
+              <button
+                key={profile.id}
+                type="button"
+                onClick={() => {
+                  setSelectedProfileId(profile.id);
+                  setMessage(null);
+                  setErrorMessage(null);
+                }}
+                className={`rounded-[1.25rem] border px-4 py-3 text-left transition ${
+                  active
+                    ? "border-slate-950 bg-slate-950 text-white"
+                    : "border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-300 hover:bg-blue-50"
+                }`}
+              >
+                <p className="text-sm font-semibold">
+                  {profile.business_name?.trim() || "Business profile senza nome"}
+                </p>
+                <p className={`mt-1 text-xs ${active ? "text-slate-300" : "text-slate-500"}`}>
+                  {profile.business_type || "tipo business"} {profile.is_primary ? "· Primario" : ""}
+                </p>
+              </button>
+            );
+          })}
+          {selectedProfileId === "new" ? (
+            <div className="rounded-[1.25rem] border border-dashed border-blue-300 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">
+              Nuovo profilo in creazione
+            </div>
+          ) : null}
+        </div>
+      </div>
 
-        {[
-          ["city", "Citta", isHairProfile ? "Milano" : "Milano"],
-          ["address", "Indirizzo", isHairProfile ? "Via Montenapoleone 10" : "Via Roma 10"],
-          ["website", "Sito web", "https://www.tuodominio.it"],
-          ["instagram", "Instagram", isHairProfile ? "@atelierhairmilano" : "@palestraenergia"],
-          [
-            "tone_of_voice",
-            "Tone of voice",
-            isHairProfile ? "Elegante, moderno, social-first" : "Professionale, energico, accogliente",
-          ],
-          [
-            "target_audience",
-            "Target audience",
-            isHairProfile
-              ? "Donne 24-45 che cercano colore, styling e beauty experience premium"
-              : "Uomini e donne 28-45 che vogliono rimettersi in forma",
-          ],
-          [
-            "preferred_cta",
-            "CTA preferita",
-            isHairProfile ? "Prenota il tuo appuntamento" : "Prenota la tua prova gratuita",
-          ],
-          [
-            "preferred_hashtags",
-            "Hashtag preferiti",
-            isHairProfile
-              ? "#hairstylemilano #balayageitalia #salonexperience"
-              : "#palestramilano #fitnessmilano #wellness",
-          ],
-        ].map(([key, label, placeholder]) => (
-          <label key={key} className="grid gap-2 text-sm font-medium text-slate-700">
-            {label}
+      <form onSubmit={handleSubmit} className="grid gap-6">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <label className="grid gap-2 text-sm font-medium text-slate-700">
+            Nome attivita
             <input
-              value={form[key as keyof FormState]}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, [key]: event.target.value }))
-              }
+              value={form.business_name}
+              onChange={(event) => setForm((current) => ({ ...current, business_name: event.target.value }))}
               type="text"
-              placeholder={placeholder}
+              placeholder={isHairProfile ? "Atelier Hair Milano" : "Palestra Energia"}
               className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500"
             />
           </label>
-        ))}
-      </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <label className="grid gap-2 text-sm font-medium text-slate-700">
-          Servizi
-          <textarea
-            value={form.services}
-            onChange={(event) => setForm((current) => ({ ...current, services: event.target.value }))}
-            rows={5}
-            placeholder={
-              isHairProfile
-                ? "Taglio, piega, colore, schiariture, trattamenti, barber service"
-                : "Sala pesi, personal training, corsi small group, programmi dimagrimento"
-            }
-            className="rounded-[1.5rem] border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500"
-          />
-        </label>
-        <label className="grid gap-2 text-sm font-medium text-slate-700">
-          Unique selling points
-          <textarea
-            value={form.unique_selling_points}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, unique_selling_points: event.target.value }))
-            }
-            rows={5}
-            placeholder={
-              isHairProfile
-                ? "Consulenza personalizzata, experience premium, look su misura"
-                : "Allenamenti su misura, ambiente non intimidatorio, coach dedicati"
-            }
-            className="rounded-[1.5rem] border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500"
-          />
-        </label>
-      </div>
+          <label className="grid gap-2 text-sm font-medium text-slate-700">
+            Tipo di business
+            <select
+              value={form.business_type}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  business_type: event.target.value as BusinessType | "",
+                }))
+              }
+              className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500"
+            >
+              <option value="">Seleziona un tipo di business</option>
+              <optgroup label="Fitness">
+                {businessTypeOptions
+                  .filter((item) => item.vertical === "fitness")
+                  .map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+              </optgroup>
+              <optgroup label="Hair & Beauty">
+                {businessTypeOptions
+                  .filter((item) => item.vertical === "hair")
+                  .map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+              </optgroup>
+            </select>
+          </label>
 
-      {isHairProfile ? (
-        <div className="grid gap-6 rounded-[2rem] border border-pink-100 bg-pink-50/60 p-6 lg:grid-cols-2">
+          {[
+            ["city", "Citta", "Milano"],
+            ["address", "Indirizzo", isHairProfile ? "Via Montenapoleone 10" : "Via Roma 10"],
+            ["website", "Sito web", "https://www.tuodominio.it"],
+            ["instagram", "Instagram", isHairProfile ? "@atelierhairmilano" : "@palestraenergia"],
+            [
+              "tone_of_voice",
+              "Tone of voice",
+              isHairProfile ? "Elegante, moderno, social-first" : "Professionale, energico, accogliente",
+            ],
+            [
+              "target_audience",
+              "Target audience",
+              isHairProfile
+                ? "Donne 24-45 che cercano colore, styling e beauty experience premium"
+                : "Uomini e donne 28-45 che vogliono rimettersi in forma",
+            ],
+            [
+              "preferred_cta",
+              "CTA preferita",
+              isHairProfile ? "Prenota il tuo appuntamento" : "Prenota la tua prova gratuita",
+            ],
+            [
+              "preferred_hashtags",
+              "Hashtag preferiti",
+              isHairProfile
+                ? "#hairstylemilano #balayageitalia #salonexperience"
+                : "#palestramilano #fitnessmilano #wellness",
+            ],
+          ].map(([key, label, placeholder]) => (
+            <label key={key} className="grid gap-2 text-sm font-medium text-slate-700">
+              {label}
+              <input
+                value={form[key as keyof FormState] as string}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, [key]: event.target.value }))
+                }
+                type="text"
+                placeholder={placeholder}
+                className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500"
+              />
+            </label>
+          ))}
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
           <label className="grid gap-2 text-sm font-medium text-slate-700">
-            Specialita salone
-            <input
-              value={form.salon_specialties}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, salon_specialties: event.target.value }))
+            Servizi
+            <textarea
+              value={form.services}
+              onChange={(event) => setForm((current) => ({ ...current, services: event.target.value }))}
+              rows={5}
+              placeholder={
+                isHairProfile
+                  ? "Taglio, piega, colore, schiariture, trattamenti, barber service"
+                  : "Sala pesi, personal training, corsi small group, programmi dimagrimento"
               }
-              type="text"
-              placeholder="Balayage, colore, barber, extension"
-              className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-pink-500"
+              className="rounded-[1.5rem] border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500"
             />
           </label>
           <label className="grid gap-2 text-sm font-medium text-slate-700">
-            Link prenotazione
-            <input
-              value={form.booking_link}
+            Unique selling points
+            <textarea
+              value={form.unique_selling_points}
               onChange={(event) =>
-                setForm((current) => ({ ...current, booking_link: event.target.value }))
+                setForm((current) => ({ ...current, unique_selling_points: event.target.value }))
               }
-              type="text"
-              placeholder="https://tuosalonediprenotazione.it"
-              className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-pink-500"
-            />
-          </label>
-          <label className="grid gap-2 text-sm font-medium text-slate-700">
-            Orari apertura
-            <input
-              value={form.opening_hours}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, opening_hours: event.target.value }))
+              rows={5}
+              placeholder={
+                isHairProfile
+                  ? "Consulenza personalizzata, experience premium, look su misura"
+                  : "Allenamenti su misura, ambiente non intimidatorio, coach dedicati"
               }
-              type="text"
-              placeholder="Mar-Sab 9:00-19:00"
-              className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-pink-500"
-            />
-          </label>
-          <label className="grid gap-2 text-sm font-medium text-slate-700">
-            Nomi stylist
-            <input
-              value={form.stylist_names}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, stylist_names: event.target.value }))
-              }
-              type="text"
-              placeholder="Giulia, Marco, Sofia"
-              className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-pink-500"
-            />
-          </label>
-          <label className="grid gap-2 text-sm font-medium text-slate-700">
-            Prodotti usati
-            <input
-              value={form.products_used}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, products_used: event.target.value }))
-              }
-              type="text"
-              placeholder="Kerastase, Olaplex, Davines"
-              className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-pink-500"
-            />
-          </label>
-          <label className="grid gap-2 text-sm font-medium text-slate-700">
-            Stile salone
-            <input
-              value={form.salon_style}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, salon_style: event.target.value }))
-              }
-              type="text"
-              placeholder="Luxury salon, premium experience, modern barber"
-              className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-pink-500"
+              className="rounded-[1.5rem] border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500"
             />
           </label>
         </div>
-      ) : null}
 
-      <div className="rounded-[1.75rem] border border-blue-200 bg-blue-50 p-5 text-sm leading-7 text-slate-700">
-        Una volta compilato questo profilo, i generatori AI useranno automaticamente nome attivita,
-        tipo di business, citta, tono di voce, target, servizi, punti di forza, CTA e hashtag.
-        Per saloni parrucchieri useranno anche specialita, booking link, orari, team, prodotti e
-        stile del salone.
-      </div>
+        {isHairProfile ? (
+          <div className="grid gap-6 rounded-[2rem] border border-pink-100 bg-pink-50/60 p-6 lg:grid-cols-2">
+            {[
+              ["salon_specialties", "Specialita salone", "Balayage, colore, barber, extension"],
+              ["booking_link", "Link prenotazione", "https://tuosalonediprenotazione.it"],
+              ["opening_hours", "Orari apertura", "Mar-Sab 9:00-19:00"],
+              ["stylist_names", "Nomi stylist", "Giulia, Marco, Sofia"],
+              ["products_used", "Prodotti usati", "Kerastase, Olaplex, Davines"],
+              ["salon_style", "Stile salone", "Luxury salon, premium experience, modern barber"],
+            ].map(([key, label, placeholder]) => (
+              <label key={key} className="grid gap-2 text-sm font-medium text-slate-700">
+                {label}
+                <input
+                  value={form[key as keyof FormState] as string}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, [key]: event.target.value }))
+                  }
+                  type="text"
+                  placeholder={placeholder}
+                  className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-pink-500"
+                />
+              </label>
+            ))}
+          </div>
+        ) : null}
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <button
-          type="submit"
-          disabled={isSaving}
-          className="button-primary disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {isSaving ? "Salvataggio..." : "Salva profilo business"}
-        </button>
-        {message ? (
-          <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            {message}
-          </p>
-        ) : null}
-        {errorMessage ? (
-          <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {errorMessage}
-          </p>
-        ) : null}
-      </div>
-    </form>
+        <label className="flex items-start gap-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            checked={form.is_primary}
+            onChange={(event) => setForm((current) => ({ ...current, is_primary: event.target.checked }))}
+            className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600"
+          />
+          <span>
+            Imposta questo profilo come contesto primario. Le generazioni AI useranno automaticamente
+            il business profile primario finche non ne selezioni un altro.
+          </span>
+        </label>
+
+        <div className="rounded-[1.75rem] border border-blue-200 bg-blue-50 p-5 text-sm leading-7 text-slate-700">
+          Una volta salvato, questo profilo alimenta automaticamente nome attivita, tipo business,
+          citta, tono, target, servizi, CTA, hashtag e, per i saloni, anche specialita, booking,
+          orari e prodotti usati.
+        </div>
+
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="button-primary disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {isSaving ? "Salvataggio..." : selectedProfileId === "new" ? "Crea business profile" : "Salva modifiche"}
+          </button>
+          {message ? (
+            <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              {message}
+            </p>
+          ) : null}
+          {errorMessage ? (
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <p>{errorMessage}</p>
+              {nextUpgradePlan ? (
+                <Link href="/dashboard/billing" className="mt-2 inline-flex font-semibold underline underline-offset-4">
+                  Passa a {nextUpgradePlan.toUpperCase()}
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </form>
+    </div>
   );
 }
-

@@ -1,38 +1,35 @@
 import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardIcon } from "@/components/dashboard/DashboardIcon";
-import { getCurrentUsageDate, normalizeAIPlanId } from "@/lib/ai-usage";
+import { UsageMeter } from "@/components/dashboard/UsageMeter";
 import { isBusinessProfileComplete, type BusinessProfile } from "@/lib/business-profile";
+import { getPlanUsageSummary, normalizePlanId } from "@/lib/plan-limits";
 import { requireDashboardUser } from "@/lib/saas";
 
 export default async function DashboardPage() {
   const { supabase, user } = await requireDashboardUser();
-  const usageDate = getCurrentUsageDate();
   const [
     { data: profile },
-    { data: businessProfile },
-    { count: clientsCount },
-    { count: generatedCount },
-    { count: savedCount },
-    { data: usageToday },
-    { count: calendarsCount },
+    { data: businessProfiles },
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-    supabase.from("business_profiles").select("*").eq("user_id", user.id).maybeSingle(),
-    supabase.from("clients").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-    supabase.from("generated_contents").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-    supabase.from("saved_contents").select("*", { count: "exact", head: true }).eq("user_id", user.id),
     supabase
-      .from("ai_usage_daily")
-      .select("generation_count,total_tokens")
+      .from("business_profiles")
+      .select("*")
       .eq("user_id", user.id)
-      .eq("usage_date", usageDate)
-      .maybeSingle(),
-    supabase.from("content_calendars").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+      .order("is_primary", { ascending: false })
+      .order("created_at", { ascending: false }),
   ]);
-
-  const aiPlan = normalizeAIPlanId(profile?.subscription_tier);
-  const businessReady = isBusinessProfileComplete((businessProfile as BusinessProfile | null) ?? null);
+  const usage = await getPlanUsageSummary(supabase, {
+    userId: user.id,
+    subscriptionTier: profile?.subscription_tier,
+  });
+  const aiPlan = normalizePlanId(profile?.subscription_tier);
+  const businessReady = isBusinessProfileComplete(
+    ((businessProfiles as BusinessProfile[] | null) ?? []).find((item) => item.is_primary) ??
+      ((businessProfiles as BusinessProfile[] | null) ?? [])[0] ??
+      null,
+  );
   const firstName = profile?.full_name?.split(" ")[0] || user.email?.split("@")[0] || "team";
   const checklist = [
     {
@@ -42,22 +39,22 @@ export default async function DashboardPage() {
     },
     {
       label: "Genera il primo contenuto AI",
-      done: (generatedCount || 0) > 0,
+      done: usage.counts.generatedContents > 0,
       href: "/dashboard/caption",
     },
     {
       label: "Salva un asset nella libreria",
-      done: (savedCount || 0) > 0,
+      done: usage.counts.savedContents > 0,
       href: "/dashboard/history",
     },
     {
       label: "Aggiungi il primo cliente CRM",
-      done: (clientsCount || 0) > 0,
+      done: usage.counts.crmClients > 0,
       href: "/dashboard/crm",
     },
     {
       label: "Genera il primo social calendar",
-      done: (calendarsCount || 0) > 0,
+      done: usage.counts.calendars > 0,
       href: "/dashboard/social-calendar",
     },
   ];
@@ -92,8 +89,12 @@ export default async function DashboardPage() {
 
           <div className="grid gap-4 px-6 py-6 sm:grid-cols-3 sm:px-8">
             {[
-              { title: "Piano attivo", value: aiPlan.toUpperCase(), helper: "tier AI e limiti operativi" },
-              { title: "Crediti oggi", value: usageToday?.generation_count || 0, helper: `${usageToday?.total_tokens || 0} token consumati` },
+              { title: "Piano attivo", value: aiPlan.toUpperCase(), helper: `${usage.limits.seats} utenti inclusi` },
+              {
+                title: "Crediti oggi",
+                value: `${usage.counts.aiCreditsToday}/${usage.limits.aiDailyCredits}`,
+                helper: `${usage.counts.aiTokensToday} token consumati`,
+              },
               { title: "Stato setup", value: businessReady ? "Pronto" : "Da completare", helper: "profilo business e onboarding" },
             ].map((item) => (
               <div key={item.title} className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
@@ -142,19 +143,41 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        {[
-          { label: "Clienti CRM", value: clientsCount || 0, helper: "lead e clienti gestiti" },
-          { label: "Generazioni AI", value: generatedCount || 0, helper: "storico completo" },
-          { label: "Contenuti salvati", value: savedCount || 0, helper: "libreria riutilizzabile" },
-          { label: "Calendari salvati", value: calendarsCount || 0, helper: "piani editoriali pronti" },
-          { label: "Business Profile", value: businessReady ? "OK" : "Pending", helper: "contesto automatico AI" },
-        ].map((item) => (
-          <div key={item.label} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
-            <p className="text-sm text-slate-500">{item.label}</p>
-            <p className="mt-3 text-3xl font-bold text-slate-950">{item.value}</p>
-            <p className="mt-2 text-sm text-slate-500">{item.helper}</p>
-          </div>
-        ))}
+        <UsageMeter
+          title="Crediti AI oggi"
+          progress={usage.progress.aiCreditsToday}
+          helper="Ogni caption, reel o promo scala da questo budget giornaliero."
+          accent="blue"
+          upgradeLabel={usage.limits.nextUpgrade?.toUpperCase() ?? null}
+        />
+        <UsageMeter
+          title="Business profile"
+          progress={usage.progress.businessProfiles}
+          helper="Conta i contesti attivi che puoi usare nei generatori AI."
+          accent="emerald"
+          upgradeLabel={usage.limits.nextUpgrade?.toUpperCase() ?? null}
+        />
+        <UsageMeter
+          title="Contenuti salvati"
+          progress={usage.progress.savedContents}
+          helper="La tua libreria riutilizzabile per caption, reel, promo e messaggi."
+          accent="amber"
+          upgradeLabel={usage.limits.nextUpgrade?.toUpperCase() ?? null}
+        />
+        <UsageMeter
+          title="Calendari salvati"
+          progress={usage.progress.calendars}
+          helper="Piani editoriali completi pronti da recuperare e rigenerare."
+          accent="blue"
+          upgradeLabel={usage.limits.nextUpgrade?.toUpperCase() ?? null}
+        />
+        <UsageMeter
+          title="Clienti CRM"
+          progress={usage.progress.crmClients}
+          helper="Lead e clienti che puoi gestire nel CRM della piattaforma."
+          accent="emerald"
+          upgradeLabel={usage.limits.nextUpgrade?.toUpperCase() ?? null}
+        />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-3">

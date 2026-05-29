@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { DashboardIcon } from "@/components/dashboard/DashboardIcon";
 import { FloatingFeedback } from "@/components/ui/FloatingFeedback";
@@ -42,6 +43,8 @@ type GenerateResponse = {
     totalTokens?: number;
   };
   retryAfterSeconds?: number | null;
+  upgradePlan?: string | null;
+  upgradeUrl?: string | null;
 };
 
 const outputLabels: Record<OutputVariantId, string> = {
@@ -89,6 +92,8 @@ export function GeneratorWorkspace({
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [upgradePlan, setUpgradePlan] = useState<string | null>(null);
+  const [upgradeUrl, setUpgradeUrl] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<AIContentType>(type);
   const [lastTemplateLabel, setLastTemplateLabel] = useState<string | null>(null);
 
@@ -122,6 +127,8 @@ export function GeneratorWorkspace({
     setIsLoading(true);
     setErrorMessage(null);
     setMessage(null);
+    setUpgradePlan(null);
+    setUpgradeUrl(null);
 
     try {
       trackEvent("ai_generate_requested", {
@@ -143,6 +150,8 @@ export function GeneratorWorkspace({
 
       const data = (await response.json()) as GenerateResponse;
       if (!response.ok || !data.result) {
+        setUpgradePlan(data.upgradePlan ?? null);
+        setUpgradeUrl(data.upgradeUrl ?? null);
         throw new Error(data.error ?? "Generazione non riuscita.");
       }
 
@@ -191,6 +200,8 @@ export function GeneratorWorkspace({
     setIsSaving(true);
     setErrorMessage(null);
     setMessage(null);
+    setUpgradePlan(null);
+    setUpgradeUrl(null);
 
     try {
       const response = await fetch("/api/content/save", {
@@ -208,8 +219,12 @@ export function GeneratorWorkspace({
         error?: string;
         success?: boolean;
         alreadySaved?: boolean;
+        upgradePlan?: string | null;
+        upgradeUrl?: string | null;
       };
       if (!response.ok || !data.success) {
+        setUpgradePlan(data.upgradePlan ?? null);
+        setUpgradeUrl(data.upgradeUrl ?? null);
         throw new Error(data.error ?? "Salvataggio non riuscito.");
       }
 
@@ -433,11 +448,19 @@ export function GeneratorWorkspace({
             </button>
           </div>
           {!enabled && disabledMessage ? (
-            <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-              {disabledMessage}
-            </p>
-          ) : null}
-        </form>
+          <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+            {disabledMessage}
+          </p>
+        ) : null}
+        {errorMessage && upgradePlan ? (
+          <div className="mt-4 rounded-[1.5rem] border border-blue-200 bg-blue-50 px-4 py-4 text-sm text-blue-800">
+            <p>{errorMessage}</p>
+            <Link href={upgradeUrl ?? "/dashboard/billing"} className="mt-2 inline-flex font-semibold underline underline-offset-4">
+              Passa a {upgradePlan.toUpperCase()}
+            </Link>
+          </div>
+        ) : null}
+      </form>
       </div>
 
       <div className="min-w-0 space-y-6">

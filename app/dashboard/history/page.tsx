@@ -1,10 +1,12 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardIcon } from "@/components/dashboard/DashboardIcon";
+import { UsageMeter } from "@/components/dashboard/UsageMeter";
+import { getPlanUsageSummary } from "@/lib/plan-limits";
 import { requireDashboardUser } from "@/lib/saas";
 
 export default async function HistoryPage() {
   const { supabase, user } = await requireDashboardUser();
-  const [{ data: generatedContents }, { data: savedContents }] = await Promise.all([
+  const [{ data: generatedContents }, { data: savedContents }, { data: accountProfile }] = await Promise.all([
     supabase
       .from("generated_contents")
       .select("*")
@@ -17,7 +19,12 @@ export default async function HistoryPage() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(20),
+    supabase.from("profiles").select("subscription_tier").eq("id", user.id).maybeSingle(),
   ]);
+  const usage = await getPlanUsageSummary(supabase, {
+    userId: user.id,
+    subscriptionTier: accountProfile?.subscription_tier,
+  });
 
   return (
     <DashboardShell
@@ -25,6 +32,15 @@ export default async function HistoryPage() {
       description="Rivedi tutte le generazioni AI recenti e conserva le versioni migliori nella tua libreria personale."
       userEmail={user.email ?? "utente"}
     >
+      <div className="mb-6">
+        <UsageMeter
+          title="Contenuti salvati"
+          progress={usage.progress.savedContents}
+          helper="La libreria cresce con ogni contenuto che decidi di tenere."
+          accent="blue"
+          upgradeLabel={usage.limits.nextUpgrade?.toUpperCase() ?? null}
+        />
+      </div>
       <div className="grid gap-6 xl:grid-cols-2">
         <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
           <div className="flex items-center justify-between gap-3">
@@ -123,4 +139,3 @@ export default async function HistoryPage() {
     </DashboardShell>
   );
 }
-

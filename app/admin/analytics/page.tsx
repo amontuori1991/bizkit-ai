@@ -100,6 +100,11 @@ export default async function AdminAnalyticsPage() {
                   helper: `${analytics.summary.freeToPaidConversionRate}% conversione free -> paid`,
                 },
                 {
+                  label: "Utenti Starter / Pro / Agency",
+                  value: `${analytics.summary.starterUsers} / ${analytics.summary.proUsers} / ${analytics.summary.agencyUsers}`,
+                  helper: "Distribuzione reale dei piani paid",
+                },
+                {
                   label: "Business type top",
                   value: analytics.topBusinessType?.label ?? "N/D",
                   helper: analytics.topBusinessType
@@ -265,6 +270,33 @@ export default async function AdminAnalyticsPage() {
                   </p>
                   <p className="mt-2 text-sm text-slate-500">
                     Somma di contenuti salvati e calendari generati
+                  </p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+                  <p className="text-sm text-slate-500">Utilizzo medio crediti</p>
+                  <p className="mt-3 text-3xl font-bold text-slate-950">
+                    {analytics.summary.averageCreditsUsed}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Media crediti AI per utente con attivita
+                  </p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+                  <p className="text-sm text-slate-500">Utilizzo medio storage</p>
+                  <p className="mt-3 text-3xl font-bold text-slate-950">
+                    {analytics.summary.averageStorageUsed}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Media contenuti salvati per utente attivo
+                  </p>
+                </div>
+                <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+                  <p className="text-sm text-slate-500">Utilizzo medio calendari</p>
+                  <p className="mt-3 text-3xl font-bold text-slate-950">
+                    {analytics.summary.averageCalendarsUsed}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Media calendari salvati per utente che usa il planner
                   </p>
                 </div>
               </div>

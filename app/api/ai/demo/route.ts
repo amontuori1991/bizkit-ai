@@ -19,6 +19,7 @@ function buildDemoProfile(vertical: DemoVertical): BusinessProfile {
     return {
       id: "demo",
       user_id: "demo",
+      is_primary: true,
       business_name: "Atelier Glow Hair",
       business_type: "hair_salon",
       city: "Milano",
@@ -44,6 +45,7 @@ function buildDemoProfile(vertical: DemoVertical): BusinessProfile {
   return {
     id: "demo",
     user_id: "demo",
+    is_primary: true,
     business_name: "Palestra Energia",
     business_type: "gym",
     city: "Milano",

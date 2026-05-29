@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isSupabaseConfigured } from "@/lib/env";
+import { checkPlanResourceLimit, normalizePlanId } from "@/lib/plan-limits";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -23,6 +24,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Utente non autenticato." }, { status: 401 });
     }
 
+    const { data: accountProfile } = await supabase
+      .from("profiles")
+      .select("subscription_tier")
+      .eq("id", user.id)
+      .maybeSingle();
+
     const body = (await request.json().catch(() => ({}))) as {
       name?: string;
       email?: string;
@@ -34,6 +41,23 @@ export async function POST(request: Request) {
 
     if (!body.name?.trim()) {
       return NextResponse.json({ error: "Nome cliente obbligatorio." }, { status: 400 });
+    }
+
+    const planAccess = await checkPlanResourceLimit(supabase, {
+      userId: user.id,
+      planId: normalizePlanId(accountProfile?.subscription_tier),
+      resource: "crmClients",
+    });
+
+    if (!planAccess.allowed) {
+      return NextResponse.json(
+        {
+          error: planAccess.message,
+          upgradePlan: planAccess.upgradePlan,
+          upgradeUrl: planAccess.upgradeUrl,
+        },
+        { status: 403 },
+      );
     }
 
     const { data, error } = await supabase

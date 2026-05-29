@@ -1,4 +1,5 @@
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
+import { normalizePlanId } from "@/lib/plan-limits";
 
 type DailyPoint = {
   date: string;
@@ -25,6 +26,12 @@ export type AdminAnalyticsData = {
     savedContents: number;
     upgradedUsers: number;
     freeToPaidConversionRate: number;
+    starterUsers: number;
+    proUsers: number;
+    agencyUsers: number;
+    averageCreditsUsed: number;
+    averageStorageUsed: number;
+    averageCalendarsUsed: number;
   };
   dailyGenerations: DailyPoint[];
   businessTypes: BusinessTypePoint[];
@@ -47,6 +54,7 @@ type RequestLogRow = {
 };
 
 type UsageRow = {
+  user_id: string;
   plan_id: string | null;
   generation_count: number | null;
   total_tokens: number | null;
@@ -69,18 +77,6 @@ function getLast7Days() {
     date.setDate(today.getDate() - (6 - index));
     return formatDay(date);
   });
-}
-
-function normalizePlan(tier?: string | null) {
-  if (!tier) {
-    return "free";
-  }
-
-  if (tier === "starter" || tier === "pro" || tier === "agency") {
-    return tier;
-  }
-
-  return "free";
 }
 
 function formatBusinessTypeLabel(value: string | null) {
@@ -178,7 +174,7 @@ async function getUsageRows() {
 
   const { data, error } = await supabase
     .from("ai_usage_daily")
-    .select("plan_id, generation_count, total_tokens");
+    .select("user_id, plan_id, generation_count, total_tokens");
 
   if (error) {
     console.error("Admin analytics usage rows error:", error);
@@ -186,6 +182,21 @@ async function getUsageRows() {
   }
 
   return (data as UsageRow[] | null) ?? [];
+}
+
+async function getOwnerRows(table: "content_calendars" | "saved_contents") {
+  const supabase = createSupabaseServiceRoleClient();
+  if (!supabase) {
+    return [] as Array<{ user_id: string }>;
+  }
+
+  const { data, error } = await supabase.from(table).select("user_id");
+  if (error) {
+    console.error(`Admin analytics owner rows error for ${table}:`, error);
+    return [] as Array<{ user_id: string }>;
+  }
+
+  return (data as Array<{ user_id: string }> | null) ?? [];
 }
 
 export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
@@ -200,6 +211,12 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
         savedContents: 0,
         upgradedUsers: 0,
         freeToPaidConversionRate: 0,
+        starterUsers: 0,
+        proUsers: 0,
+        agencyUsers: 0,
+        averageCreditsUsed: 0,
+        averageStorageUsed: 0,
+        averageCalendarsUsed: 0,
       },
       dailyGenerations: getLast7Days().map((date) => ({ date, count: 0 })),
       businessTypes: [],
@@ -208,7 +225,16 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
     };
   }
 
-  const [profiles, businessProfiles, requestLogs, calendarsGenerated, savedContents, usageRows] =
+  const [
+    profiles,
+    businessProfiles,
+    requestLogs,
+    calendarsGenerated,
+    savedContents,
+    usageRows,
+    savedContentOwners,
+    calendarOwners,
+  ] =
     await Promise.all([
       getProfiles(),
       getBusinessProfiles(),
@@ -216,10 +242,15 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
       getCount("content_calendars"),
       getCount("saved_contents"),
       getUsageRows(),
+      getOwnerRows("saved_contents"),
+      getOwnerRows("content_calendars"),
     ]);
 
   const registeredUsers = profiles.length;
-  const upgradedUsers = profiles.filter((profile) => normalizePlan(profile.subscription_tier) !== "free").length;
+  const starterUsers = profiles.filter((profile) => normalizePlanId(profile.subscription_tier) === "starter").length;
+  const proUsers = profiles.filter((profile) => normalizePlanId(profile.subscription_tier) === "pro").length;
+  const agencyUsers = profiles.filter((profile) => normalizePlanId(profile.subscription_tier) === "agency").length;
+  const upgradedUsers = starterUsers + proUsers + agencyUsers;
   const freeToPaidConversionRate =
     registeredUsers > 0 ? Math.round((upgradedUsers / registeredUsers) * 1000) / 10 : 0;
 
@@ -255,7 +286,7 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
 
   const usageByPlan = new Map<string, CreditUsagePoint>();
   usageRows.forEach((row) => {
-    const planId = normalizePlan(row.plan_id);
+    const planId = normalizePlanId(row.plan_id);
     const current = usageByPlan.get(planId) ?? {
       planId,
       creditsUsed: 0,
@@ -272,6 +303,18 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
     return (order[first.planId as keyof typeof order] ?? 99) - (order[second.planId as keyof typeof order] ?? 99);
   });
 
+  const uniqueUsageUsers = new Set(usageRows.map((row) => row.user_id)).size;
+  const uniqueSavedUsers = new Set(savedContentOwners.map((row) => row.user_id)).size;
+  const uniqueCalendarUsers = new Set(calendarOwners.map((row) => row.user_id)).size;
+  const totalCreditsUsed = usageRows.reduce((sum, row) => sum + (row.generation_count ?? 0), 0);
+
+  const averageCreditsUsed =
+    uniqueUsageUsers > 0 ? Math.round((totalCreditsUsed / uniqueUsageUsers) * 10) / 10 : 0;
+  const averageStorageUsed =
+    uniqueSavedUsers > 0 ? Math.round((savedContents / uniqueSavedUsers) * 10) / 10 : 0;
+  const averageCalendarsUsed =
+    uniqueCalendarUsers > 0 ? Math.round((calendarsGenerated / uniqueCalendarUsers) * 10) / 10 : 0;
+
   return {
     configured: true,
     summary: {
@@ -281,6 +324,12 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
       savedContents,
       upgradedUsers,
       freeToPaidConversionRate,
+      starterUsers,
+      proUsers,
+      agencyUsers,
+      averageCreditsUsed,
+      averageStorageUsed,
+      averageCalendarsUsed,
     },
     dailyGenerations,
     businessTypes,

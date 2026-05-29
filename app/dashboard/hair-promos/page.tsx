@@ -1,18 +1,21 @@
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { GeneratorWorkspace } from "@/components/dashboard/GeneratorWorkspace";
-import { isBusinessProfileComplete, type BusinessProfile } from "@/lib/business-profile";
+import { isBusinessProfileComplete, pickPrimaryBusinessProfile, type BusinessProfile } from "@/lib/business-profile";
 import { isOpenAIConfigured } from "@/lib/env";
 import { requireDashboardUser } from "@/lib/saas";
 
 export default async function HairPromosPage() {
   const { supabase, user } = await requireDashboardUser();
   const aiEnabled = isOpenAIConfigured();
-  const { data: profile } = await supabase
+  const { data: profiles } = await supabase
     .from("business_profiles")
     .select("*")
     .eq("user_id", user.id)
-    .maybeSingle();
-  const profileReady = isBusinessProfileComplete((profile as BusinessProfile | null) ?? null);
+    .order("is_primary", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(5);
+  const profile = pickPrimaryBusinessProfile((profiles as BusinessProfile[] | null) ?? []);
+  const profileReady = isBusinessProfileComplete(profile);
 
   return (
     <DashboardShell
@@ -33,4 +36,3 @@ export default async function HairPromosPage() {
     </DashboardShell>
   );
 }
-

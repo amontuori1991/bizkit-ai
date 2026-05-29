@@ -2,14 +2,23 @@
 
 import { useState } from "react";
 import type { Plan } from "@/data/plans";
+import { type PlanUsageSummary, formatUsageShort } from "@/lib/plan-limits";
 
 type BillingPlansProps = {
   plans: Plan[];
   enabled?: boolean;
   disabledMessage?: string;
+  currentPlanId?: string;
+  usageSummary?: PlanUsageSummary;
 };
 
-export function BillingPlans({ plans, enabled = true, disabledMessage }: BillingPlansProps) {
+export function BillingPlans({
+  plans,
+  enabled = true,
+  disabledMessage,
+  currentPlanId,
+  usageSummary,
+}: BillingPlansProps) {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -65,6 +74,11 @@ export function BillingPlans({ plans, enabled = true, disabledMessage }: Billing
                 Most popular
               </span>
             ) : null}
+            {currentPlanId === plan.id ? (
+              <span className="absolute left-5 top-5 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white">
+                Piano attuale
+              </span>
+            ) : null}
             <p className={`text-sm font-semibold uppercase tracking-[0.18em] ${plan.highlight ? "text-blue-200" : "text-blue-500"}`}>
               {plan.badge}
             </p>
@@ -76,6 +90,18 @@ export function BillingPlans({ plans, enabled = true, disabledMessage }: Billing
               <p className={`text-sm font-semibold ${plan.highlight ? "text-white" : "text-slate-900"}`}>{plan.usageLimitLabel}</p>
               <p className={`mt-1 text-sm ${plan.highlight ? "text-slate-300" : "text-slate-500"}`}>{plan.seats}</p>
             </div>
+            {usageSummary && currentPlanId === plan.id ? (
+              <div className={`mt-5 rounded-[1.5rem] border px-4 py-4 text-sm ${plan.highlight ? "border-white/10 bg-white/5 text-slate-100" : "border-slate-200 bg-white text-slate-700"}`}>
+                <p className="font-semibold">Utilizzo attuale</p>
+                <div className="mt-3 grid gap-2">
+                  <p>Crediti AI: {formatUsageShort(usageSummary.progress.aiCreditsToday)}</p>
+                  <p>Contenuti salvati: {formatUsageShort(usageSummary.progress.savedContents)}</p>
+                  <p>Calendari: {formatUsageShort(usageSummary.progress.calendars)}</p>
+                  <p>Clienti CRM: {formatUsageShort(usageSummary.progress.crmClients)}</p>
+                  <p>Business profile: {formatUsageShort(usageSummary.progress.businessProfiles)}</p>
+                </div>
+              </div>
+            ) : null}
             <div className="mt-5 space-y-3">
               {plan.features.map((feature) => (
                 <div
@@ -112,4 +138,3 @@ export function BillingPlans({ plans, enabled = true, disabledMessage }: Billing
     </div>
   );
 }
-

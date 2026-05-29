@@ -1,15 +1,24 @@
 import { BusinessProfileForm } from "@/components/dashboard/BusinessProfileForm";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import type { BusinessProfile } from "@/lib/business-profile";
+import { getPlanUsageSummary } from "@/lib/plan-limits";
 import { requireDashboardUser } from "@/lib/saas";
 
 export default async function BusinessProfilePage() {
   const { supabase, user } = await requireDashboardUser();
-  const { data: profile } = await supabase
-    .from("business_profiles")
-    .select("*")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const [{ data: accountProfile }, { data: profiles }] = await Promise.all([
+    supabase.from("profiles").select("subscription_tier").eq("id", user.id).maybeSingle(),
+    supabase
+      .from("business_profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("is_primary", { ascending: false })
+      .order("created_at", { ascending: false }),
+  ]);
+  const usage = await getPlanUsageSummary(supabase, {
+    userId: user.id,
+    subscriptionTier: accountProfile?.subscription_tier,
+  });
 
   return (
     <DashboardShell
@@ -26,7 +35,12 @@ export default async function BusinessProfilePage() {
           </p>
         </div>
         <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft sm:p-8">
-          <BusinessProfileForm initialProfile={(profile as BusinessProfile | null) ?? null} />
+          <BusinessProfileForm
+            initialProfiles={(profiles as BusinessProfile[] | null) ?? []}
+            planId={usage.planId}
+            usageProgress={usage.progress.businessProfiles}
+            upgradePlan={usage.limits.nextUpgrade}
+          />
         </div>
       </div>
     </DashboardShell>

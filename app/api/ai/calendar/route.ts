@@ -8,9 +8,13 @@ import {
   logAIRequest,
   normalizeAIPlanId,
 } from "@/lib/ai-usage";
-import { type BusinessProfile } from "@/lib/business-profile";
+import {
+  pickPrimaryBusinessProfile,
+  type BusinessProfile,
+} from "@/lib/business-profile";
 import { isOpenAIConfigured, isSupabaseConfigured } from "@/lib/env";
 import { getOpenAIClient, getOpenAIModel } from "@/lib/openai";
+import { checkPlanResourceLimit } from "@/lib/plan-limits";
 import {
   buildCalendarSystemPrompt,
   buildCalendarTitle,
@@ -25,7 +29,7 @@ const supportedDays = new Set<SocialCalendarDays>([7, 14, 30]);
 export async function POST(request: Request) {
   let supabase: Awaited<ReturnType<typeof createSupabaseServerClient>> | null = null;
   let userId: string | null = null;
-  let planId: "free" | "pro" | "agency" = "free";
+  let planId: "free" | "starter" | "pro" | "agency" = "free";
   let ipHash = "unknown";
   let promptPreview = "";
 
@@ -78,12 +82,37 @@ export async function POST(request: Request) {
     ipHash = getIpHash(request);
     promptPreview = getPromptPreview(`social-calendar ${days} giorni: ${objective}`);
 
-    const [{ data: profile }, { data: accountProfile }] = await Promise.all([
-      supabase.from("business_profiles").select("*").eq("user_id", user.id).maybeSingle(),
+    const [{ data: profiles }, { data: accountProfile }] = await Promise.all([
+      supabase
+        .from("business_profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("is_primary", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(5),
       supabase.from("profiles").select("subscription_tier").eq("id", user.id).maybeSingle(),
     ]);
 
     planId = normalizeAIPlanId(accountProfile?.subscription_tier);
+    const profile = pickPrimaryBusinessProfile((profiles as BusinessProfile[] | null) ?? []);
+
+    const calendarAccess = await checkPlanResourceLimit(supabase, {
+      userId: user.id,
+      planId,
+      resource: "calendars",
+    });
+
+    if (!calendarAccess.allowed) {
+      return NextResponse.json(
+        {
+          error: calendarAccess.message,
+          upgradePlan: calendarAccess.upgradePlan,
+          upgradeUrl: calendarAccess.upgradeUrl,
+        },
+        { status: 403 },
+      );
+    }
+
     const usageStatus = await checkAIUsageAccess(
       supabase,
       user.id,
@@ -113,6 +142,8 @@ export async function POST(request: Request) {
             dailyLimit: usageStatus.limit.dailyGenerations,
             remainingToday: usageStatus.remainingToday,
           },
+          upgradePlan: usageStatus.upgradePlan ?? null,
+          upgradeUrl: usageStatus.upgradeUrl ?? null,
           retryAfterSeconds: usageStatus.retryAfterSeconds ?? null,
         },
         { status: 429 },
@@ -135,7 +166,7 @@ export async function POST(request: Request) {
           content: [
             {
               type: "input_text",
-              text: buildCalendarSystemPrompt((profile as BusinessProfile | null) ?? null, days, objective),
+              text: buildCalendarSystemPrompt(profile, days, objective),
             },
           ],
         },
@@ -166,21 +197,21 @@ export async function POST(request: Request) {
     }
 
     const calendar = parseSocialCalendarResponse(result);
-    const title = buildCalendarTitle((profile as BusinessProfile | null) ?? null, days);
+    const title = buildCalendarTitle(profile, days);
     const tokenUsage = getTokenUsage(response);
 
     const { data, error } = await supabase
       .from("content_calendars")
       .insert({
         user_id: user.id,
-        business_type: (profile as BusinessProfile | null)?.business_type ?? "gym",
+        business_type: profile?.business_type ?? "gym",
         title,
         period_days: days,
         calendar_json: {
           ...calendar,
           title,
           objective,
-          businessType: (profile as BusinessProfile | null)?.business_type ?? "gym",
+          businessType: profile?.business_type ?? "gym",
         },
       })
       .select("id")
@@ -216,7 +247,7 @@ export async function POST(request: Request) {
         ...calendar,
         title,
         objective,
-        businessType: (profile as BusinessProfile | null)?.business_type ?? "gym",
+        businessType: profile?.business_type ?? "gym",
       },
       calendarId: data.id,
       usage: {

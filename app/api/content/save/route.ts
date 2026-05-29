@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isSupabaseConfigured } from "@/lib/env";
+import { checkPlanResourceLimit, normalizePlanId } from "@/lib/plan-limits";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -22,6 +23,12 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: "Utente non autenticato." }, { status: 401 });
     }
+
+    const { data: accountProfile } = await supabase
+      .from("profiles")
+      .select("subscription_tier")
+      .eq("id", user.id)
+      .maybeSingle();
 
     const body = (await request.json().catch(() => ({}))) as {
       type?: string;
@@ -61,6 +68,23 @@ export async function POST(request: Request) {
     }
 
     if (!existingSavedContent) {
+      const planAccess = await checkPlanResourceLimit(supabase, {
+        userId: user.id,
+        planId: normalizePlanId(accountProfile?.subscription_tier),
+        resource: "savedContents",
+      });
+
+      if (!planAccess.allowed) {
+        return NextResponse.json(
+          {
+            error: planAccess.message,
+            upgradePlan: planAccess.upgradePlan,
+            upgradeUrl: planAccess.upgradeUrl,
+          },
+          { status: 403 },
+        );
+      }
+
       const { error: insertError } = await supabase.from("saved_contents").insert({
         user_id: user.id,
         generation_id: body.generationId ?? null,
