@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AdminSiteSettingsForm } from "@/components/AdminSiteSettingsForm";
 import { AdminThemeToggle } from "@/components/AdminThemeToggle";
@@ -82,7 +83,12 @@ export function AdminDashboardView({
                 e statistiche base senza database.
               </p>
             </div>
-            <AdminThemeToggle theme={theme} onToggle={toggleTheme} />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Link href="/admin/analytics" className="button-secondary">
+                Apri analytics
+              </Link>
+              <AdminThemeToggle theme={theme} onToggle={toggleTheme} />
+            </div>
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
