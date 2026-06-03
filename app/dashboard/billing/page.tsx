@@ -2,7 +2,7 @@ import { BillingPlans } from "@/components/dashboard/BillingPlans";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { UsageMeter } from "@/components/dashboard/UsageMeter";
 import { plans } from "@/data/plans";
-import { isStripeSubscriptionsConfigured } from "@/lib/env";
+import { env, isStripeSubscriptionsConfigured } from "@/lib/env";
 import { getPlanUsageSummary, normalizePlanId } from "@/lib/plan-limits";
 import { requireDashboardUser } from "@/lib/saas";
 
@@ -42,8 +42,8 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
     >
       {status === "success" ? (
         <div className="mb-6 rounded-[1.5rem] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-700">
-          Checkout completato. Per la sincronizzazione automatica del piano serve aggiungere un
-          webhook Stripe in una fase successiva.
+          Checkout completato. Stripe inviera il webhook di sincronizzazione appena la subscription
+          viene confermata.
         </div>
       ) : null}
       {status === "cancel" ? (
@@ -61,9 +61,14 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
             : `${currentPlanId.toUpperCase()} - piano applicato in piattaforma`}
         </p>
         <p className="mt-3 text-sm leading-6 text-slate-600">
-          Il checkout Stripe subscriptions e gia operativo. Per tenere il piano aggiornato
-          automaticamente nel database manca soltanto il webhook di sincronizzazione.
+          Il checkout Stripe subscriptions e operativo. La sincronizzazione automatica del piano
+          passa da `/api/stripe/webhook` e richiede `STRIPE_WEBHOOK_SECRET` configurato in Stripe.
         </p>
+        {env.stripeWebhookSecret ? (
+          <p className="mt-3 text-sm font-medium text-emerald-700">
+            Signing secret presente. Verifica che l&apos;endpoint webhook sia registrato nel dashboard Stripe.
+          </p>
+        ) : null}
       </div>
       <div className="mb-6 grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
         <UsageMeter

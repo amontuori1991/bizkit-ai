@@ -138,6 +138,30 @@ Per attivarla servono:
 - `STRIPE_PRICE_STARTER`
 - `STRIPE_PRICE_PRO`
 - `STRIPE_PRICE_AGENCY`
+- `STRIPE_WEBHOOK_SECRET`
+
+### Webhook Stripe subscriptions
+
+Endpoint da configurare in Stripe:
+
+```bash
+/api/stripe/webhook
+```
+
+Eventi supportati:
+
+- `checkout.session.completed`
+- `customer.subscription.created`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+- `invoice.payment_succeeded`
+- `invoice.payment_failed`
+
+In locale puoi inoltrare i webhook con Stripe CLI:
+
+```bash
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+```
 
 ## Deploy Vercel
 

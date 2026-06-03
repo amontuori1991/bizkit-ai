@@ -169,13 +169,23 @@ create table if not exists public.content_calendars (
 create table if not exists public.subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
+  customer_id uuid references public.customers(id) on delete set null,
   plan_id text not null,
   stripe_customer_id text,
-  stripe_subscription_id text,
+  stripe_subscription_id text unique,
+  stripe_price_id text,
   status text not null default 'inactive',
+  current_period_start timestamptz,
   current_period_end timestamptz,
+  cancel_at_period_end boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+alter table public.subscriptions add column if not exists customer_id uuid references public.customers(id) on delete set null;
+alter table public.subscriptions add column if not exists stripe_customer_id text;
+alter table public.subscriptions add column if not exists stripe_price_id text;
+alter table public.subscriptions add column if not exists current_period_start timestamptz;
+alter table public.subscriptions add column if not exists cancel_at_period_end boolean not null default false;
 
 create or replace function public.handle_new_user()
 returns trigger

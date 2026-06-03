@@ -116,7 +116,7 @@ export function getEnvironmentStatuses(): Record<string, ServiceStatus> {
     stripeWebhook: {
       configured: Boolean(env.stripeWebhookSecret),
       missing: getMissing([[env.stripeWebhookSecret, "STRIPE_WEBHOOK_SECRET"]]),
-      description: "Serve per sincronizzare in automatico ordini e abbonamenti da Stripe.",
+      description: "Serve per verificare Stripe e sincronizzare automaticamente gli abbonamenti tramite /api/stripe/webhook.",
     },
     supabase: {
       configured: isSupabaseConfigured(),

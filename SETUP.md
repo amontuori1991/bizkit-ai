@@ -28,7 +28,18 @@ STRIPE_SECRET_KEY=
 ### Dove prendere il webhook secret
 
 1. apri `Developers > Webhooks`
-2. crea un endpoint oppure usa Stripe CLI in locale
+2. crea un endpoint verso:
+
+```bash
+https://tuo-dominio.it/api/stripe/webhook
+```
+
+oppure usa Stripe CLI in locale:
+
+```bash
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+```
+
 3. copia il `Signing secret`
 
 Inseriscilo in:
@@ -47,6 +58,17 @@ STRIPE_PRICE_STARTER=
 STRIPE_PRICE_PRO=
 STRIPE_PRICE_AGENCY=
 ```
+
+### Eventi webhook da sottoscrivere
+
+Nel webhook Stripe aggiungi questi eventi:
+
+- `checkout.session.completed`
+- `customer.subscription.created`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+- `invoice.payment_succeeded`
+- `invoice.payment_failed`
 
 ## 2. Supabase
 
