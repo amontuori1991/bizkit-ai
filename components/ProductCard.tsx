@@ -1,12 +1,16 @@
+import { ProtectedDownloadButton } from "@/components/ProtectedDownloadButton";
 import Link from "next/link";
 import type { Product } from "@/data/products";
+import { getDownloadsByProductSlug } from "@/data/downloads";
 
 type ProductCardProps = {
   product: Product;
+  isPurchased?: boolean;
 };
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, isPurchased = false }: ProductCardProps) {
   const isAvailable = product.status === "available";
+  const downloadBundle = isPurchased ? getDownloadsByProductSlug(product.slug) : null;
 
   return (
     <article className="card-surface flex h-full flex-col p-6">
@@ -21,10 +25,14 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
         <span
           className={`rounded-full px-3 py-1 text-xs font-semibold ${
-            isAvailable ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"
+            isPurchased
+              ? "bg-emerald-100 text-emerald-700"
+              : isAvailable
+                ? "bg-blue-100 text-blue-700"
+                : "bg-slate-100 text-slate-600"
           }`}
         >
-          {isAvailable ? "Disponibile" : "In arrivo"}
+          {isPurchased ? "Acquistato" : isAvailable ? "Disponibile" : "In arrivo"}
         </span>
       </div>
       <p className="mt-4 flex-1 leading-7 text-slate-600">{product.shortDescription}</p>
@@ -43,12 +51,26 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
         {isAvailable ? (
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Link href={`/checkout?product=${product.slug}`} className="button-secondary w-full sm:w-auto">
-              Acquista
-            </Link>
+            {isPurchased && downloadBundle ? (
+              <ProtectedDownloadButton
+                productSlug={product.slug}
+                productName={product.name}
+                assetName={downloadBundle.zipFileName}
+                buttonLabel="Scarica di nuovo"
+              />
+            ) : (
+              <Link href={`/checkout?product=${product.slug}`} className="button-secondary w-full sm:w-auto">
+                Acquista
+              </Link>
+            )}
             {product.demoHref ? (
               <Link href={product.demoHref} className="button-secondary w-full sm:w-auto">
                 Prova demo
+              </Link>
+            ) : null}
+            {isPurchased ? (
+              <Link href="/dashboard/purchases" className="button-secondary w-full sm:w-auto">
+                I miei acquisti
               </Link>
             ) : null}
           </div>

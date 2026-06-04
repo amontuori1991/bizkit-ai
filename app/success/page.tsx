@@ -5,7 +5,9 @@ import { ProtectedDownloadButton } from "@/components/ProtectedDownloadButton";
 import { PurchaseTracker } from "@/components/PurchaseTracker";
 import { getDownloadsByProductSlug } from "@/data/downloads";
 import { isStripeCheckoutConfigured } from "@/lib/env";
+import { syncDigitalPurchaseFromCheckoutSession } from "@/lib/digital-purchases";
 import { readSiteSettings } from "@/lib/site-settings";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getStripeProductBySlug, getStripeServer } from "@/lib/stripe";
 
 export const metadata: Metadata = {
@@ -39,6 +41,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   }
 
   let productSlug: string | null = null;
+  let purchaseStored = false;
 
   try {
     const stripe = getStripeServer();
@@ -51,6 +54,24 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
 
     if (session.payment_status !== "paid" || !productSlug) {
       redirect("/");
+    }
+
+    try {
+      const supabase = await createSupabaseServerClient();
+      if (supabase) {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        const syncResult = await syncDigitalPurchaseFromCheckoutSession({
+          session,
+          explicitUserId: user?.id ?? null,
+        });
+
+        purchaseStored = Boolean(syncResult);
+      }
+    } catch (syncError) {
+      console.error("Digital purchase sync error:", syncError);
     }
   } catch {
     redirect("/");
@@ -117,6 +138,11 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
                   protetto, che verifica sessione Stripe, pagamento riuscito e richiesta dallo
                   stesso dominio.
                 </p>
+                {purchaseStored ? (
+                  <p className="mt-3 text-sm font-medium text-emerald-700">
+                    Acquisto collegato al tuo account: potrai riscaricarlo anche da catalogo e dashboard.
+                  </p>
+                ) : null}
               </div>
               <ProtectedDownloadButton
                 sessionId={sessionId}

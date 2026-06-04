@@ -4,17 +4,19 @@ import { useState } from "react";
 import { trackDownload } from "@/lib/analytics";
 
 type ProtectedDownloadButtonProps = {
-  sessionId: string;
   productSlug: string;
   productName: string;
   assetName: string;
+  sessionId?: string;
+  buttonLabel?: string;
 };
 
 export function ProtectedDownloadButton({
-  sessionId,
   productSlug,
   productName,
   assetName,
+  sessionId,
+  buttonLabel = "Scarica il tuo kit",
 }: ProtectedDownloadButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
@@ -26,7 +28,11 @@ export function ProtectedDownloadButton({
     setMessage(null);
 
     try {
-      const response = await fetch(`/api/download?session_id=${encodeURIComponent(sessionId)}`, {
+      const query = sessionId
+        ? `session_id=${encodeURIComponent(sessionId)}`
+        : `product_slug=${encodeURIComponent(productSlug)}`;
+
+      const response = await fetch(`/api/download?${query}`, {
         method: "GET",
       });
 
@@ -73,7 +79,7 @@ export function ProtectedDownloadButton({
         disabled={isLoading}
         className="button-primary disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {isLoading ? "Preparazione download..." : "Scarica il tuo kit"}
+        {isLoading ? "Preparazione download..." : buttonLabel}
       </button>
       {message ? (
         <p

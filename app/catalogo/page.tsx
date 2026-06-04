@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { CTASection } from "@/components/CTASection";
 import { ProductCard } from "@/components/ProductCard";
 import { products } from "@/data/products";
+import { getOwnedDigitalProductSlugs } from "@/lib/digital-purchases";
+import { isSupabaseConfigured } from "@/lib/env";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Catalogo",
@@ -9,7 +12,22 @@ export const metadata: Metadata = {
     "Esplora il catalogo BizKit AI con kit digitali e verticali pronti da collegare alla piattaforma SaaS per palestre e attivita locali.",
 };
 
-export default function CatalogPage() {
+export default async function CatalogPage() {
+  let ownedSlugs = new Set<string>();
+
+  if (isSupabaseConfigured()) {
+    const supabase = await createSupabaseServerClient();
+    if (supabase) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        ownedSlugs = new Set(await getOwnedDigitalProductSlugs(user.id));
+      }
+    }
+  }
+
   return (
     <>
       <section className="section-shell pt-12 sm:pt-16">
@@ -29,7 +47,11 @@ export default function CatalogPage() {
       <section className="section-shell">
         <div className="container-shell grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {products.map((product) => (
-            <ProductCard key={product.slug} product={product} />
+            <ProductCard
+              key={product.slug}
+              product={product}
+              isPurchased={ownedSlugs.has(product.slug)}
+            />
           ))}
         </div>
       </section>

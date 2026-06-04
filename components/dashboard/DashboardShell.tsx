@@ -55,6 +55,7 @@ const COMMON_NAV_ITEMS: NavItem[] = [
   { href: "/dashboard/calendars", label: "Calendars", icon: "history" },
   { href: "/dashboard/crm", label: "CRM", icon: "crm" },
   { href: "/dashboard/history", label: "Cronologia", icon: "history" },
+  { href: "/dashboard/purchases", label: "I miei acquisti", icon: "history" },
   { href: "/dashboard/settings/business-profile", label: "Business Profile", icon: "settings" },
   { href: "/dashboard/billing", label: "Billing", icon: "billing" },
 ];
