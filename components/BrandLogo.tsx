@@ -47,13 +47,13 @@ export function BrandIcon({ size = "md", className, priority = false }: BrandIco
   return (
     <div
       className={joinClasses(
-        "relative overflow-hidden border border-white/10 bg-slate-950 shadow-lg shadow-slate-900/20",
+        "relative overflow-hidden",
         iconSizeClasses[size],
         className,
       )}
     >
       <Image
-        src="/favicon/android-chrome-512x512.png"
+        src="/favicon/favicon-32x32.png"
         alt="BizKit AI logo"
         fill
         priority={priority}
@@ -66,7 +66,7 @@ export function BrandIcon({ size = "md", className, priority = false }: BrandIco
                 ? "48px"
                 : "40px"
         }
-        className="object-cover object-top scale-[1.18]"
+        className="object-contain"
       />
     </div>
   );
