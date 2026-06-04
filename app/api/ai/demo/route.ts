@@ -4,6 +4,7 @@ import { buildGenerationSystemPrompt, type BusinessProfile } from "@/lib/busines
 import { type AIContentType } from "@/lib/business-verticals";
 import { isOpenAIConfigured } from "@/lib/env";
 import { getOpenAIClient, getOpenAIModel } from "@/lib/openai";
+import { getSportsKnowledgePack } from "@/lib/sportsKnowledgePacks";
 import {
   buildCalendarSystemPrompt,
   parseSocialCalendarResponse,
@@ -44,6 +45,7 @@ function buildDemoProfile(vertical: DemoVertical): BusinessProfile {
   }
 
   if (vertical === "sports") {
+    const sportsPack = getSportsKnowledgePack("paintball");
     return {
       id: "demo",
       user_id: "demo",
@@ -56,8 +58,8 @@ function buildDemoProfile(vertical: DemoVertical): BusinessProfile {
       instagram: "@urbanbattlepark",
       tone_of_voice: "Energico, coinvolgente, social-first",
       target_audience: "Gruppi amici, aziende e compleanni che cercano un'esperienza adrenalinica",
-      services: "Paintball, compleanni bambini, addii al celibato, team building, tornei, promo weekend",
-      unique_selling_points: "Arena immersiva outdoor, briefing sicurezza chiaro, booking semplice per gruppi ed eventi",
+      services: sportsPack.offerTypes.join(", "),
+      unique_selling_points: `Arena immersiva outdoor, briefing sicurezza chiaro, booking semplice per gruppi ed eventi. Focus contenuti: ${sportsPack.contentPillars.slice(0, 4).join(", ")}.`,
       preferred_cta: "Prenota il tuo slot",
       preferred_hashtags: "#paintballmilano #paintballparty #teambuilding #weekendexperience",
       sports_subcategory: "paintball",

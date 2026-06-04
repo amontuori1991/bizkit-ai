@@ -5,9 +5,12 @@ import {
   pickPrimaryBusinessProfile,
   type BusinessProfile,
 } from "@/lib/business-profile";
-import { getSportsQuickTemplatesForSubcategory } from "@/lib/business-verticals";
 import { isOpenAIConfigured } from "@/lib/env";
 import { requireDashboardUser } from "@/lib/saas";
+import {
+  getSportsKnowledgePack,
+  getSportsQuickTemplatesForSubcategory,
+} from "@/lib/sportsKnowledgePacks";
 
 export default async function SportsCaptionsPage() {
   const { supabase, user } = await requireDashboardUser();
@@ -21,14 +24,15 @@ export default async function SportsCaptionsPage() {
     .limit(5);
   const profile = pickPrimaryBusinessProfile((profiles as BusinessProfile[] | null) ?? []);
   const profileReady = isBusinessProfileComplete(profile);
-  const paintballMode = profile?.sports_subcategory === "paintball";
+  const sportsPack = getSportsKnowledgePack(profile?.sports_subcategory);
+  const specializedMode = profile?.sports_subcategory != null;
 
   return (
     <DashboardShell
       title="Sports Captions AI"
       description={
-        paintballMode
-          ? "Crea caption paintball molto piu specifiche per compleanni, addii al celibato, team building, tornei, promo weekend e gruppi numerosi."
+        specializedMode
+          ? `Crea caption ${sportsPack.label.toLowerCase()} piu specifiche, usando automaticamente pilastri come ${sportsPack.contentPillars.slice(0, 4).join(", ")}.`
           : "Crea caption piu forti per paintball, padel, calcetto e attivita outdoor con CTA orientate a prenotazioni, gruppi ed eventi."
       }
       userEmail={user.email ?? "utente"}
@@ -37,12 +41,12 @@ export default async function SportsCaptionsPage() {
         type="sports_caption"
         title="Generatore caption sport & outdoor"
         helper={
-          paintballMode
-            ? "Scrivi solo la richiesta operativa. Se il profilo attivo e Paintball, l'AI usa automaticamente compleanni, addii al celibato, team building, sicurezza, gioco di squadra e prenotazioni weekend."
+          specializedMode
+            ? `Scrivi solo la richiesta operativa. Per ${sportsPack.label} l'AI usa automaticamente knowledge pack, offerte, CRM e angoli contenuto della sottocategoria attiva.`
             : "Scrivi solo la richiesta operativa. Il sistema usera automaticamente business type, sottocategoria, citta, target, servizi, CTA e hashtag del Business Profile."
         }
         placeholder={
-          paintballMode
+          sportsPack.subcategory === "paintball"
             ? "Esempio: Scrivi una caption per promuovere un addio al celibato paintball con slot disponibili sabato pomeriggio."
             : "Esempio: Scrivi una caption per promuovere un pacchetto compleanno paintball con posti limitati questo weekend."
         }

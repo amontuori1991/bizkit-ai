@@ -5,9 +5,12 @@ import {
   pickPrimaryBusinessProfile,
   type BusinessProfile,
 } from "@/lib/business-profile";
-import { getSportsQuickTemplatesForSubcategory } from "@/lib/business-verticals";
 import { isOpenAIConfigured } from "@/lib/env";
 import { requireDashboardUser } from "@/lib/saas";
+import {
+  getSportsKnowledgePack,
+  getSportsQuickTemplatesForSubcategory,
+} from "@/lib/sportsKnowledgePacks";
 
 export default async function SportsClientMessagesPage() {
   const { supabase, user } = await requireDashboardUser();
@@ -21,14 +24,15 @@ export default async function SportsClientMessagesPage() {
     .limit(5);
   const profile = pickPrimaryBusinessProfile((profiles as BusinessProfile[] | null) ?? []);
   const profileReady = isBusinessProfileComplete(profile);
-  const paintballMode = profile?.sports_subcategory === "paintball";
+  const sportsPack = getSportsKnowledgePack(profile?.sports_subcategory);
+  const specializedMode = profile?.sports_subcategory != null;
 
   return (
     <DashboardShell
       title="Sports Client Messages AI"
       description={
-        paintballMode
-          ? "Genera messaggi WhatsApp paintball pratici per conferme prenotazione, reminder evento, follow-up post partita, recensioni e recupero gruppi."
+        specializedMode
+          ? `Genera messaggi clienti ${sportsPack.label.toLowerCase()} piu pratici, usando automaticamente template e casi d'uso del knowledge pack.`
           : "Genera messaggi clienti per reminder, promo weekend, pacchetti gruppo, recupero inattivi e prenotazioni rapide."
       }
       userEmail={user.email ?? "utente"}
@@ -37,12 +41,12 @@ export default async function SportsClientMessagesPage() {
         type="sports_client_message"
         title="Generatore messaggi clienti sport & outdoor"
         helper={
-          paintballMode
-            ? "Scrivi solo la richiesta operativa. Se il profilo attivo e Paintball, l'AI inserisce quando utile data, orario, numero partecipanti, arrivo anticipato, abbigliamento consigliato, sicurezza, caparra e conferma disponibilita."
+          specializedMode
+            ? `Scrivi solo la richiesta operativa. Per ${sportsPack.label} l'AI usa automaticamente template CRM, messaggi tipici e dettagli operativi della sottocategoria attiva.`
             : "Scrivi solo la richiesta operativa. L'AI usera automaticamente sottocategoria, CTA, stile e contesto del tuo centro sportivo."
         }
         placeholder={
-          paintballMode
+          sportsPack.subcategory === "paintball"
             ? "Esempio: Scrivi un messaggio WhatsApp di conferma per un compleanno bambini paintball con orario, arrivo anticipato e abbigliamento consigliato."
             : "Esempio: Scrivi un messaggio WhatsApp per proporre un team building paintball a un'azienda locale."
         }

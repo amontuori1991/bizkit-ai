@@ -5,9 +5,12 @@ import {
   pickPrimaryBusinessProfile,
   type BusinessProfile,
 } from "@/lib/business-profile";
-import { getSportsQuickTemplatesForSubcategory } from "@/lib/business-verticals";
 import { isOpenAIConfigured } from "@/lib/env";
 import { requireDashboardUser } from "@/lib/saas";
+import {
+  getSportsKnowledgePack,
+  getSportsQuickTemplatesForSubcategory,
+} from "@/lib/sportsKnowledgePacks";
 
 export default async function SportsReelsPage() {
   const { supabase, user } = await requireDashboardUser();
@@ -21,14 +24,15 @@ export default async function SportsReelsPage() {
     .limit(5);
   const profile = pickPrimaryBusinessProfile((profiles as BusinessProfile[] | null) ?? []);
   const profileReady = isBusinessProfileComplete(profile);
-  const paintballMode = profile?.sports_subcategory === "paintball";
+  const sportsPack = getSportsKnowledgePack(profile?.sports_subcategory);
+  const specializedMode = profile?.sports_subcategory != null;
 
   return (
     <DashboardShell
       title="Sports Reels AI"
       description={
-        paintballMode
-          ? "Genera Reel paintball piu verticali per compleanni, addii al celibato, POV partita, team building, promo weekend e sicurezza."
+        specializedMode
+          ? `Genera Reel ${sportsPack.label.toLowerCase()} piu verticali, usando automaticamente idee come ${sportsPack.reelIdeas.slice(0, 4).join(", ")}.`
           : "Genera Reel energici e social-first per centri sportivi, prenotazioni campi, tornei, compleanni e promo weekend."
       }
       userEmail={user.email ?? "utente"}
@@ -37,12 +41,12 @@ export default async function SportsReelsPage() {
         type="sports_reel_script"
         title="Generatore Reel sport & outdoor"
         helper={
-          paintballMode
-            ? "Scrivi solo la richiesta operativa. Se il profilo attivo e Paintball, l'AI usa automaticamente adrenalina, strategia, gioco di squadra, sicurezza, eventi di gruppo e prenotazioni weekend."
+          specializedMode
+            ? `Scrivi solo la richiesta operativa. Per ${sportsPack.label} l'AI usa automaticamente le idee Reel e i pilastri del knowledge pack della sottocategoria attiva.`
             : "Scrivi solo la richiesta operativa. L'AI usa automaticamente sottocategoria, CTA, servizi, target e contesto locale del Business Profile."
         }
         placeholder={
-          paintballMode
+          sportsPack.subcategory === "paintball"
             ? "Esempio: Crea un Reel POV per mostrare una partita paintball tra amici con hook forte e CTA prenotazione weekend."
             : "Esempio: Crea un Reel per promuovere un torneo padel del sabato con iscrizioni aperte."
         }

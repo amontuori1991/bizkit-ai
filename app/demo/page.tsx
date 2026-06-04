@@ -3,6 +3,7 @@ import Link from "next/link";
 import { DemoCalendarSection } from "@/components/demo/DemoCalendarSection";
 import { GeneratorWorkspace } from "@/components/dashboard/GeneratorWorkspace";
 import type { BusinessProfile } from "@/lib/business-profile";
+import { getSportsQuickTemplatesForSubcategory, getSportsKnowledgePack } from "@/lib/sportsKnowledgePacks";
 import { isOpenAIConfigured } from "@/lib/env";
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ export default async function DemoPage({ searchParams }: DemoPageProps) {
   const vertical = verticalParam === "hair" || verticalParam === "sports" ? verticalParam : "gym";
   const isHair = vertical === "hair";
   const isSports = vertical === "sports";
+  const sportsPack = getSportsKnowledgePack("paintball");
   const demoProfile: BusinessProfile = isHair
     ? {
         id: "demo",
@@ -159,7 +161,7 @@ export default async function DemoPage({ searchParams }: DemoPageProps) {
             isHair
               ? "Scrivi una richiesta breve e ricevi 3 varianti premium per saloni, barber shop e hair stylist."
               : isSports
-                ? "Scrivi una richiesta breve e ricevi 3 varianti premium per paintball, padel, calcetto e attivita outdoor."
+                ? `Scrivi una richiesta breve e ricevi 3 varianti premium per ${sportsPack.label.toLowerCase()} e altre attivita sport & outdoor.`
               : "Scrivi una richiesta breve e ricevi 3 varianti premium per palestre e business fitness."
           }
           placeholder={
@@ -191,13 +193,7 @@ export default async function DemoPage({ searchParams }: DemoPageProps) {
                   { label: "Offerta last minute", prompt: "Scrivi una promo last minute per riempire uno slot oggi." },
                 ]
               : isSports
-                ? [
-                    { label: "Promo weekend", prompt: "Scrivi una caption per promuovere il weekend paintball con posti limitati." },
-                    { label: "Compleanni", prompt: "Scrivi una caption per vendere un pacchetto compleanno paintball." },
-                    { label: "Team building", prompt: "Scrivi una caption per aziende che vogliono un team building outdoor." },
-                    { label: "Torneo", prompt: "Scrivi una caption per lanciare un torneo amatoriale del weekend." },
-                    { label: "Promo last minute", prompt: "Scrivi una promo per riempire slot liberi di questa domenica." },
-                  ]
+                ? getSportsQuickTemplatesForSubcategory("sports_caption", "paintball").slice(0, 5)
               : [
                   { label: "Promo estate", prompt: "Scrivi una caption per promuovere una promo estate con posti limitati." },
                   { label: "Open day", prompt: "Scrivi una caption per invitare lead locali a un open day in palestra." },

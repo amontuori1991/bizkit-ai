@@ -41,41 +41,6 @@ export type QuickTemplate = {
   prompt: string;
 };
 
-const paintballQuickTemplatesByType: Partial<Record<AIContentType, QuickTemplate[]>> = {
-  sports_caption: [
-    { label: "Compleanno bambini paintball", prompt: "Scrivi una caption per promuovere un compleanno bambini paintball con formula kids, sicurezza inclusa e CTA prenotazione weekend." },
-    { label: "Addio al celibato paintball", prompt: "Scrivi una caption per vendere un addio al celibato paintball ad alto divertimento, gruppo numeroso e prenotazione facile." },
-    { label: "Team building aziendale", prompt: "Scrivi una caption per proporre un team building aziendale paintball con focus su strategia, gioco di squadra e outdoor experience." },
-    { label: "Promo weekend gruppi", prompt: "Scrivi una caption per una promo weekend dedicata ai gruppi paintball con posti limitati e CTA WhatsApp." },
-    { label: "Torneo paintball", prompt: "Scrivi una caption per lanciare un torneo paintball con iscrizioni aperte e atmosfera competitiva." },
-    { label: "Prima volta al paintball", prompt: "Scrivi una caption rassicurante per chi vuole provare il paintball per la prima volta, spiegando sicurezza e divertimento." },
-  ],
-  sports_reel_script: [
-    { label: "Reel POV partita", prompt: "Crea un Reel POV partita paintball con hook forte, adrenalina, strategia di squadra e CTA prenotazione." },
-    { label: "Sicurezza e attrezzatura", prompt: "Crea un Reel paintball per spiegare in modo chiaro sicurezza, attrezzatura e briefing iniziale." },
-    { label: "Pacchetto amici", prompt: "Crea un Reel per promuovere un pacchetto paintball per gruppi di amici con visual dinamici e CTA weekend." },
-    { label: "Modalita Caccia al Coniglio", prompt: "Crea un Reel per raccontare la modalita di gioco Caccia al Coniglio in modo divertente e prenotabile." },
-    { label: "Evento aziendale outdoor", prompt: "Crea un Reel per un evento aziendale paintball con focus team building, outdoor e coordinamento." },
-    { label: "Recensione gruppo", prompt: "Crea un Reel che mostri la recensione entusiasta di un gruppo dopo una partita paintball." },
-  ],
-  sports_promo: [
-    { label: "Promo weekend gruppi", prompt: "Crea una promo paintball per gruppi weekend con valore chiaro, slot limitati e CTA prenotazione." },
-    { label: "Compleanno bambini paintball", prompt: "Crea una promo commerciale per compleanni bambini paintball con format kids, briefing sicurezza e caparra semplice." },
-    { label: "Addio al celibato paintball", prompt: "Crea una promo per addio al celibato paintball con energia alta, pacchetto gruppo e prenotazione rapida." },
-    { label: "Torneo paintball", prompt: "Crea una promo per lanciare un torneo paintball con iscrizione team e premio finale." },
-    { label: "Evento aziendale outdoor", prompt: "Crea una promo B2B per team building paintball con tono professionale e outdoor experience." },
-    { label: "Pacchetto amici", prompt: "Crea una promo per un pacchetto amici paintball con focus su adrenalina, gioco di squadra e formula weekend." },
-  ],
-  sports_client_message: [
-    { label: "Conferma prenotazione", prompt: "Scrivi un messaggio WhatsApp paintball per confermare una prenotazione con data, orario, numero partecipanti e arrivo anticipato." },
-    { label: "Reminder evento", prompt: "Scrivi un reminder WhatsApp paintball pratico con abbigliamento consigliato, sicurezza e orario di arrivo." },
-    { label: "Follow-up post partita", prompt: "Scrivi un follow-up WhatsApp post partita paintball per ringraziare il gruppo e proporre una nuova prenotazione." },
-    { label: "Richiesta recensione", prompt: "Scrivi un messaggio WhatsApp per chiedere una recensione dopo un evento paintball di gruppo." },
-    { label: "Proposta team building", prompt: "Scrivi un messaggio commerciale paintball per proporre un team building aziendale outdoor." },
-    { label: "Proposta compleanno", prompt: "Scrivi un messaggio WhatsApp per proporre un compleanno paintball con formula bambini o ragazzi." },
-  ],
-};
-
 export const businessTypeOptions: Array<{
   value: BusinessType;
   label: string;
@@ -227,16 +192,5 @@ export const generatorQuickTemplates: Partial<Record<AIContentType, QuickTemplat
 };
 
 export function getQuickTemplatesForType(type: AIContentType) {
-  return generatorQuickTemplates[type] ?? [];
-}
-
-export function getSportsQuickTemplatesForSubcategory(
-  type: AIContentType,
-  subcategory?: string | null,
-) {
-  if (subcategory === "paintball") {
-    return paintballQuickTemplatesByType[type] ?? generatorQuickTemplates[type] ?? [];
-  }
-
   return generatorQuickTemplates[type] ?? [];
 }

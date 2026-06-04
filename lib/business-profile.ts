@@ -1,10 +1,12 @@
 import {
+  getQuickTemplatesForType,
   getBusinessTypeLabel,
   getSportsSubcategoryLabel,
   isHairBusinessType,
   isSportsBusinessType,
   type AIContentType,
 } from "@/lib/business-verticals";
+import { getSportsKnowledgePack } from "@/lib/sportsKnowledgePacks";
 
 export type BusinessProfile = {
   id: string;
@@ -111,34 +113,23 @@ function getSportsSubcategoryAngle(profile: BusinessProfile | null) {
   }
 
   const subcategory = profile.sports_subcategory?.trim();
+  const pack = getSportsKnowledgePack(subcategory);
   const subcategoryLabel = getSportsSubcategoryLabel(subcategory);
-  const instructions: Partial<Record<string, string>> = {
-    paintball:
-      "Per paintball enfatizza adrenalina, gioco di squadra, strategia, sicurezza, divertimento outdoor, eventi di gruppo, compleanni, addii al celibato, team building e prenotazioni weekend. Alterna contenuti tra promo, FAQ prima volta, sicurezza e attrezzatura, dietro le quinte, modalita di gioco, recensioni clienti e backstage reale.",
-    softair:
-      "Per softair enfatizza scenario game, team building, sessioni su prenotazione, eventi privati e community competitiva.",
-    laser_tag:
-      "Per laser tag enfatizza compleanni, gruppi amici, famiglie, eventi indoor e prenotazioni rapide.",
-    padel:
-      "Per padel enfatizza lezioni, tornei, prenotazioni campi, community locale e slot infrasettimanali.",
-    calcetto:
-      "Per calcetto enfatizza campionati, prenotazioni campi, partite tra amici, eventi aziendali e promo serali.",
-    tennis:
-      "Per tennis enfatizza lezioni, clinic, prenotazioni campi, tornei e progressione tecnica.",
-    beach_volley:
-      "Per beach volley enfatizza tornei estivi, gruppi amici, eventi outdoor e atmosfera social.",
-    adventure_park:
-      "Per adventure park enfatizza famiglie, gruppi, scuole, esperienze outdoor e team building.",
-    go_kart:
-      "Per go kart enfatizza gare tra amici, addii al celibato, team building, eventi corporate e adrenalina pura.",
-    multisport:
-      "Per multisport enfatizza versatilita, attivita per gruppi, eventi stagionali, tornei e prenotazioni ricorrenti.",
-  };
+  const quickTemplateLabels = getQuickTemplatesForType("sports_caption")
+    .concat(pack.quickTemplates.sports_caption ?? [])
+    .slice(0, 6)
+    .map((template) => template.label)
+    .join(", ");
 
   return [
     `Questo business e un centro sportivo/outdoor nella sottocategoria ${subcategoryLabel}.`,
-    instructions[subcategory ?? ""] ??
-      "Adatta copy, CTA e offerte alla sottocategoria scelta, puntando su prenotazioni, gruppi, eventi e ricorrenze locali.",
+    `Posizionamento da usare: ${pack.positioning}`,
+    `Pilastri contenuto principali: ${pack.contentPillars.join(", ")}.`,
+    `Tipi di offerta da valorizzare: ${pack.offerTypes.join(", ")}.`,
+    `Campagne stagionali tipiche: ${pack.seasonalCampaigns.join(", ")}.`,
+    `Idee Reel/short-form da privilegiare: ${pack.reelIdeas.join(", ")}.`,
+    `Messaggi clienti prioritari: ${pack.clientMessages.join(", ")}.`,
+    quickTemplateLabels ? `Prompt rapidi gia previsti per questa sottocategoria: ${quickTemplateLabels}.` : null,
   ].join("\n");
 }
 
@@ -201,18 +192,24 @@ function getHairPrompt(type: AIContentType) {
 }
 
 function getSportsPrompt(type: AIContentType, profile: BusinessProfile | null) {
-  const paintballMode = profile?.sports_subcategory?.trim() === "paintball";
+  const pack = getSportsKnowledgePack(profile?.sports_subcategory?.trim());
+  const advancedGroupExperience = ["paintball", "go_kart", "softair"].includes(pack.subcategory);
+  const whatsappHeavy = pack.supportedCalendarFormats.includes("WhatsApp follow-up");
   const shared = [
     "Scrivi in italiano.",
     "Usa un tone of voice moderno, energico, orientato all'esperienza e social-first.",
     "Usa emoji intelligenti e non infantili: massimo 3 per variante, solo se aiutano ritmo e chiarezza.",
     "Le CTA devono puntare a prenotazione, richiesta preventivo, WhatsApp, DM o slot disponibili.",
     "Valorizza gruppi, eventi, compleanni, tornei, lezioni, prenotazioni campi o attivita outdoor in base alla sottocategoria.",
-    paintballMode
-      ? "Per paintball usa hook meno generici e piu specifici: compleanni bambini, addii al celibato, team building, gruppi di amici, tornei, FAQ prima volta, sicurezza e attrezzatura, promo weekend, eventi privati e gruppi numerosi."
-      : null,
-    paintballMode
+    `Knowledge pack attivo: ${pack.label}.`,
+    `Content pillars da usare in modo naturale: ${pack.contentPillars.join(", ")}.`,
+    `Offerte e campagne da valorizzare: ${pack.offerTypes.join(", ")}; ${pack.seasonalCampaigns.join(", ")}.`,
+    `Idee promozionali gia coerenti con questa sottocategoria: ${pack.promoIdeas.join(", ")}.`,
+    advancedGroupExperience
       ? "Quando utile inserisci dettagli pratici che aumentano la conversione: prenotazione weekend, numero partecipanti, arrivo anticipato, briefing sicurezza, abbigliamento consigliato e caparra o saldo."
+      : null,
+    whatsappHeavy
+      ? "Per questa sottocategoria sono particolarmente importanti WhatsApp follow-up, conferme, reminder e richieste recensione post esperienza."
       : null,
     "Genera sempre tre versioni distinte: short, medium e long.",
     "Ogni versione deve avere hook forte, spacing leggibile, CTA chiara e tono credibile per Instagram, TikTok o WhatsApp.",
@@ -230,21 +227,14 @@ function getSportsPrompt(type: AIContentType, profile: BusinessProfile | null) {
     sports_client_message:
       "Sei un customer care copywriter per centri sportivi e outdoor. Genera messaggi WhatsApp chiari, caldi e orientati a prenotazioni, reminder o riattivazione clienti.",
   };
-
-  const paintballAddons: Partial<Record<AIContentType, string>> = {
-    sports_caption:
-      "Se la sottocategoria e Paintball, genera contenuti ad alto impatto per compleanni bambini, addii al celibato, team building, gruppi di amici, promo weekend, tornei, esperienze outdoor e FAQ di prima volta.",
-    sports_reel_script:
-      "Se la sottocategoria e Paintball, crea Reel molto visuali con POV partita, attrezzatura, briefing sicurezza, modalita di gioco, backstage campo, recensioni di gruppo e CTA prenotazione immediata.",
-    sports_promo:
-      "Se la sottocategoria e Paintball, privilegia offerte per gruppi, compleanni, eventi privati, team building, tornei e weekend sold-out con forte senso di urgenza.",
-    sports_client_message:
-      "Se la sottocategoria e Paintball, scrivi messaggi WhatsApp pratici che includano quando utile data, orario, numero partecipanti, abbigliamento consigliato, arrivo anticipato, sicurezza, saldo o caparra e conferma disponibilita.",
+  const typeSpecialization: Partial<Record<AIContentType, string>> = {
+    sports_caption: `Quando scrivi caption per ${pack.label}, usa soprattutto questi angoli: ${pack.contentPillars.slice(0, 6).join(", ")}.`,
+    sports_reel_script: `Quando scrivi Reel per ${pack.label}, usa soprattutto questi format: ${pack.reelIdeas.join(", ")}.`,
+    sports_promo: `Quando scrivi promo per ${pack.label}, privilegia queste offerte: ${pack.promoIdeas.join(", ")}.`,
+    sports_client_message: `Quando scrivi messaggi clienti per ${pack.label}, copri casi come: ${pack.clientMessages.join(", ")}.`,
   };
 
-  return [typeInstruction[type], paintballMode ? paintballAddons[type] : null, ...shared]
-    .filter(Boolean)
-    .join("\n\n");
+  return [typeInstruction[type], typeSpecialization[type], ...shared].filter(Boolean).join("\n\n");
 }
 
 function getFormatInstructions(type: AIContentType) {

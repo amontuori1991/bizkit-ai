@@ -1,9 +1,9 @@
 import { buildBusinessProfileContext, type BusinessProfile } from "@/lib/business-profile";
 import {
-  getSportsSubcategoryLabel,
   isHairBusinessType,
   isSportsBusinessType,
 } from "@/lib/business-verticals";
+import { getSportsKnowledgePack } from "@/lib/sportsKnowledgePacks";
 
 export type SocialCalendarDays = 7 | 14 | 30;
 export type SocialContentFormat =
@@ -45,42 +45,9 @@ export const socialCalendarObjectives = [
 
 export const socialCalendarDayOptions: SocialCalendarDays[] = [7, 14, 30];
 
-function getPaintballCalendarPillars() {
-  return [
-    "promo weekend",
-    "educazione prima volta",
-    "intrattenimento di gruppo",
-    "recensioni clienti",
-    "backstage",
-    "eventi privati",
-    "sicurezza e attrezzatura",
-    "conversione prenotazioni",
-    "compleanni bambini",
-    "addii al celibato",
-    "team building aziendale",
-    "tornei",
-    "modalita di gioco",
-    "gruppi numerosi",
-    "esperienza outdoor",
-  ];
-}
-
 function getCalendarPillars(vertical: SocialCalendarBusinessVertical, profile: BusinessProfile | null) {
   if (vertical === "sports") {
-    if (profile?.sports_subcategory?.trim() === "paintball") {
-      return getPaintballCalendarPillars();
-    }
-
-    return [
-      "promo weekend",
-      "compleanni",
-      "team building",
-      "tornei",
-      "prenotazioni",
-      "eventi",
-      "recensioni",
-      "backstage",
-    ];
+    return getSportsKnowledgePack(profile?.sports_subcategory?.trim()).socialCalendarIdeas;
   }
 
   if (vertical === "hair") {
@@ -127,7 +94,6 @@ export function buildCalendarSystemPrompt(
   objective: string,
 ) {
   const vertical = inferCalendarVertical(profile);
-  const paintballMode = profile?.sports_subcategory?.trim() === "paintball";
   const verticalLabel =
     vertical === "hair"
       ? "saloni parrucchieri e barber shop"
@@ -136,37 +102,37 @@ export function buildCalendarSystemPrompt(
         : "palestre e business fitness";
   const pillars = getCalendarPillars(vertical, profile).join(", ");
   const businessContext = buildBusinessProfileContext(profile);
-  const sportsSubcategory = profile?.sports_subcategory?.trim();
+  const sportsPack = vertical === "sports" ? getSportsKnowledgePack(profile?.sports_subcategory?.trim()) : null;
+  const sportsFormats =
+    sportsPack?.supportedCalendarFormats.join(" | ") ?? "Post Instagram | Reel | Story | TikTok";
 
   return [
     `Sei un senior social media strategist per ${verticalLabel}.`,
     "Scrivi in italiano.",
     "Crea un calendario editoriale premium, coerente con il business profile, concreto e pronto da usare.",
     "Usa automaticamente citta, servizi, target, CTA preferita, tone of voice e hashtag del profilo quando disponibili.",
-    paintballMode
-      ? "Alterna i formati tra Post Instagram, Reel, Story, TikTok e WhatsApp follow-up in modo credibile, orientato a conversione e gestione gruppi."
+    vertical === "sports"
+      ? `Alterna i formati tra ${sportsFormats} in modo credibile e coerente con la sottocategoria attiva.`
       : "Alterna i formati tra Post Instagram, Reel, Story e TikTok in modo credibile.",
     `Il calendario deve coprire ${days} giorni e supportare questo obiettivo: ${objective}.`,
     `Per questo verticale usa soprattutto questi pillar: ${pillars}.`,
     vertical === "hair"
       ? "Per hair usa hook piu beauty/fashion, CTA piu orientate al booking, hashtag beauty/hair e tono moderno."
       : vertical === "sports"
-        ? paintballMode
-          ? `Per sports/outdoor adatta tutto alla sottocategoria ${getSportsSubcategoryLabel(sportsSubcategory)}. Alterna contenuti tra promo, educazione, intrattenimento, recensioni, backstage, eventi, sicurezza e conversione prenotazioni. Inserisci casi d'uso concreti come compleanni bambini, addii al celibato, team building aziendale, gruppi di amici, tornei, FAQ prima volta, modalita di gioco e weekend booking.`
-          : `Per sports/outdoor adatta tutto alla sottocategoria ${getSportsSubcategoryLabel(sportsSubcategory)}. Usa CTA orientate a prenotazioni, gruppi, eventi, compleanni, lezioni, campi o promo weekend a seconda del contesto.`
+        ? `Per sports/outdoor adatta tutto alla sottocategoria ${sportsPack?.label}. Usa questo posizionamento: ${sportsPack?.positioning} Inserisci soprattutto idee come ${sportsPack?.socialCalendarIdeas.join(", ")}. Se coerente, valorizza offerte come ${sportsPack?.offerTypes.join(", ")} e Reel/short-form come ${sportsPack?.reelIdeas.join(", ")}.`
         : "Per fitness usa tono energico ma professionale, CTA su prova gratuita/open day/DM e hashtag fitness locali.",
     "Restituisci solo JSON valido senza markdown o testo extra.",
     `Usa esattamente questo schema:
 {
-  "title": "string",
-  "objective": "string",
-  "periodDays": ${days},
-  "entries": [
+      "title": "string",
+      "objective": "string",
+      "periodDays": ${days},
+      "entries": [
     {
       "day": 1,
       "date": "YYYY-MM-DD",
       "title": "string",
-      "format": "Post Instagram | Reel | Story | TikTok${paintballMode ? " | WhatsApp follow-up" : ""}",
+      "format": "${sportsFormats}",
       "pillar": "string",
       "caption": "string breve, max 220 caratteri",
       "cta": "string",
