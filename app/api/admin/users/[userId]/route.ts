@@ -1,7 +1,5 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { isAdminAuthenticated } from "@/lib/admin";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
+import { deleteManagedUserCompletely, requireAdminRequest } from "@/lib/admin-users";
 
 type RouteContext = {
   params: Promise<{
@@ -9,43 +7,31 @@ type RouteContext = {
   }>;
 };
 
-export async function DELETE(_: Request, context: RouteContext) {
-  const cookieStore = await cookies();
-
-  if (!isAdminAuthenticated(cookieStore)) {
-    return NextResponse.json({ error: "Non autorizzato." }, { status: 401 });
-  }
-
-  const { userId } = await context.params;
-
-  if (!userId?.trim()) {
-    return NextResponse.json({ error: "userId mancante." }, { status: 400 });
-  }
-
-  const supabase = createSupabaseServiceRoleClient();
-  if (!supabase) {
-    return NextResponse.json(
-      { error: "SUPABASE_SERVICE_ROLE_KEY non configurata." },
-      { status: 503 },
-    );
-  }
-
+export async function DELETE(request: Request, context: RouteContext) {
   try {
-    const { error } = await supabase.auth.admin.deleteUser(userId);
+    await requireAdminRequest();
+    const body = (await request.json().catch(() => ({}))) as {
+      confirmText?: string;
+    };
+    const { userId } = await context.params;
 
-    if (error) {
-      console.error("Admin delete user error:", error);
+    if (body.confirmText !== "DELETE") {
       return NextResponse.json(
-        { error: "Impossibile eliminare l'utente da Supabase Auth." },
-        { status: 500 },
+        { error: "Per eliminare completamente l'utente devi digitare DELETE." },
+        { status: 400 },
       );
     }
 
+    await deleteManagedUserCompletely(userId);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Admin delete user route error:", error);
+    if (error instanceof Error && error.message === "NON_AUTHORIZED") {
+      return NextResponse.json({ error: "Non autorizzato." }, { status: 401 });
+    }
+
+    console.error("Admin complete delete user error:", error);
     return NextResponse.json(
-      { error: "Errore durante l'eliminazione dell'utente." },
+      { error: "Errore durante l'eliminazione completa dell'utente." },
       { status: 500 },
     );
   }

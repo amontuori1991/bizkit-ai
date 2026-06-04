@@ -59,6 +59,9 @@ export default async function AdminAnalyticsPage() {
                 <Link href="/admin" className="button-secondary">
                   Torna alla dashboard
                 </Link>
+                <Link href="/admin/users" className="button-secondary">
+                  Gestione utenti
+                </Link>
                 <Link href="/admin/setup" className="button-secondary">
                   Verifica setup
                 </Link>

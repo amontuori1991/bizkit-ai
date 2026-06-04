@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AdminSiteSettingsForm } from "@/components/AdminSiteSettingsForm";
 import { AdminThemeToggle } from "@/components/AdminThemeToggle";
-import { AdminUsersPanel } from "@/components/AdminUsersPanel";
 import type { DownloadFile } from "@/data/downloads";
 import type { Product } from "@/data/products";
 import type { LeadEntry } from "@/lib/leads";
@@ -92,6 +91,9 @@ export function AdminDashboardView({
               <Link href="/admin/analytics" className="button-secondary">
                 Apri analytics
               </Link>
+              <Link href="/admin/users" className="button-secondary">
+                Gestione utenti
+              </Link>
               <AdminThemeToggle theme={theme} onToggle={toggleTheme} />
             </div>
           </div>
@@ -114,7 +116,34 @@ export function AdminDashboardView({
         </div>
 
         <div className="mt-8">
-          <AdminUsersPanel initialUsers={users} configured={usersConfigured} isDark={isDark} />
+          <section className={`rounded-[2rem] border p-6 shadow-soft ${surface}`}>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <h2 className="text-2xl font-bold">Gestione utenti</h2>
+                <p className={`mt-3 max-w-2xl leading-7 ${subtle}`}>
+                  Apri la sezione dedicata per cercare utenti, cambiare piano, resettare usage,
+                  cancellare dati test o eliminare completamente un account.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className={`rounded-[1.25rem] border px-4 py-4 ${card}`}>
+                  <p className={`text-xs uppercase tracking-[0.18em] ${subtle}`}>Utenti caricati</p>
+                  <p className="mt-2 text-2xl font-bold">{users.length}</p>
+                </div>
+                <div className={`rounded-[1.25rem] border px-4 py-4 ${card}`}>
+                  <p className={`text-xs uppercase tracking-[0.18em] ${subtle}`}>Service role</p>
+                  <p className="mt-2 text-2xl font-bold">
+                    {usersConfigured ? "OK" : "Manca"}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-5">
+              <Link href="/admin/users" className="button-primary">
+                Apri gestione utenti
+              </Link>
+            </div>
+          </section>
         </div>
 
         <div className="mt-8">
