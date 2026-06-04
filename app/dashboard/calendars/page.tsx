@@ -161,6 +161,21 @@ function renderCalendarCard(calendar: CalendarRow) {
           </div>
         ))}
       </div>
+
+      <div className="mt-4 flex flex-col gap-3 rounded-[1.25rem] border border-blue-100 bg-blue-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-slate-900">Vuoi tornare ad agire su questo calendario?</p>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            Aprilo nel planner per generare i contenuti completi delle singole righe, copiarli o salvarli.
+          </p>
+        </div>
+        <Link
+          href={`/dashboard/social-calendar?calendarId=${calendar.id}`}
+          className="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+        >
+          Apri nel planner
+        </Link>
+      </div>
     </article>
   );
 }

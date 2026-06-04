@@ -52,6 +52,8 @@ type SocialCalendarBuilderProps = {
   title?: string;
   helper?: string;
   demoMode?: boolean;
+  initialCalendar?: SocialCalendarPayload | null;
+  initialCalendarId?: string | null;
 };
 
 function formatRowForCopy(entry: SocialCalendarEntry) {
@@ -74,11 +76,13 @@ export function SocialCalendarBuilder({
   title = "Social Calendar Generator",
   helper = "Genera un piano contenuti completo usando automaticamente Business Profile, target, servizi, CTA e tone of voice.",
   demoMode = false,
+  initialCalendar = null,
+  initialCalendarId = null,
 }: SocialCalendarBuilderProps) {
   const [days, setDays] = useState<SocialCalendarDays>(demoMode ? 7 : 14);
   const [objective, setObjective] = useState<string>(socialCalendarObjectives[0]);
-  const [calendar, setCalendar] = useState<SocialCalendarPayload | null>(null);
-  const [calendarId, setCalendarId] = useState<string | null>(null);
+  const [calendar, setCalendar] = useState<SocialCalendarPayload | null>(initialCalendar);
+  const [calendarId, setCalendarId] = useState<string | null>(initialCalendarId);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -93,6 +97,18 @@ export function SocialCalendarBuilder({
   const clearMessage = useCallback(() => setMessage(null), []);
   const clearError = useCallback(() => setErrorMessage(null), []);
   const clearLoadingMessage = useCallback(() => setLoadingMessage(null), []);
+
+  useEffect(() => {
+    if (!initialCalendar) {
+      return;
+    }
+
+    setCalendar(initialCalendar);
+    setCalendarId(initialCalendarId);
+    setDays(initialCalendar.periodDays);
+    setObjective(initialCalendar.objective);
+    setGeneratedRows({});
+  }, [initialCalendar, initialCalendarId]);
 
   useEffect(() => {
     if (!focusedOutputDay) {
@@ -485,6 +501,13 @@ export function SocialCalendarBuilder({
         </div>
         <h2 className="mt-5 text-3xl font-bold tracking-tight text-slate-950">{title}</h2>
         <p className="mt-3 max-w-3xl leading-7 text-slate-600">{helper}</p>
+        {initialCalendarId ? (
+          <div className="mt-5 rounded-[1.5rem] border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-800">
+            Hai riaperto un calendario gia salvato. Puoi continuare da qui con
+            <span className="font-semibold"> genera contenuto completo</span>, copia e salvataggio
+            senza rigenerare l&apos;intero piano.
+          </div>
+        ) : null}
         {!profileReady && !demoMode ? (
           <div className="mt-5 rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-700">
             Il Business Profile non e ancora completo. Il calendario usera il contesto disponibile,
@@ -551,6 +574,8 @@ export function SocialCalendarBuilder({
               setGeneratedRows({});
               setMessage(null);
               setErrorMessage(null);
+              setObjective(socialCalendarObjectives[0]);
+              setDays(demoMode ? 7 : 14);
             }}
             className="button-secondary"
           >
