@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { BrandLockup } from "@/components/BrandLogo";
 import { DashboardIcon } from "@/components/dashboard/DashboardIcon";
 import {
   getBusinessTypeLabel,
@@ -204,13 +205,13 @@ export function DashboardShell({
         <aside className={`border-b p-4 sm:p-6 xl:border-b-0 xl:border-r ${surface}`}>
           <div className="flex items-start justify-between gap-4">
             <Link href="/dashboard" className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-base font-bold text-white shadow-lg shadow-blue-900/20">
-                BK
-              </div>
-              <div>
-                <p className="text-lg font-bold tracking-tight">BizKit AI</p>
-                <p className={`text-sm ${subtle}`}>Notion x Stripe x Linear for local verticals</p>
-              </div>
+              <BrandLockup
+                size="md"
+                tone={isDark ? "light" : "dark"}
+                tagline="AI Marketing Platform"
+                titleClassName={isDark ? "text-white" : "text-slate-950"}
+                taglineClassName={subtle}
+              />
             </Link>
             <button type="button" onClick={toggleTheme} className="button-secondary px-4 py-2">
               {theme === "dark" ? "Light" : "Dark"}

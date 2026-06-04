@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/AuthForm";
+import { BrandLockup } from "@/components/BrandLogo";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Signup",
-  description: "Crea il tuo account BizKit AI e accedi alla piattaforma SaaS.",
+  description: "Crea il tuo account BizKit AI e attiva l'AI Marketing Platform for Local Businesses.",
   robots: { index: false, follow: false },
 };
 
@@ -27,6 +28,9 @@ export default async function SignupPage() {
     <section className="section-shell pt-12 sm:pt-16">
       <div className="container-shell">
         <div className="mx-auto max-w-xl rounded-[2rem] border border-slate-200 bg-white p-8 shadow-soft sm:p-10">
+          <div className="mb-6 flex justify-center sm:justify-start">
+            <BrandLockup size="lg" tagline="AI Marketing Platform for Local Businesses" />
+          </div>
           <span className="eyebrow">Signup</span>
           <h1 className="mt-5 text-4xl font-bold tracking-tight text-slate-950">Crea il tuo account</h1>
           <p className="mt-4 leading-7 text-slate-600">

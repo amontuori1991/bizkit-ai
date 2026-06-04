@@ -9,28 +9,47 @@ import { getMetadataBase } from "@/lib/site";
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
   title: {
-    default: "BizKit AI | Kit digitali pronti per piccole attivita",
+    default: "BizKit AI | AI Marketing Platform for Local Businesses",
     template: "%s | BizKit AI",
   },
   description:
-    "Kit digitali pronti con prompt, template e strumenti operativi per aiutare piccole attivita a crescere con l'AI.",
+    "BizKit AI e l'AI Marketing Platform for Local Businesses: contenuti, promo, CRM leggero e planning per attivita locali.",
   alternates: {
     canonical: "/",
   },
+  icons: {
+    icon: [
+      { url: "/favicon/favicon.ico" },
+      { url: "/favicon/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [{ url: "/favicon/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: ["/favicon/favicon.ico"],
+  },
+  manifest: "/favicon/site.webmanifest",
   openGraph: {
-    title: "BizKit AI | Kit digitali pronti per piccole attivita",
+    title: "BizKit AI | AI Marketing Platform for Local Businesses",
     description:
-      "Kit digitali pronti con prompt, template e strumenti operativi per aiutare piccole attivita a crescere con l'AI.",
+      "BizKit AI e l'AI Marketing Platform for Local Businesses: contenuti, promo, CRM leggero e planning per attivita locali.",
     url: "/",
     siteName: "BizKit AI",
     locale: "it_IT",
     type: "website",
+    images: [
+      {
+        url: "/favicon/android-chrome-512x512.png",
+        width: 512,
+        height: 512,
+        alt: "BizKit AI logo",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "BizKit AI | Kit digitali pronti per piccole attivita",
+    title: "BizKit AI | AI Marketing Platform for Local Businesses",
     description:
-      "Kit digitali pronti con prompt, template e strumenti operativi per aiutare piccole attivita a crescere con l'AI.",
+      "BizKit AI e l'AI Marketing Platform for Local Businesses: contenuti, promo, CRM leggero e planning per attivita locali.",
+    images: ["/favicon/android-chrome-512x512.png"],
   },
 };
 
