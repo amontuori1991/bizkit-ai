@@ -1,43 +1,38 @@
-type BrandIconSize = "sm" | "md" | "lg" | "xl";
+import Image from "next/image";
+
+type BrandSize = "sm" | "md" | "lg" | "xl";
 type BrandTone = "light" | "dark";
 
-type BrandIconProps = {
-  size?: BrandIconSize;
+type BrandWordmarkProps = {
+  size?: BrandSize;
   className?: string;
   priority?: boolean;
 };
 
 type BrandLockupProps = {
-  size?: BrandIconSize;
+  size?: BrandSize;
   tone?: BrandTone;
   className?: string;
-  titleClassName?: string;
   taglineClassName?: string;
   tagline?: string;
+  centered?: boolean;
 };
 
-const iconSizeClasses: Record<BrandIconSize, string> = {
-  sm: "h-10 w-10 rounded-[1rem]",
-  md: "h-12 w-12 rounded-[1.15rem]",
-  lg: "h-14 w-14 rounded-[1.35rem]",
-  xl: "h-16 w-16 rounded-[1.5rem]",
+const wordmarkWidth: Record<BrandSize, number> = {
+  sm: 112,
+  md: 136,
+  lg: 164,
+  xl: 188,
 };
 
-const iconPixels: Record<BrandIconSize, number> = {
-  sm: 40,
-  md: 48,
-  lg: 56,
-  xl: 64,
+const wordmarkHeight: Record<BrandSize, number> = {
+  sm: 42,
+  md: 50,
+  lg: 60,
+  xl: 68,
 };
 
-const titleSizeClasses: Record<BrandIconSize, string> = {
-  sm: "text-base",
-  md: "text-lg",
-  lg: "text-xl",
-  xl: "text-2xl",
-};
-
-const taglineSizeClasses: Record<BrandIconSize, string> = {
+const taglineSizeClasses: Record<BrandSize, string> = {
   sm: "text-xs",
   md: "text-sm",
   lg: "text-sm",
@@ -48,23 +43,20 @@ function joinClasses(...classes: Array<string | undefined | null | false>) {
   return classes.filter(Boolean).join(" ");
 }
 
-export function BrandIcon({ size = "md", className, priority = false }: BrandIconProps) {
-  const pixels = iconPixels[size];
-
+export function BrandWordmark({
+  size = "md",
+  className,
+  priority = false,
+}: BrandWordmarkProps) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src="/icon.png"
-      alt="BizKit AI logo"
-      width={pixels}
-      height={pixels}
-      loading={priority ? "eager" : "lazy"}
-      decoding="async"
-      className={joinClasses(
-        "shrink-0 object-contain",
-        iconSizeClasses[size],
-        className,
-      )}
+    <Image
+      src="/favicon/android-chrome-512x512.png"
+      alt="BizKit AI"
+      width={wordmarkWidth[size]}
+      height={wordmarkHeight[size]}
+      priority={priority}
+      sizes={`${wordmarkWidth[size]}px`}
+      className={joinClasses("h-auto w-auto max-w-full object-contain", className)}
     />
   );
 }
@@ -73,38 +65,31 @@ export function BrandLockup({
   size = "md",
   tone = "dark",
   className,
-  titleClassName,
   taglineClassName,
   tagline = "AI Marketing Platform for Local Businesses",
+  centered = false,
 }: BrandLockupProps) {
-  const titleTone = tone === "light" ? "text-white" : "text-slate-950";
   const taglineTone = tone === "light" ? "text-slate-300" : "text-slate-500";
 
   return (
-    <div className={joinClasses("flex items-center gap-3", className)}>
-      <BrandIcon size={size} priority={size === "xl"} />
-      <div>
-        <p
-          className={joinClasses(
-            "font-bold tracking-tight",
-            titleTone,
-            titleSizeClasses[size],
-            titleClassName,
-          )}
-        >
-          BizKit AI
-        </p>
-        <p
-          className={joinClasses(
-            "leading-5",
-            taglineTone,
-            taglineSizeClasses[size],
-            taglineClassName,
-          )}
-        >
-          {tagline}
-        </p>
-      </div>
+    <div
+      className={joinClasses(
+        "flex flex-col gap-2",
+        centered ? "items-center text-center" : "items-start",
+        className,
+      )}
+    >
+      <BrandWordmark size={size} priority={size === "xl"} />
+      <p
+        className={joinClasses(
+          "max-w-[20rem] leading-5",
+          taglineTone,
+          taglineSizeClasses[size],
+          taglineClassName,
+        )}
+      >
+        {tagline}
+      </p>
     </div>
   );
 }

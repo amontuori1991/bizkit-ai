@@ -209,7 +209,6 @@ export function DashboardShell({
                 size="md"
                 tone={isDark ? "light" : "dark"}
                 tagline="AI Marketing Platform"
-                titleClassName={isDark ? "text-white" : "text-slate-950"}
                 taglineClassName={subtle}
               />
             </Link>
