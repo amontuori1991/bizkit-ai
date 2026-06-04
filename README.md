@@ -140,6 +140,28 @@ Per attivarla servono:
 - `STRIPE_PRICE_AGENCY`
 - `STRIPE_WEBHOOK_SECRET`
 
+### Stripe Customer Portal
+
+Gli utenti possono gestire autonomamente:
+
+- piano attuale
+- upgrade e downgrade
+- metodo di pagamento
+- fatture
+- cancellazione
+
+Il pulsante `Gestisci abbonamento` e disponibile in:
+
+```bash
+/dashboard/billing
+```
+
+Il portal usa il customer Stripe sincronizzato in `public.subscriptions` e torna sempre a:
+
+```bash
+/dashboard/billing
+```
+
 ### Webhook Stripe subscriptions
 
 Endpoint da configurare in Stripe:

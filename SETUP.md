@@ -70,6 +70,32 @@ Nel webhook Stripe aggiungi questi eventi:
 - `invoice.payment_succeeded`
 - `invoice.payment_failed`
 
+### Customer Portal
+
+Per permettere agli utenti di gestire abbonamento, metodo di pagamento, fatture, upgrade,
+downgrade e cancellazione:
+
+1. apri `Settings > Billing > Customer portal`
+2. attiva il portal nel dashboard Stripe
+3. abilita le funzioni che vuoi esporre:
+   - update payment method
+   - download invoices
+   - cancel subscription
+   - switch plan
+4. salva la configurazione
+
+Il progetto usa il portal da:
+
+```bash
+/dashboard/billing
+```
+
+e imposta come `return_url`:
+
+```bash
+/dashboard/billing
+```
+
 ## 2. Supabase
 
 ### Dove creare il progetto
