@@ -29,6 +29,7 @@ export const plans: Plan[] = [
     usageLimitLabel: "Fino a 100 crediti AI al giorno",
     features: [
       "Generatori AI verticali per fitness, hair/beauty e sport/outdoor con 3 varianti",
+      "AI Business Coach con 100 messaggi al mese",
       "1 Business Profile AI Context",
       "Social Calendar Generator da 7, 14 e 30 giorni",
       "Fino a 100 contenuti salvati",
@@ -52,6 +53,7 @@ export const plans: Plan[] = [
     usageLimitLabel: "Fino a 300 crediti AI al giorno con cooldown ridotto",
     features: [
       "Tutto in Starter",
+      "AI Business Coach con 500 messaggi al mese",
       "Fino a 3 Business Profile",
       "Fino a 1000 contenuti salvati",
       "Fino a 200 calendari salvati",
@@ -73,6 +75,7 @@ export const plans: Plan[] = [
     usageLimitLabel: "Fino a 1000 crediti AI al giorno",
     features: [
       "Tutto in Pro",
+      "AI Business Coach con 2000 messaggi al mese",
       "Business Profile illimitati",
       "Contenuti salvati illimitati",
       "Calendari illimitati",
@@ -87,6 +90,10 @@ export const planMatrix = [
   {
     label: "Crediti AI giornalieri",
     values: { starter: "100", pro: "300", agency: "1000" },
+  },
+  {
+    label: "AI Business Coach",
+    values: { starter: "100 messaggi/mese", pro: "500 messaggi/mese", agency: "2000 messaggi/mese" },
   },
   {
     label: "Varianti per output",

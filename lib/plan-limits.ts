@@ -5,6 +5,7 @@ export type PaidPlanId = "starter" | "pro" | "agency";
 export type LimitValue = number | null;
 export type PlanResourceKey =
   | "aiDailyCredits"
+  | "coachMessagesMonthly"
   | "businessProfiles"
   | "savedContents"
   | "calendars"
@@ -14,6 +15,7 @@ export type PlanResourceKey =
 export type PlanLimitConfig = {
   label: string;
   aiDailyCredits: number;
+  coachMessagesMonthly: number;
   businessProfiles: LimitValue;
   savedContents: LimitValue;
   calendars: LimitValue;
@@ -41,6 +43,7 @@ export type PlanUsageSummary = {
   counts: {
     aiCreditsToday: number;
     aiTokensToday: number;
+    coachMessagesMonth: number;
     businessProfiles: number;
     savedContents: number;
     calendars: number;
@@ -49,6 +52,7 @@ export type PlanUsageSummary = {
   };
   progress: {
     aiCreditsToday: UsageProgress;
+    coachMessagesMonth: UsageProgress;
     businessProfiles: UsageProgress;
     savedContents: UsageProgress;
     calendars: UsageProgress;
@@ -82,6 +86,7 @@ export const PLAN_LIMITS: Record<RuntimePlanId, PlanLimitConfig> = {
   free: {
     label: "Free",
     aiDailyCredits: 10,
+    coachMessagesMonthly: 10,
     businessProfiles: 1,
     savedContents: 15,
     calendars: 3,
@@ -96,6 +101,7 @@ export const PLAN_LIMITS: Record<RuntimePlanId, PlanLimitConfig> = {
   starter: {
     label: "Starter",
     aiDailyCredits: 100,
+    coachMessagesMonthly: 100,
     businessProfiles: 1,
     savedContents: 100,
     calendars: 20,
@@ -110,6 +116,7 @@ export const PLAN_LIMITS: Record<RuntimePlanId, PlanLimitConfig> = {
   pro: {
     label: "Pro",
     aiDailyCredits: 300,
+    coachMessagesMonthly: 500,
     businessProfiles: 3,
     savedContents: 1000,
     calendars: 200,
@@ -124,6 +131,7 @@ export const PLAN_LIMITS: Record<RuntimePlanId, PlanLimitConfig> = {
   agency: {
     label: "Agency",
     aiDailyCredits: 1000,
+    coachMessagesMonthly: 2000,
     businessProfiles: null,
     savedContents: null,
     calendars: null,
@@ -139,6 +147,7 @@ export const PLAN_LIMITS: Record<RuntimePlanId, PlanLimitConfig> = {
 
 const RESOURCE_LABELS: Record<PlanResourceKey, string> = {
   aiDailyCredits: "crediti AI giornalieri",
+  coachMessagesMonthly: "messaggi Coach mensili",
   businessProfiles: "business profile",
   savedContents: "contenuti salvati",
   calendars: "calendari salvati",
@@ -156,6 +165,10 @@ const RESOURCE_TABLES: Partial<Record<PlanResourceKey, string>> = {
 
 export function getCurrentUsageDate() {
   return new Date().toISOString().slice(0, 10);
+}
+
+export function getCurrentUsageMonth() {
+  return new Date().toISOString().slice(0, 7);
 }
 
 export function normalizePlanId(subscriptionTier?: string | null): RuntimePlanId {
@@ -309,6 +322,7 @@ export async function getPlanUsageSummary(
     crmClients,
     generatedContents,
     { data: aiUsageRow },
+    { count: coachMessagesMonthCount },
   ] = await Promise.all([
     countPlanResourceUsage(supabase, input.userId, "businessProfiles"),
     countPlanResourceUsage(supabase, input.userId, "savedContents"),
@@ -321,10 +335,17 @@ export async function getPlanUsageSummary(
       .eq("user_id", input.userId)
       .eq("usage_date", usageDate)
       .maybeSingle(),
+    supabase
+      .from("assistant_messages")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", input.userId)
+      .eq("role", "user")
+      .gte("created_at", `${getCurrentUsageMonth()}-01T00:00:00.000Z`),
   ]);
 
   const aiCreditsToday = aiUsageRow?.generation_count ?? 0;
   const aiTokensToday = aiUsageRow?.total_tokens ?? 0;
+  const coachMessagesMonth = coachMessagesMonthCount ?? 0;
 
   return {
     planId,
@@ -332,6 +353,7 @@ export async function getPlanUsageSummary(
     counts: {
       aiCreditsToday,
       aiTokensToday,
+      coachMessagesMonth,
       businessProfiles,
       savedContents,
       calendars,
@@ -340,6 +362,11 @@ export async function getPlanUsageSummary(
     },
     progress: {
       aiCreditsToday: buildUsageProgress(aiCreditsToday, limits.aiDailyCredits, "Crediti AI oggi"),
+      coachMessagesMonth: buildUsageProgress(
+        coachMessagesMonth,
+        limits.coachMessagesMonthly,
+        "Messaggi Coach questo mese",
+      ),
       businessProfiles: buildUsageProgress(
         businessProfiles,
         limits.businessProfiles,

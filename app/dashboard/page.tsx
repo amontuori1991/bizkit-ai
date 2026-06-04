@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getAssistantBusinessSnapshot, getCoachSuggestions } from "@/lib/assistant-coach";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DashboardIcon } from "@/components/dashboard/DashboardIcon";
 import { UsageMeter } from "@/components/dashboard/UsageMeter";
@@ -24,6 +25,8 @@ export default async function DashboardPage() {
     userId: user.id,
     subscriptionTier: profile?.subscription_tier,
   });
+  const coachSnapshot = await getAssistantBusinessSnapshot(supabase, user.id, profile?.subscription_tier);
+  const coachSuggestions = getCoachSuggestions(coachSnapshot);
   const aiPlan = normalizePlanId(profile?.subscription_tier);
   const businessReady = isBusinessProfileComplete(
     ((businessProfiles as BusinessProfile[] | null) ?? []).find((item) => item.is_primary) ??
@@ -56,6 +59,11 @@ export default async function DashboardPage() {
       label: "Genera il primo social calendar",
       done: usage.counts.calendars > 0,
       href: "/dashboard/social-calendar",
+    },
+    {
+      label: "Apri il primo confronto con il Coach",
+      done: usage.counts.coachMessagesMonth > 0,
+      href: "/dashboard/assistant",
     },
   ];
 
@@ -152,6 +160,13 @@ export default async function DashboardPage() {
           upgradeLabel={usage.limits.nextUpgrade?.toUpperCase() ?? null}
         />
         <UsageMeter
+          title="Coach questo mese"
+          progress={usage.progress.coachMessagesMonth}
+          helper="Messaggi disponibili per l'AI Business Coach in questo mese."
+          accent="blue"
+          upgradeLabel={usage.limits.nextUpgrade?.toUpperCase() ?? null}
+        />
+        <UsageMeter
           title="Business profile"
           progress={usage.progress.businessProfiles}
           helper="Conta i contesti attivi che puoi usare nei generatori AI."
@@ -179,6 +194,44 @@ export default async function DashboardPage() {
           accent="emerald"
           upgradeLabel={usage.limits.nextUpgrade?.toUpperCase() ?? null}
         />
+      </div>
+
+      <div className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Consigli del Coach
+            </p>
+            <h2 className="mt-2 text-2xl font-bold text-slate-950">Cosa fare adesso</h2>
+            <p className="mt-3 max-w-2xl leading-7 text-slate-600">
+              Suggerimenti proattivi costruiti sui tuoi contenuti, calendari, CRM e sul piano attivo.
+            </p>
+          </div>
+          <Link href="/dashboard/assistant" className="button-secondary">
+            Apri AI Business Coach
+          </Link>
+        </div>
+        <div className="mt-6 grid gap-4 xl:grid-cols-3">
+          {coachSuggestions.map((tip) => (
+            <Link
+              key={tip.id}
+              href={`/dashboard/assistant?prompt=${encodeURIComponent(tip.quickPrompt)}`}
+              className={`rounded-[1.5rem] border p-5 transition hover:-translate-y-0.5 ${
+                tip.severity === "warning"
+                  ? "border-amber-200 bg-amber-50"
+                  : tip.severity === "success"
+                    ? "border-emerald-200 bg-emerald-50"
+                    : "border-slate-200 bg-slate-50"
+              }`}
+            >
+              <p className="text-sm font-semibold text-slate-950">{tip.title}</p>
+              <p className="mt-3 text-sm leading-6 text-slate-600">{tip.description}</p>
+              <span className="mt-4 inline-flex text-sm font-semibold text-blue-700">
+                Chiedilo al Coach
+              </span>
+            </Link>
+          ))}
+        </div>
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-3">
@@ -212,6 +265,12 @@ export default async function DashboardPage() {
             copy: "Lavora su paintball, padel, calcetto e centri outdoor con caption, promo, Reel e messaggi clienti orientati a prenotazione.",
             href: "/dashboard/sports-captions",
             icon: "caption" as const,
+          },
+          {
+            title: "AI Business Coach",
+            copy: "Analizza calendari, CRM e contenuti gia prodotti per suggerirti campagne, promo e priorita operative.",
+            href: "/dashboard/assistant",
+            icon: "message" as const,
           },
           {
             title: "Social Calendar",

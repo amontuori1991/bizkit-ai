@@ -98,6 +98,16 @@ export default async function AdminAnalyticsPage() {
                   helper: "Totale saved_contents",
                 },
                 {
+                  label: "Conversazioni Coach",
+                  value: analytics.summary.assistantConversations,
+                  helper: "Totale assistant_conversations",
+                },
+                {
+                  label: "Messaggi Coach",
+                  value: analytics.summary.assistantMessages,
+                  helper: "Totale assistant_messages",
+                },
+                {
                   label: "Utenti paid",
                   value: analytics.summary.upgradedUsers,
                   helper: `${analytics.summary.freeToPaidConversionRate}% conversione free -> paid`,

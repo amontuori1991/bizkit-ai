@@ -24,6 +24,8 @@ export type AdminAnalyticsData = {
     activeUsers7d: number;
     calendarsGenerated: number;
     savedContents: number;
+    assistantConversations: number;
+    assistantMessages: number;
     upgradedUsers: number;
     freeToPaidConversionRate: number;
     starterUsers: number;
@@ -166,6 +168,21 @@ async function getCount(table: "content_calendars" | "saved_contents") {
   return count ?? 0;
 }
 
+async function getAssistantCount(table: "assistant_conversations" | "assistant_messages") {
+  const supabase = createSupabaseServiceRoleClient();
+  if (!supabase) {
+    return 0;
+  }
+
+  const { count, error } = await supabase.from(table).select("*", { count: "exact", head: true });
+  if (error) {
+    console.error(`Admin analytics count error for ${table}:`, error);
+    return 0;
+  }
+
+  return count ?? 0;
+}
+
 async function getUsageRows() {
   const supabase = createSupabaseServiceRoleClient();
   if (!supabase) {
@@ -204,12 +221,14 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
   if (!supabase) {
     return {
       configured: false,
-      summary: {
-        registeredUsers: 0,
-        activeUsers7d: 0,
-        calendarsGenerated: 0,
-        savedContents: 0,
-        upgradedUsers: 0,
+    summary: {
+      registeredUsers: 0,
+      activeUsers7d: 0,
+      calendarsGenerated: 0,
+      savedContents: 0,
+      assistantConversations: 0,
+      assistantMessages: 0,
+      upgradedUsers: 0,
         freeToPaidConversionRate: 0,
         starterUsers: 0,
         proUsers: 0,
@@ -231,6 +250,8 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
     requestLogs,
     calendarsGenerated,
     savedContents,
+    assistantConversations,
+    assistantMessages,
     usageRows,
     savedContentOwners,
     calendarOwners,
@@ -241,6 +262,8 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
       getRequestLogs(),
       getCount("content_calendars"),
       getCount("saved_contents"),
+      getAssistantCount("assistant_conversations"),
+      getAssistantCount("assistant_messages"),
       getUsageRows(),
       getOwnerRows("saved_contents"),
       getOwnerRows("content_calendars"),
@@ -322,6 +345,8 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
       activeUsers7d,
       calendarsGenerated,
       savedContents,
+      assistantConversations,
+      assistantMessages,
       upgradedUsers,
       freeToPaidConversionRate,
       starterUsers,

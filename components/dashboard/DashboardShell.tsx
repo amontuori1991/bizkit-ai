@@ -52,6 +52,7 @@ type DashboardShellProps = {
 
 const COMMON_NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: "spark" },
+  { href: "/dashboard/assistant", label: "AI Business Coach", icon: "message" },
   { href: "/dashboard/social-calendar", label: "Social Calendar", icon: "calendar" },
   { href: "/dashboard/calendars", label: "Calendars", icon: "history" },
   { href: "/dashboard/crm", label: "CRM", icon: "crm" },

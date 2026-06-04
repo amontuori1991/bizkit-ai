@@ -219,6 +219,26 @@ create table if not exists public.content_calendars (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.assistant_conversations (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null default 'Nuova conversazione',
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+create table if not exists public.assistant_messages (
+  id uuid primary key default gen_random_uuid(),
+  conversation_id uuid not null references public.assistant_conversations(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  role text not null check (role in ('user', 'assistant')),
+  content text not null,
+  input_tokens integer not null default 0,
+  output_tokens integer not null default 0,
+  total_tokens integer not null default 0,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
 create table if not exists public.subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -276,6 +296,8 @@ alter table public.business_profiles enable row level security;
 alter table public.clients enable row level security;
 alter table public.saved_contents enable row level security;
 alter table public.content_calendars enable row level security;
+alter table public.assistant_conversations enable row level security;
+alter table public.assistant_messages enable row level security;
 alter table public.customers enable row level security;
 alter table public.subscriptions enable row level security;
 
@@ -404,6 +426,32 @@ using (auth.uid() = user_id);
 drop policy if exists "Content calendars insert owned by user" on public.content_calendars;
 create policy "Content calendars insert owned by user"
 on public.content_calendars for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Assistant conversations owned by user" on public.assistant_conversations;
+create policy "Assistant conversations owned by user"
+on public.assistant_conversations for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Assistant conversations insert owned by user" on public.assistant_conversations;
+create policy "Assistant conversations insert owned by user"
+on public.assistant_conversations for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Assistant conversations update owned by user" on public.assistant_conversations;
+create policy "Assistant conversations update owned by user"
+on public.assistant_conversations for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop policy if exists "Assistant messages owned by user" on public.assistant_messages;
+create policy "Assistant messages owned by user"
+on public.assistant_messages for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Assistant messages insert owned by user" on public.assistant_messages;
+create policy "Assistant messages insert owned by user"
+on public.assistant_messages for insert
 with check (auth.uid() = user_id);
 
 drop policy if exists "Customers owned by user" on public.customers;

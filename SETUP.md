@@ -145,6 +145,12 @@ Facoltativo:
 OPENAI_MODEL=gpt-5.2
 ```
 
+OpenAI viene usato anche da:
+
+- generatori caption / reel / promo
+- Social Calendar Generator
+- AI Business Coach in `/dashboard/assistant`
+
 ## 4. Resend
 
 ### Dove creare la chiave
@@ -269,7 +275,25 @@ La pagina mostra:
 - stato Analytics
 - stato Admin password
 
-## 10. Controlli finali
+## 10. AI Business Coach
+
+Per attivare il Coach servono:
+
+- Supabase configurato
+- OpenAI configurato
+- schema SQL aggiornato con:
+  - `assistant_conversations`
+  - `assistant_messages`
+
+La feature legge solo dati dell'utente autenticato tramite RLS e server client Supabase.
+
+Pagina disponibile:
+
+```bash
+/dashboard/assistant
+```
+
+## 11. Controlli finali
 
 Prima del deploy:
 

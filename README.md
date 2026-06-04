@@ -1,6 +1,6 @@
 # BizKit AI
 
-BizKit AI e una piattaforma SaaS AI verticale per palestre e business fitness. Include marketing site, login utenti, dashboard, generatori AI, CRM, billing Stripe, lead magnet, analytics, admin dashboard e download protetti.
+BizKit AI e una piattaforma SaaS AI verticale per business locali. Include marketing site, login utenti, dashboard, generatori AI, AI Business Coach, CRM, billing Stripe, lead magnet, analytics, admin dashboard e download protetti.
 
 ## Stack
 
@@ -102,6 +102,8 @@ Tabelle principali incluse:
 - `downloads`
 - `leads`
 - `generated_contents`
+- `assistant_conversations`
+- `assistant_messages`
 - `customers`
 - `subscriptions`
 
@@ -139,6 +141,28 @@ Per attivarla servono:
 - `STRIPE_PRICE_PRO`
 - `STRIPE_PRICE_AGENCY`
 - `STRIPE_WEBHOOK_SECRET`
+
+### AI Business Coach
+
+La dashboard include una nuova area:
+
+```bash
+/dashboard/assistant
+```
+
+Funzioni MVP:
+
+- chat AI persistente
+- quick actions per analisi business, calendario, CRM e promo
+- contesto automatico da `business_profiles`, `generated_contents`, `saved_contents`, `content_calendars`, `clients`, `subscriptions`, `ai_usage_daily`
+- suggerimenti proattivi nella dashboard overview
+
+Limiti per piano:
+
+- Free: `10` messaggi Coach / mese
+- Starter: `100` messaggi Coach / mese
+- Pro: `500` messaggi Coach / mese
+- Agency: `2000` messaggi Coach / mese
 
 ### Stripe Customer Portal
 

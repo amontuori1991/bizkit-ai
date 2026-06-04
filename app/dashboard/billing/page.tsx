@@ -180,6 +180,13 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
           upgradeLabel={usage.limits.nextUpgrade?.toUpperCase() ?? null}
         />
         <UsageMeter
+          title="AI Business Coach"
+          progress={usage.progress.coachMessagesMonth}
+          helper="Messaggi mensili disponibili per chat, analisi e consigli proattivi."
+          accent="emerald"
+          upgradeLabel={usage.limits.nextUpgrade?.toUpperCase() ?? null}
+        />
+        <UsageMeter
           title="Contenuti salvati"
           progress={usage.progress.savedContents}
           helper="Limite reale del tuo piano per la libreria contenuti."

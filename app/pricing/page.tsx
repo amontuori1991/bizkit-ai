@@ -22,7 +22,7 @@ export default function PricingPage() {
             </h1>
             <p className="mt-5 text-lg leading-8 text-slate-600">
               Scegli un piano pensato per contenuti, promo e CRM locali. Ogni tier include output
-              AI in 3 varianti, Business Profile intelligente, Social Calendar Generator,
+              AI in 3 varianti, AI Business Coach, Business Profile intelligente, Social Calendar Generator,
               generatori Reel e messaggi clienti per palestre, saloni parrucchieri e centri sportivi/outdoor.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">

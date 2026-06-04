@@ -105,6 +105,7 @@ export function BillingPlans({
                 <p className="font-semibold">Utilizzo attuale</p>
                 <div className="mt-3 grid gap-2">
                   <p>Crediti AI: {formatUsageShort(usageSummary.progress.aiCreditsToday)}</p>
+                  <p>Coach: {formatUsageShort(usageSummary.progress.coachMessagesMonth)}</p>
                   <p>Contenuti salvati: {formatUsageShort(usageSummary.progress.savedContents)}</p>
                   <p>Calendari: {formatUsageShort(usageSummary.progress.calendars)}</p>
                   <p>Clienti CRM: {formatUsageShort(usageSummary.progress.crmClients)}</p>
