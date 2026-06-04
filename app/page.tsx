@@ -10,7 +10,7 @@ import { faqs, products } from "@/data/products";
 export const metadata: Metadata = {
   title: "Home",
   description:
-    "BizKit AI e la piattaforma SaaS per palestre e parrucchieri che vogliono creare caption, Reel, promozioni e gestire clienti con l'AI in un unico workspace.",
+    "BizKit AI e la piattaforma SaaS per palestre, parrucchieri e centri sportivi/outdoor che vogliono creare caption, Reel, promozioni e gestire clienti con l'AI in un unico workspace.",
   alternates: {
     canonical: "/",
   },
@@ -60,6 +60,11 @@ const workspaceFeatures = [
     description:
       "Generatori specializzati per saloni parrucchieri, barber shop e hair stylist con CTA orientate a booking.",
   },
+  {
+    title: "Verticale Sport & Outdoor",
+    description:
+      "Generatori specializzati per paintball, padel, calcetto e centri multisport con CTA orientate a prenotazioni, gruppi ed eventi.",
+  },
 ];
 
 const outcomes = [
@@ -76,7 +81,7 @@ export default function HomePage() {
         <div className="container-shell">
           <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div className="space-y-8">
-              <span className="eyebrow">AI workspace per palestre, parrucchieri e business locali</span>
+              <span className="eyebrow">AI workspace per palestre, parrucchieri e sport & outdoor</span>
               <div className="space-y-5">
                 <h1 className="max-w-4xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
                   Trasforma contenuti, promozioni e gestione clienti in un workflow AI semplice.
@@ -84,7 +89,7 @@ export default function HomePage() {
                 <p className="max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
                   BizKit AI unisce generatori AI, dashboard operativa, CRM leggero e libreria
                   contenuti in una piattaforma pensata per palestre, personal trainer, saloni
-                  parrucchieri e barber shop.
+                  parrucchieri, barber shop e centri sportivi/outdoor.
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row">
@@ -176,11 +181,11 @@ export default function HomePage() {
               I moduli principali della piattaforma
             </h2>
             <p className="max-w-3xl leading-7 text-slate-600">
-              Il primo vertical e dedicato al fitness, ma la struttura e gia pronta per estendere
-              la piattaforma a ristoranti, saloni, beauty, real estate e hospitality.
+              Fitness, hair e sport/outdoor sono gia attivi. La struttura resta pronta per
+              estendere la piattaforma anche ad altre nicchie come food, beauty, real estate e hospitality.
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-6">
             {workspaceFeatures.map((feature) => (
               <div key={feature.title} className="card-surface p-6">
                 <h3 className="text-xl font-semibold text-slate-950">{feature.title}</h3>
@@ -196,14 +201,14 @@ export default function HomePage() {
           <div className="mb-10 space-y-3">
             <span className="eyebrow">Verticali attive</span>
             <h2 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-              Perfetto per palestre e saloni parrucchieri
+              Perfetto per palestre, saloni parrucchieri e centri sportivi
             </h2>
             <p className="max-w-3xl leading-7 text-slate-600">
-              La piattaforma ora supporta due flussi reali: fitness e hair/beauty. Ogni verticale
-              ha generatori, tone of voice, template rapidi e Business Profile intelligente.
+              La piattaforma ora supporta tre flussi reali: fitness, hair/beauty e sport/outdoor.
+              Ogni verticale ha generatori, tone of voice, template rapidi e Business Profile intelligente.
             </p>
           </div>
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-6 lg:grid-cols-3">
             <div className="card-surface p-8">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">Fitness</p>
               <h3 className="mt-4 text-2xl font-bold text-slate-950">Palestre e personal trainer</h3>
@@ -216,6 +221,13 @@ export default function HomePage() {
               <h3 className="mt-4 text-2xl font-bold text-slate-950">Saloni parrucchieri e barber shop</h3>
               <p className="mt-3 leading-7 text-slate-600">
                 Caption Instagram, Reel, TikTok hook, promo colore/taglio e messaggi clienti orientati a booking e fidelizzazione.
+              </p>
+            </div>
+            <div className="card-surface p-8">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600">Sport & Outdoor</p>
+              <h3 className="mt-4 text-2xl font-bold text-slate-950">Paintball, padel, calcetto e multisport</h3>
+              <p className="mt-3 leading-7 text-slate-600">
+                Caption, Reel, promo weekend e messaggi clienti orientati a prenotazioni, gruppi, compleanni, tornei e team building.
               </p>
             </div>
           </div>

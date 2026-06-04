@@ -32,6 +32,16 @@ export const STRIPE_PRODUCTS: StripeDigitalProduct[] = [
     successCategory: "Beauty",
     supportLabel: "hair",
   },
+  {
+    name: "AI Kit Centri Sportivi & Outdoor",
+    slug: "ai-kit-per-centri-sportivi-outdoor",
+    amount: 2900,
+    currency: "eur",
+    description:
+      "Kit digitale premium per paintball, padel, calcetto, tennis, go kart e attivita outdoor con prompt, promo, caption e messaggi clienti orientati a prenotazione.",
+    successCategory: "Sport & Outdoor",
+    supportLabel: "sports",
+  },
 ] as const;
 
 export const STRIPE_PRODUCTS_BY_SLUG = Object.fromEntries(

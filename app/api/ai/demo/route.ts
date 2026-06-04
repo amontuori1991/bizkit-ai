@@ -12,7 +12,7 @@ import {
 
 const DEMO_COOKIE = "bizkit_ai_demo_used";
 
-type DemoVertical = "gym" | "hair";
+type DemoVertical = "gym" | "hair" | "sports";
 
 function buildDemoProfile(vertical: DemoVertical): BusinessProfile {
   if (vertical === "hair") {
@@ -32,12 +32,41 @@ function buildDemoProfile(vertical: DemoVertical): BusinessProfile {
       unique_selling_points: "Consulenza look personalizzata, premium experience, risultato fotografabile",
       preferred_cta: "Prenota il tuo appuntamento",
       preferred_hashtags: "#hairstylemilano #balayage #hairtransformation",
+      sports_subcategory: null,
       salon_specialties: "Balayage, colore, trasformazioni capelli",
       booking_link: "https://booking.example.com",
       opening_hours: "Mar-Sab 9:00-19:00",
       stylist_names: "Giulia, Marco",
       products_used: "Kerastase, Olaplex",
       salon_style: "Luxury salon",
+      created_at: new Date().toISOString(),
+    };
+  }
+
+  if (vertical === "sports") {
+    return {
+      id: "demo",
+      user_id: "demo",
+      is_primary: true,
+      business_name: "Urban Battle Park",
+      business_type: "sports_center",
+      city: "Milano",
+      address: null,
+      website: null,
+      instagram: "@urbanbattlepark",
+      tone_of_voice: "Energico, coinvolgente, social-first",
+      target_audience: "Gruppi amici, aziende e compleanni che cercano un'esperienza adrenalinica",
+      services: "Paintball, pacchetti compleanno, team building, tornei, promo weekend",
+      unique_selling_points: "Arena immersiva, booking semplice, format pronti per gruppi",
+      preferred_cta: "Prenota il tuo slot",
+      preferred_hashtags: "#paintballmilano #teambuilding #weekendexperience",
+      sports_subcategory: "paintball",
+      salon_specialties: null,
+      booking_link: "https://booking.example.com",
+      opening_hours: "Ven-Dom 10:00-22:00",
+      stylist_names: null,
+      products_used: null,
+      salon_style: null,
       created_at: new Date().toISOString(),
     };
   }
@@ -58,6 +87,7 @@ function buildDemoProfile(vertical: DemoVertical): BusinessProfile {
     unique_selling_points: "Coach dedicati, ambiente motivante, percorsi su misura",
     preferred_cta: "Prenota la prova gratuita",
     preferred_hashtags: "#palestramilano #fitnessmilano",
+    sports_subcategory: null,
     salon_specialties: null,
     booking_link: null,
     opening_hours: null,
@@ -96,10 +126,16 @@ export async function POST(request: NextRequest) {
 
     const vertical =
       body.vertical === "hair" ||
+      body.vertical === "sports" ||
       body.businessType?.startsWith("hair") ||
-      body.type?.startsWith("hair_")
-        ? "hair"
-        : "gym";
+      body.businessType === "sports_center" ||
+      body.type?.startsWith("sports_")
+        ? body.vertical === "sports" || body.businessType === "sports_center" || body.type?.startsWith("sports_")
+          ? "sports"
+          : "hair"
+        : body.type?.startsWith("hair_")
+          ? "hair"
+          : "gym";
     const profile = buildDemoProfile(vertical);
     const client = getOpenAIClient();
     if (!client) {

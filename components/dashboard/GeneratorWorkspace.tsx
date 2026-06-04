@@ -9,6 +9,7 @@ import type { OutputVariant, OutputVariantId } from "@/lib/ai-output";
 import {
   getQuickTemplatesForType,
   isHairBusinessType,
+  isSportsBusinessType,
   type AIContentType,
   type QuickTemplate,
 } from "@/lib/business-verticals";
@@ -97,8 +98,16 @@ export function GeneratorWorkspace({
   const [selectedType, setSelectedType] = useState<AIContentType>(type);
   const [lastTemplateLabel, setLastTemplateLabel] = useState<string | null>(null);
 
-  const inferredBusinessType = businessType ?? (selectedType.startsWith("hair_") ? "hair_salon" : "gym");
+  const inferredBusinessType =
+    businessType ??
+    (selectedType.startsWith("hair_")
+      ? "hair_salon"
+      : selectedType.startsWith("sports_")
+        ? "sports_center"
+        : "gym");
   const isHairFlow = isHairBusinessType(inferredBusinessType) || selectedType.startsWith("hair_");
+  const isSportsFlow =
+    isSportsBusinessType(inferredBusinessType) || selectedType.startsWith("sports_");
 
   const templates = useMemo(() => {
     if (quickTemplates && selectedType === type) {
@@ -287,6 +296,8 @@ export function GeneratorWorkspace({
             className={`absolute inset-x-0 top-0 h-24 ${
               isHairFlow
                 ? "bg-gradient-to-r from-pink-500/10 via-rose-300/10 to-transparent"
+                : isSportsFlow
+                  ? "bg-gradient-to-r from-emerald-600/10 via-lime-400/10 to-transparent"
                 : "bg-gradient-to-r from-blue-600/10 via-cyan-400/10 to-transparent"
             }`}
           />
@@ -296,6 +307,8 @@ export function GeneratorWorkspace({
                 className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${
                   isHairFlow
                     ? "border border-pink-200 bg-pink-50 text-pink-700"
+                    : isSportsFlow
+                      ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
                     : "border border-blue-200 bg-blue-50 text-blue-700"
                 }`}
               >
@@ -469,6 +482,8 @@ export function GeneratorWorkspace({
             className={`absolute inset-x-0 top-0 h-24 ${
               isHairFlow
                 ? "bg-gradient-to-r from-slate-950 via-pink-800 to-rose-500"
+                : isSportsFlow
+                  ? "bg-gradient-to-r from-slate-950 via-emerald-900 to-lime-600"
                 : "bg-gradient-to-r from-slate-950 via-slate-900 to-blue-900"
             }`}
           />
@@ -534,7 +549,15 @@ export function GeneratorWorkspace({
                 </pre>
               ) : (
                 <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-white px-5 py-10 text-center">
-                  <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${isHairFlow ? "bg-pink-50 text-pink-600" : "bg-blue-50 text-blue-600"}`}>
+                  <div
+                    className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${
+                      isHairFlow
+                        ? "bg-pink-50 text-pink-600"
+                        : isSportsFlow
+                          ? "bg-emerald-50 text-emerald-600"
+                          : "bg-blue-50 text-blue-600"
+                    }`}
+                  >
                     <DashboardIcon name="spark" className="h-7 w-7" />
                   </div>
                   <p className="mt-4 text-lg font-semibold text-slate-950">Nessun contenuto ancora generato</p>

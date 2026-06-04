@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import type { BusinessProfile } from "@/lib/business-profile";
 import { type PaidPlanId, type UsageProgress } from "@/lib/plan-limits";
+import { isSportsBusinessType } from "@/lib/business-verticals";
 
 type ClientRecord = {
   id: string;
@@ -19,9 +21,15 @@ type ClientsManagerProps = {
   initialClients: ClientRecord[];
   usageProgress: UsageProgress;
   upgradePlan: PaidPlanId | null;
+  businessProfile: BusinessProfile | null;
 };
 
-export function ClientsManager({ initialClients, usageProgress, upgradePlan }: ClientsManagerProps) {
+export function ClientsManager({
+  initialClients,
+  usageProgress,
+  upgradePlan,
+  businessProfile,
+}: ClientsManagerProps) {
   const [clients, setClients] = useState(initialClients);
   const [usage, setUsage] = useState(usageProgress);
   const [form, setForm] = useState({
@@ -35,6 +43,17 @@ export function ClientsManager({ initialClients, usageProgress, upgradePlan }: C
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [nextUpgradePlan, setNextUpgradePlan] = useState<PaidPlanId | null>(upgradePlan);
+  const sportsSuggestions = isSportsBusinessType(businessProfile?.business_type)
+    ? [
+        businessProfile?.sports_subcategory === "paintball"
+          ? "Segmenta lead per compleanni, addii al celibato e team building."
+          : "Segmenta lead per prenotazioni singole, gruppi ed eventi.",
+        businessProfile?.sports_subcategory === "padel"
+          ? "Traccia disponibilita campi, lezioni e tornei per follow-up piu mirati."
+          : "Traccia richieste gruppi, promo weekend e slot speciali per follow-up piu veloci.",
+        "Usa note e stato cliente per distinguere preventivi inviati, reminder da fare e ritorni stagionali.",
+      ]
+    : [];
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -108,12 +127,22 @@ export function ClientsManager({ initialClients, usageProgress, upgradePlan }: C
               style={{ width: `${usage.limit === null ? 100 : Math.max(8, usage.percent)}%` }}
             />
           </div>
-          {usage.reached && nextUpgradePlan ? (
-            <Link href="/dashboard/billing" className="mt-4 inline-flex text-sm font-semibold text-blue-700">
-              Passa a {nextUpgradePlan.toUpperCase()}
-            </Link>
-          ) : null}
-        </div>
+        {usage.reached && nextUpgradePlan ? (
+          <Link href="/dashboard/billing" className="mt-4 inline-flex text-sm font-semibold text-blue-700">
+            Passa a {nextUpgradePlan.toUpperCase()}
+          </Link>
+        ) : null}
+        {sportsSuggestions.length > 0 ? (
+          <div className="mt-5 rounded-[1.5rem] border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
+            <p className="font-semibold">Suggerimenti CRM sport & outdoor</p>
+            <div className="mt-2 grid gap-2">
+              {sportsSuggestions.map((suggestion) => (
+                <p key={suggestion}>{suggestion}</p>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
 
         <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
           <h2 className="text-2xl font-bold text-slate-950">Nuovo cliente</h2>

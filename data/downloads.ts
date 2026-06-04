@@ -182,6 +182,69 @@ export const hairKitDownloads: DownloadFile[] = [
   },
 ];
 
+export const sportsCenterKitDownloads: DownloadFile[] = [
+  {
+    id: "prompts",
+    label: "90 prompt AI sport & outdoor",
+    description: "Prompt pronti per promo weekend, compleanni, team building, prenotazioni campi e tornei.",
+    fileName: "prompt-ai-centri-sportivi.md",
+    type: "prompt",
+    coverHref: "/downloads/ai-kit-per-palestre/covers/prompt.svg",
+    badges: ["Ready to Use", "Markdown"],
+    metrics: ["90 prompt", "Booking focus", "Multi sport"],
+  },
+  {
+    id: "captions",
+    label: "30 caption Instagram sport",
+    description: "Caption con hook, CTA e hashtag pensate per gruppi, eventi, promo weekend e prenotazioni.",
+    fileName: "caption-instagram-centri-sportivi.csv",
+    type: "sheet",
+    coverHref: "/downloads/ai-kit-per-palestre/covers/caption.svg",
+    badges: ["AI Powered", "CSV"],
+    metrics: ["30 caption", "CTA prenotazione", "Local ready"],
+  },
+  {
+    id: "reels",
+    label: "20 idee Reel weekend & tornei",
+    description: "Hook e script rapidi per compleanni, team building, tornei, promo weekend e backstage.",
+    fileName: "idee-reel-centri-sportivi.csv",
+    type: "sheet",
+    coverHref: "/downloads/ai-kit-per-palestre/covers/reel.svg",
+    badges: ["Social First", "CSV"],
+    metrics: ["20 Reel", "Hook dinamici", "Outdoor ready"],
+  },
+  {
+    id: "messages",
+    label: "Messaggi clienti e reminder",
+    description: "Template WhatsApp per prenotazioni, recupero clienti, follow-up e slot last minute.",
+    fileName: "messaggi-clienti-centri-sportivi.md",
+    type: "whatsapp",
+    coverHref: "/downloads/ai-kit-per-palestre/covers/whatsapp.svg",
+    badges: ["Ready to Use", "Markdown"],
+    metrics: ["Reminder", "Prenotazioni", "Gruppi"],
+  },
+  {
+    id: "offers",
+    label: "Promo sport center pronte",
+    description: "Offerte per pacchetti gruppo, campi, weekend, team building e tornei orientati a conversione.",
+    fileName: "promo-centri-sportivi.md",
+    type: "offer",
+    coverHref: "/downloads/ai-kit-per-palestre/covers/offerte.svg",
+    badges: ["Professional Toolkit", "Markdown"],
+    metrics: ["12 offerte", "Weekend focus", "Adattabili"],
+  },
+  {
+    id: "readme",
+    label: "Guida rapida del kit",
+    description: "Come usare il pacchetto, quali generatori attivare e come trasformarlo in prenotazioni ed eventi.",
+    fileName: "README.txt",
+    type: "guide",
+    coverHref: "/downloads/ai-kit-per-palestre/covers/readme.svg",
+    badges: ["Quick Start", "TXT"],
+    metrics: ["Workflow rapido", "Uso immediato", "Best practices"],
+  },
+];
+
 export const downloadsByProductSlug: Record<string, ProductDownloadBundle> = {
   "ai-kit-per-palestre": {
     files: gymKitDownloads,
@@ -190,6 +253,10 @@ export const downloadsByProductSlug: Record<string, ProductDownloadBundle> = {
   "ai-kit-per-parrucchieri": {
     files: hairKitDownloads,
     zipFileName: "ai-kit-per-parrucchieri.zip",
+  },
+  "ai-kit-per-centri-sportivi-outdoor": {
+    files: sportsCenterKitDownloads,
+    zipFileName: "ai-kit-per-centri-sportivi-outdoor.zip",
   },
 };
 

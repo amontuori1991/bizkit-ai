@@ -1,6 +1,8 @@
 import {
   getBusinessTypeLabel,
+  getSportsSubcategoryLabel,
   isHairBusinessType,
+  isSportsBusinessType,
   type AIContentType,
 } from "@/lib/business-verticals";
 
@@ -20,6 +22,7 @@ export type BusinessProfile = {
   unique_selling_points: string | null;
   preferred_cta: string | null;
   preferred_hashtags: string | null;
+  sports_subcategory: string | null;
   salon_specialties: string | null;
   booking_link: string | null;
   opening_hours: string | null;
@@ -83,6 +86,10 @@ export function buildBusinessProfileContext(profile: BusinessProfile | null) {
     formatValue("Unique selling points", profile.unique_selling_points),
     formatValue("CTA preferita", profile.preferred_cta),
     formatValue("Hashtag preferiti", profile.preferred_hashtags),
+    formatValue(
+      "Sottocategoria centro sportivo",
+      profile.sports_subcategory ? getSportsSubcategoryLabel(profile.sports_subcategory) : null,
+    ),
     formatValue("Specialita salone", profile.salon_specialties),
     formatValue("Link prenotazione", profile.booking_link),
     formatValue("Orari apertura", profile.opening_hours),
@@ -96,6 +103,43 @@ export function buildBusinessProfileContext(profile: BusinessProfile | null) {
   }
 
   return `Usa questo contesto business come base obbligatoria per ogni output:\n${lines.join("\n")}`;
+}
+
+function getSportsSubcategoryAngle(profile: BusinessProfile | null) {
+  if (!profile || !isSportsBusinessType(profile.business_type)) {
+    return "";
+  }
+
+  const subcategory = profile.sports_subcategory?.trim();
+  const subcategoryLabel = getSportsSubcategoryLabel(subcategory);
+  const instructions: Partial<Record<string, string>> = {
+    paintball:
+      "Per paintball enfatizza compleanni, addii al celibato, team building, tornei, promo weekend e adrenalina di gruppo.",
+    softair:
+      "Per softair enfatizza scenario game, team building, sessioni su prenotazione, eventi privati e community competitiva.",
+    laser_tag:
+      "Per laser tag enfatizza compleanni, gruppi amici, famiglie, eventi indoor e prenotazioni rapide.",
+    padel:
+      "Per padel enfatizza lezioni, tornei, prenotazioni campi, community locale e slot infrasettimanali.",
+    calcetto:
+      "Per calcetto enfatizza campionati, prenotazioni campi, partite tra amici, eventi aziendali e promo serali.",
+    tennis:
+      "Per tennis enfatizza lezioni, clinic, prenotazioni campi, tornei e progressione tecnica.",
+    beach_volley:
+      "Per beach volley enfatizza tornei estivi, gruppi amici, eventi outdoor e atmosfera social.",
+    adventure_park:
+      "Per adventure park enfatizza famiglie, gruppi, scuole, esperienze outdoor e team building.",
+    go_kart:
+      "Per go kart enfatizza gare tra amici, addii al celibato, team building, eventi corporate e adrenalina pura.",
+    multisport:
+      "Per multisport enfatizza versatilita, attivita per gruppi, eventi stagionali, tornei e prenotazioni ricorrenti.",
+  };
+
+  return [
+    `Questo business e un centro sportivo/outdoor nella sottocategoria ${subcategoryLabel}.`,
+    instructions[subcategory ?? ""] ??
+      "Adatta copy, CTA e offerte alla sottocategoria scelta, puntando su prenotazioni, gruppi, eventi e ricorrenze locali.",
+  ].join("\n");
 }
 
 function getFitnessPrompt(type: AIContentType) {
@@ -156,8 +200,36 @@ function getHairPrompt(type: AIContentType) {
   return [typeInstruction[type], ...shared].filter(Boolean).join("\n\n");
 }
 
+function getSportsPrompt(type: AIContentType, profile: BusinessProfile | null) {
+  const shared = [
+    "Scrivi in italiano.",
+    "Usa un tone of voice moderno, energico, orientato all'esperienza e social-first.",
+    "Usa emoji intelligenti e non infantili: massimo 3 per variante, solo se aiutano ritmo e chiarezza.",
+    "Le CTA devono puntare a prenotazione, richiesta preventivo, WhatsApp, DM o slot disponibili.",
+    "Valorizza gruppi, eventi, compleanni, tornei, lezioni, prenotazioni campi o attivita outdoor in base alla sottocategoria.",
+    "Genera sempre tre versioni distinte: short, medium e long.",
+    "Ogni versione deve avere hook forte, spacing leggibile, CTA chiara e tono credibile per Instagram, TikTok o WhatsApp.",
+    "Non aggiungere testo fuori dal formato richiesto.",
+    getSportsSubcategoryAngle(profile),
+  ];
+
+  const typeInstruction: Record<string, string> = {
+    sports_caption:
+      "Sei un copywriter senior per centri sportivi e attivita outdoor. Genera caption premium, locali e orientate a prenotazioni, gruppi ed eventi.",
+    sports_reel_script:
+      "Sei un content strategist senior per centri sportivi e outdoor. Genera Reel con hook forte, visual immediato, dinamica di gruppo e CTA prenotazione.",
+    sports_promo:
+      "Sei un marketing strategist per sport center e outdoor experiences. Genera promo chiare, desiderabili e facili da convertire in booking.",
+    sports_client_message:
+      "Sei un customer care copywriter per centri sportivi e outdoor. Genera messaggi WhatsApp chiari, caldi e orientati a prenotazioni, reminder o riattivazione clienti.",
+  };
+
+  return [typeInstruction[type], ...shared].filter(Boolean).join("\n\n");
+}
+
 function getFormatInstructions(type: AIContentType) {
   const hairType =
+    type === "sports_reel_script" ||
     type === "hair_reel_script" ||
     type === "hair_stories_idea" ||
     type === "hair_tiktok_hook";
@@ -182,7 +254,12 @@ function getFormatInstructions(type: AIContentType) {
 export function buildGenerationSystemPrompt(type: AIContentType, profile: BusinessProfile | null) {
   const context = buildBusinessProfileContext(profile);
   const hairVertical = type.startsWith("hair_") || isHairBusinessType(profile?.business_type);
-  const basePrompt = hairVertical ? getHairPrompt(type) : getFitnessPrompt(type);
+  const sportsVertical = type.startsWith("sports_") || isSportsBusinessType(profile?.business_type);
+  const basePrompt = hairVertical
+    ? getHairPrompt(type)
+    : sportsVertical
+      ? getSportsPrompt(type, profile)
+      : getFitnessPrompt(type);
 
   return [basePrompt, getFormatInstructions(type), context]
     .filter((item) => item && item.trim())

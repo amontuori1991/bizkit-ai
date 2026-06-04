@@ -1,9 +1,13 @@
 import { buildBusinessProfileContext, type BusinessProfile } from "@/lib/business-profile";
-import { isHairBusinessType } from "@/lib/business-verticals";
+import {
+  getSportsSubcategoryLabel,
+  isHairBusinessType,
+  isSportsBusinessType,
+} from "@/lib/business-verticals";
 
 export type SocialCalendarDays = 7 | 14 | 30;
 export type SocialContentFormat = "Post Instagram" | "Reel" | "Story" | "TikTok";
-export type SocialCalendarBusinessVertical = "fitness" | "hair";
+export type SocialCalendarBusinessVertical = "fitness" | "hair" | "sports";
 
 export type SocialCalendarEntry = {
   day: number;
@@ -37,6 +41,19 @@ export const socialCalendarObjectives = [
 export const socialCalendarDayOptions: SocialCalendarDays[] = [7, 14, 30];
 
 function getCalendarPillars(vertical: SocialCalendarBusinessVertical) {
+  if (vertical === "sports") {
+    return [
+      "promo weekend",
+      "compleanni",
+      "team building",
+      "tornei",
+      "prenotazioni",
+      "eventi",
+      "recensioni",
+      "backstage",
+    ];
+  }
+
   if (vertical === "hair") {
     return [
       "prima/dopo",
@@ -63,6 +80,10 @@ function getCalendarPillars(vertical: SocialCalendarBusinessVertical) {
 }
 
 export function inferCalendarVertical(profile: BusinessProfile | null): SocialCalendarBusinessVertical {
+  if (isSportsBusinessType(profile?.business_type)) {
+    return "sports";
+  }
+
   return isHairBusinessType(profile?.business_type) ? "hair" : "fitness";
 }
 
@@ -77,9 +98,15 @@ export function buildCalendarSystemPrompt(
   objective: string,
 ) {
   const vertical = inferCalendarVertical(profile);
-  const verticalLabel = vertical === "hair" ? "saloni parrucchieri e barber shop" : "palestre e business fitness";
+  const verticalLabel =
+    vertical === "hair"
+      ? "saloni parrucchieri e barber shop"
+      : vertical === "sports"
+        ? "centri sportivi e attivita outdoor"
+        : "palestre e business fitness";
   const pillars = getCalendarPillars(vertical).join(", ");
   const businessContext = buildBusinessProfileContext(profile);
+  const sportsSubcategory = profile?.sports_subcategory?.trim();
 
   return [
     `Sei un senior social media strategist per ${verticalLabel}.`,
@@ -90,8 +117,10 @@ export function buildCalendarSystemPrompt(
     `Il calendario deve coprire ${days} giorni e supportare questo obiettivo: ${objective}.`,
     `Per questo verticale usa soprattutto questi pillar: ${pillars}.`,
     vertical === "hair"
-      ? "Per hair usa hook più beauty/fashion, CTA più orientate al booking, hashtag beauty/hair e tono moderno."
-      : "Per fitness usa tono energico ma professionale, CTA su prova gratuita/open day/DM e hashtag fitness locali.",
+      ? "Per hair usa hook piu beauty/fashion, CTA piu orientate al booking, hashtag beauty/hair e tono moderno."
+      : vertical === "sports"
+        ? `Per sports/outdoor adatta tutto alla sottocategoria ${getSportsSubcategoryLabel(sportsSubcategory)}. Usa CTA orientate a prenotazioni, gruppi, eventi, compleanni, lezioni, campi o promo weekend a seconda del contesto.`
+        : "Per fitness usa tono energico ma professionale, CTA su prova gratuita/open day/DM e hashtag fitness locali.",
     "Restituisci solo JSON valido senza markdown o testo extra.",
     `Usa esattamente questo schema:
 {
@@ -118,7 +147,11 @@ export function buildCalendarSystemPrompt(
 }
 
 export function parseSocialCalendarResponse(raw: string): SocialCalendarPayload {
-  const normalized = raw.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, "");
+  const normalized = raw
+    .trim()
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/```$/i, "");
   const parsed = JSON.parse(normalized) as Partial<SocialCalendarPayload>;
 
   if (!parsed || !Array.isArray(parsed.entries) || parsed.entries.length === 0) {
@@ -181,7 +214,22 @@ Hashtag: ${entry.hashtags}
 Crea una versione completa pronta da pubblicare, mantenendo l'obiettivo e il tono del business profile.`;
 }
 
-export function getGenerationTypeFromFormat(vertical: SocialCalendarBusinessVertical, format: SocialContentFormat) {
+export function getGenerationTypeFromFormat(
+  vertical: SocialCalendarBusinessVertical,
+  format: SocialContentFormat,
+) {
+  if (vertical === "sports") {
+    if (format === "Reel" || format === "TikTok") {
+      return "sports_reel_script" as const;
+    }
+
+    if (format === "Story") {
+      return "sports_caption" as const;
+    }
+
+    return "sports_caption" as const;
+  }
+
   if (vertical === "hair") {
     if (format === "Reel" || format === "TikTok") {
       return "hair_reel_script" as const;

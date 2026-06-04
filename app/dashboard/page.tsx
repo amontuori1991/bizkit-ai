@@ -74,8 +74,9 @@ export default async function DashboardPage() {
             </span>
             <h2 className="mt-4 text-3xl font-bold tracking-tight">Benvenuto, {firstName}</h2>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-200 sm:text-base">
-              Hai una base premium pronta per creare contenuti fitness o hair/beauty, salvare le
-              idee migliori e far lavorare l&apos;AI con il contesto reale della tua attivita.
+              Hai una base premium pronta per creare contenuti fitness, hair/beauty o sport &
+              outdoor, salvare le idee migliori e far lavorare l&apos;AI con il contesto reale della
+              tua attivita.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link href="/dashboard/caption" className="button-primary">
@@ -204,6 +205,12 @@ export default async function DashboardPage() {
             title: "Hair AI",
             copy: "Attiva la verticale parrucchieri con caption, Reel, promo e messaggi clienti orientati a booking.",
             href: "/dashboard/hair-captions",
+            icon: "caption" as const,
+          },
+          {
+            title: "Sports & Outdoor AI",
+            copy: "Lavora su paintball, padel, calcetto e centri outdoor con caption, promo, Reel e messaggi clienti orientati a prenotazione.",
+            href: "/dashboard/sports-captions",
             icon: "caption" as const,
           },
           {

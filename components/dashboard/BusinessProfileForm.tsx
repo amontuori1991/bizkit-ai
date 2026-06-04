@@ -4,7 +4,14 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { BusinessProfile } from "@/lib/business-profile";
 import { type PaidPlanId, type RuntimePlanId, type UsageProgress } from "@/lib/plan-limits";
-import { businessTypeOptions, isHairBusinessType, type BusinessType } from "@/lib/business-verticals";
+import {
+  businessTypeOptions,
+  isHairBusinessType,
+  isSportsBusinessType,
+  sportsCenterSubcategoryOptions,
+  type BusinessType,
+  type SportsCenterSubcategory,
+} from "@/lib/business-verticals";
 
 type BusinessProfileFormProps = {
   initialProfiles: BusinessProfile[];
@@ -39,6 +46,7 @@ type FormState = {
   unique_selling_points: string;
   preferred_cta: string;
   preferred_hashtags: string;
+  sports_subcategory: SportsCenterSubcategory | "";
   salon_specialties: string;
   booking_link: string;
   opening_hours: string;
@@ -62,6 +70,7 @@ function getInitialForm(profile: BusinessProfile | null): FormState {
     unique_selling_points: profile?.unique_selling_points ?? "",
     preferred_cta: profile?.preferred_cta ?? "",
     preferred_hashtags: profile?.preferred_hashtags ?? "",
+    sports_subcategory: (profile?.sports_subcategory as SportsCenterSubcategory | null) ?? "",
     salon_specialties: profile?.salon_specialties ?? "",
     booking_link: profile?.booking_link ?? "",
     opening_hours: profile?.opening_hours ?? "",
@@ -110,6 +119,10 @@ export function BusinessProfileForm({
   }, [selectedProfile]);
 
   const isHairProfile = useMemo(() => isHairBusinessType(form.business_type), [form.business_type]);
+  const isSportsProfile = useMemo(
+    () => isSportsBusinessType(form.business_type),
+    [form.business_type],
+  );
   const canCreateAnotherProfile = usage.limit === null || profiles.length < usage.limit;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -258,7 +271,13 @@ export function BusinessProfileForm({
               value={form.business_name}
               onChange={(event) => setForm((current) => ({ ...current, business_name: event.target.value }))}
               type="text"
-              placeholder={isHairProfile ? "Atelier Hair Milano" : "Palestra Energia"}
+              placeholder={
+                isHairProfile
+                  ? "Atelier Hair Milano"
+                  : isSportsProfile
+                    ? "Urban Battle Park"
+                    : "Palestra Energia"
+              }
               className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500"
             />
           </label>
@@ -294,6 +313,15 @@ export function BusinessProfileForm({
                     </option>
                   ))}
               </optgroup>
+              <optgroup label="Sport & Outdoor">
+                {businessTypeOptions
+                  .filter((item) => item.vertical === "sports")
+                  .map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+              </optgroup>
             </select>
           </label>
 
@@ -305,25 +333,37 @@ export function BusinessProfileForm({
             [
               "tone_of_voice",
               "Tone of voice",
-              isHairProfile ? "Elegante, moderno, social-first" : "Professionale, energico, accogliente",
+              isHairProfile
+                ? "Elegante, moderno, social-first"
+                : isSportsProfile
+                  ? "Energico, coinvolgente, orientato all'esperienza"
+                  : "Professionale, energico, accogliente",
             ],
             [
               "target_audience",
               "Target audience",
               isHairProfile
                 ? "Donne 24-45 che cercano colore, styling e beauty experience premium"
+                : isSportsProfile
+                  ? "Gruppi amici, aziende, famiglie o sportivi locali che cercano esperienze e prenotazioni rapide"
                 : "Uomini e donne 28-45 che vogliono rimettersi in forma",
             ],
             [
               "preferred_cta",
               "CTA preferita",
-              isHairProfile ? "Prenota il tuo appuntamento" : "Prenota la tua prova gratuita",
+              isHairProfile
+                ? "Prenota il tuo appuntamento"
+                : isSportsProfile
+                  ? "Prenota il tuo slot"
+                  : "Prenota la tua prova gratuita",
             ],
             [
               "preferred_hashtags",
               "Hashtag preferiti",
               isHairProfile
                 ? "#hairstylemilano #balayageitalia #salonexperience"
+                : isSportsProfile
+                  ? "#sportmilano #weekendexperience #prenotaora"
                 : "#palestramilano #fitnessmilano #wellness",
             ],
           ].map(([key, label, placeholder]) => (
@@ -352,6 +392,8 @@ export function BusinessProfileForm({
               placeholder={
                 isHairProfile
                   ? "Taglio, piega, colore, schiariture, trattamenti, barber service"
+                  : isSportsProfile
+                    ? "Prenotazioni campo, eventi privati, compleanni, tornei, team building"
                   : "Sala pesi, personal training, corsi small group, programmi dimagrimento"
               }
               className="rounded-[1.5rem] border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500"
@@ -368,12 +410,56 @@ export function BusinessProfileForm({
               placeholder={
                 isHairProfile
                   ? "Consulenza personalizzata, experience premium, look su misura"
+                  : isSportsProfile
+                    ? "Esperienza di gruppo, adrenalina, booking semplice, format eventi pronti"
                   : "Allenamenti su misura, ambiente non intimidatorio, coach dedicati"
               }
               className="rounded-[1.5rem] border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500"
             />
           </label>
         </div>
+
+        {isSportsProfile ? (
+          <div className="grid gap-6 rounded-[2rem] border border-emerald-100 bg-emerald-50/60 p-6 lg:grid-cols-2">
+            <label className="grid gap-2 text-sm font-medium text-slate-700">
+              Sottocategoria centro sportivo
+              <select
+                value={form.sports_subcategory}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    sports_subcategory: event.target.value as SportsCenterSubcategory | "",
+                  }))
+                }
+                className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-500"
+              >
+                <option value="">Seleziona una sottocategoria</option>
+                {sportsCenterSubcategoryOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {[
+              ["booking_link", "Link prenotazione", "https://prenota.tuocentro.it"],
+              ["opening_hours", "Orari apertura", "Lun-Dom 10:00-22:00"],
+            ].map(([key, label, placeholder]) => (
+              <label key={key} className="grid gap-2 text-sm font-medium text-slate-700">
+                {label}
+                <input
+                  value={form[key as keyof FormState] as string}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, [key]: event.target.value }))
+                  }
+                  type="text"
+                  placeholder={placeholder}
+                  className="rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-emerald-500"
+                />
+              </label>
+            ))}
+          </div>
+        ) : null}
 
         {isHairProfile ? (
           <div className="grid gap-6 rounded-[2rem] border border-pink-100 bg-pink-50/60 p-6 lg:grid-cols-2">
@@ -416,8 +502,8 @@ export function BusinessProfileForm({
 
         <div className="rounded-[1.75rem] border border-blue-200 bg-blue-50 p-5 text-sm leading-7 text-slate-700">
           Una volta salvato, questo profilo alimenta automaticamente nome attivita, tipo business,
-          citta, tono, target, servizi, CTA, hashtag e, per i saloni, anche specialita, booking,
-          orari e prodotti usati.
+          citta, tono, target, servizi, CTA, hashtag e, in base al verticale, anche sottocategoria,
+          booking, orari, specialita o prodotti usati.
         </div>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">

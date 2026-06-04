@@ -6,7 +6,7 @@ import { plans, planMatrix } from "@/data/plans";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Confronta i piani Starter, Pro e Agency di BizKit AI con feature matrix, CTA forti e pricing pronto per Stripe subscriptions.",
+    "Confronta i piani Starter, Pro e Agency di BizKit AI con feature matrix, CTA forti e pricing pronto per Stripe subscriptions su fitness, hair e sport & outdoor.",
   alternates: { canonical: "/pricing" },
 };
 
@@ -21,9 +21,9 @@ export default function PricingPage() {
               Piani chiari per far crescere il tuo workflow AI
             </h1>
             <p className="mt-5 text-lg leading-8 text-slate-600">
-              Scegli un piano pensato per contenuti, promo e CRM fitness. Ogni tier include output
+              Scegli un piano pensato per contenuti, promo e CRM locali. Ogni tier include output
               AI in 3 varianti, Business Profile intelligente, Social Calendar Generator,
-              generatori Reel e messaggi clienti per palestre e saloni parrucchieri.
+              generatori Reel e messaggi clienti per palestre, saloni parrucchieri e centri sportivi/outdoor.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Link href="/signup" className="button-primary">

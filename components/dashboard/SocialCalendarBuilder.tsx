@@ -591,7 +591,11 @@ export function SocialCalendarBuilder({
                 <div className="rounded-2xl bg-slate-50 px-4 py-3">
                   <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Verticale</p>
                   <p className="mt-2 text-sm font-semibold text-slate-900">
-                    {vertical === "hair" ? "Hair & Beauty" : "Fitness"}
+                    {vertical === "hair"
+                      ? "Hair & Beauty"
+                      : vertical === "sports"
+                        ? "Sport & Outdoor"
+                        : "Fitness"}
                   </p>
                 </div>
                 <div className="rounded-2xl bg-slate-50 px-4 py-3">

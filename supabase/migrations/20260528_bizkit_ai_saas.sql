@@ -79,6 +79,7 @@ create table if not exists public.business_profiles (
   unique_selling_points text,
   preferred_cta text,
   preferred_hashtags text,
+  sports_subcategory text,
   salon_specialties text,
   booking_link text,
   opening_hours text,
@@ -101,6 +102,7 @@ begin
 end $$;
 
 alter table public.business_profiles add column if not exists is_primary boolean not null default false;
+alter table public.business_profiles add column if not exists sports_subcategory text;
 alter table public.business_profiles add column if not exists salon_specialties text;
 alter table public.business_profiles add column if not exists booking_link text;
 alter table public.business_profiles add column if not exists opening_hours text;

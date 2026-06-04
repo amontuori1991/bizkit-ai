@@ -20,7 +20,7 @@ export default async function SocialCalendarPage() {
   return (
     <DashboardShell
       title="Social Calendar"
-      description="Pianifica 7, 14 o 30 giorni di contenuti usando automaticamente il tuo Business Profile e trasforma il SaaS in un vero planner operativo."
+      description="Pianifica 7, 14 o 30 giorni di contenuti usando automaticamente il tuo Business Profile per fitness, hair o sport & outdoor."
       userEmail={user.email ?? "utente"}
     >
       <SocialCalendarBuilder

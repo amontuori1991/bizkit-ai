@@ -18,6 +18,7 @@ type BusinessProfileBody = {
   unique_selling_points?: string;
   preferred_cta?: string;
   preferred_hashtags?: string;
+  sports_subcategory?: string;
   salon_specialties?: string;
   booking_link?: string;
   opening_hours?: string;
@@ -115,6 +116,7 @@ export async function POST(request: Request) {
       unique_selling_points: normalizeValue(body.unique_selling_points),
       preferred_cta: normalizeValue(body.preferred_cta),
       preferred_hashtags: normalizeValue(body.preferred_hashtags),
+      sports_subcategory: normalizeValue(body.sports_subcategory),
       salon_specialties: normalizeValue(body.salon_specialties),
       booking_link: normalizeValue(body.booking_link),
       opening_hours: normalizeValue(body.opening_hours),

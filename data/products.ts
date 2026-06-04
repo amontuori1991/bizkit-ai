@@ -7,6 +7,7 @@ export type Product = {
   category: string;
   niche:
     | "palestre"
+    | "centri-sportivi-outdoor"
     | "ristoranti"
     | "parrucchieri"
     | "estetiste"
@@ -45,6 +46,30 @@ export const products: Product[] = [
     ],
     status: "available",
     demoHref: "/demo?vertical=gym",
+  },
+  {
+    id: "sports-center-kit-001",
+    slug: "ai-kit-per-centri-sportivi-outdoor",
+    name: "AI Kit Centri Sportivi & Outdoor",
+    category: "Sport & Outdoor",
+    niche: "centri-sportivi-outdoor",
+    price: "29 EUR",
+    description:
+      "Un kit digitale operativo per paintball, padel, calcetto, tennis, go kart e centri multisport che vogliono creare contenuti, promo, messaggi clienti e calendari con l'AI.",
+    shortDescription:
+      "Prompt, caption, Reel, promo e messaggi clienti per centri sportivi, prenotazioni, eventi e attivita outdoor.",
+    includes: [
+      "90 prompt AI per sport center e outdoor",
+      "30 caption Instagram per promo, gruppi ed eventi",
+      "20 idee Reel per weekend, compleanni e tornei",
+      "Template WhatsApp per reminder e prenotazioni",
+      "Promo pronte per campi, tornei e pacchetti gruppo",
+      "Mini calendario contenuti per centro sportivo",
+      "Script per team building, compleanni e recensioni",
+      "Guida rapida all'uso del kit",
+    ],
+    status: "available",
+    demoHref: "/demo?vertical=sports",
   },
   {
     id: "restaurant-kit-001",
@@ -132,7 +157,7 @@ export const faqs = [
   {
     question: "BizKit AI ora e un SaaS o resta un download store?",
     answer:
-      "Ora il progetto combina entrambe le anime: il cuore e una piattaforma SaaS con login, dashboard, generatori AI, CRM e billing subscription, mentre il kit fitness resta una risorsa digitale complementare.",
+      "Ora il progetto combina entrambe le anime: il cuore e una piattaforma SaaS con login, dashboard, generatori AI, CRM e billing subscription, mentre i kit digitali per fitness, hair e sport/outdoor restano risorse complementari.",
   },
   {
     question: "Serve esperienza tecnica per usare i generatori AI?",
@@ -152,6 +177,6 @@ export const faqs = [
   {
     question: "Posso estendere il prodotto ad altre nicchie?",
     answer:
-      "Si. La struttura dati e di navigazione e gia pronta per aggiungere nuovi verticali come ristoranti, parrucchieri, estetiste, agenzie immobiliari e B&B.",
+      "Si. La struttura dati e di navigazione supporta gia fitness, hair e centri sportivi/outdoor, ed e pronta per aggiungere anche altre nicchie come ristoranti, estetiste, real estate e hospitality.",
   },
 ];

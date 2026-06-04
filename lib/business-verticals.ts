@@ -2,6 +2,7 @@ export type BusinessType =
   | "gym"
   | "personal_trainer"
   | "fitness_studio"
+  | "sports_center"
   | "hair_salon"
   | "barber_shop"
   | "hair_stylist";
@@ -10,6 +11,10 @@ export type AIContentType =
   | "caption"
   | "reel"
   | "promo"
+  | "sports_caption"
+  | "sports_reel_script"
+  | "sports_promo"
+  | "sports_client_message"
   | "hair_caption"
   | "hair_reel_script"
   | "hair_promo"
@@ -19,6 +24,18 @@ export type AIContentType =
   | "hair_stories_idea"
   | "hair_tiktok_hook";
 
+export type SportsCenterSubcategory =
+  | "paintball"
+  | "softair"
+  | "laser_tag"
+  | "padel"
+  | "calcetto"
+  | "tennis"
+  | "beach_volley"
+  | "adventure_park"
+  | "go_kart"
+  | "multisport";
+
 export type QuickTemplate = {
   label: string;
   prompt: string;
@@ -27,14 +44,31 @@ export type QuickTemplate = {
 export const businessTypeOptions: Array<{
   value: BusinessType;
   label: string;
-  vertical: "fitness" | "hair";
+  vertical: "fitness" | "hair" | "sports";
 }> = [
   { value: "gym", label: "Palestra", vertical: "fitness" },
   { value: "personal_trainer", label: "Personal trainer", vertical: "fitness" },
   { value: "fitness_studio", label: "Studio fitness", vertical: "fitness" },
+  { value: "sports_center", label: "Centro sportivo & outdoor", vertical: "sports" },
   { value: "hair_salon", label: "Salone parrucchieri", vertical: "hair" },
   { value: "barber_shop", label: "Barber shop", vertical: "hair" },
   { value: "hair_stylist", label: "Hair stylist", vertical: "hair" },
+];
+
+export const sportsCenterSubcategoryOptions: Array<{
+  value: SportsCenterSubcategory;
+  label: string;
+}> = [
+  { value: "paintball", label: "Paintball" },
+  { value: "softair", label: "Softair" },
+  { value: "laser_tag", label: "Laser Tag" },
+  { value: "padel", label: "Padel" },
+  { value: "calcetto", label: "Calcetto" },
+  { value: "tennis", label: "Tennis" },
+  { value: "beach_volley", label: "Beach Volley" },
+  { value: "adventure_park", label: "Adventure Park" },
+  { value: "go_kart", label: "Go Kart" },
+  { value: "multisport", label: "Multisport" },
 ];
 
 export const hairBusinessTypes = new Set<BusinessType>([
@@ -43,12 +77,24 @@ export const hairBusinessTypes = new Set<BusinessType>([
   "hair_stylist",
 ]);
 
+export const sportsBusinessTypes = new Set<BusinessType>(["sports_center"]);
+
 export function isHairBusinessType(value?: string | null): value is BusinessType {
   return Boolean(value && hairBusinessTypes.has(value as BusinessType));
 }
 
+export function isSportsBusinessType(value?: string | null): value is BusinessType {
+  return Boolean(value && sportsBusinessTypes.has(value as BusinessType));
+}
+
 export function getBusinessTypeLabel(value?: string | null) {
   return businessTypeOptions.find((item) => item.value === value)?.label ?? value ?? "Business";
+}
+
+export function getSportsSubcategoryLabel(value?: string | null) {
+  return (
+    sportsCenterSubcategoryOptions.find((item) => item.value === value)?.label ?? value ?? "Centro sportivo"
+  );
 }
 
 export const generatorQuickTemplates: Partial<Record<AIContentType, QuickTemplate[]>> = {
@@ -72,6 +118,34 @@ export const generatorQuickTemplates: Partial<Record<AIContentType, QuickTemplat
     { label: "Trasformazione cliente", prompt: "Crea una promo che usi il risultato di un cliente come leva di conversione." },
     { label: "Prova gratuita", prompt: "Crea una promo commerciale per una prova gratuita di 7 giorni." },
     { label: "Recupero inattivi", prompt: "Crea una promo win-back per clienti inattivi con messaggio caldo e deciso." },
+  ],
+  sports_caption: [
+    { label: "Promo weekend", prompt: "Scrivi una caption per promuovere il weekend con posti limitati e prenotazione veloce." },
+    { label: "Compleanni", prompt: "Scrivi una caption per vendere pacchetti compleanno divertenti e facili da prenotare." },
+    { label: "Team building", prompt: "Scrivi una caption per proporre un evento team building aziendale ad alto coinvolgimento." },
+    { label: "Torneo", prompt: "Scrivi una caption per lanciare un torneo con iscrizioni aperte e CTA immediata." },
+    { label: "Promo last minute", prompt: "Scrivi una caption per riempire slot liberi di questa settimana con urgenza chiara." },
+  ],
+  sports_reel_script: [
+    { label: "Promo weekend", prompt: "Crea un Reel per promuovere il weekend e spingere prenotazioni immediate." },
+    { label: "Compleanno", prompt: "Crea un Reel per mostrare l'esperienza compleanno in modo energico e social-first." },
+    { label: "Team building", prompt: "Crea un Reel per aziende che vogliono un team building memorabile." },
+    { label: "Torneo", prompt: "Crea un Reel per lanciare un torneo con ritmo rapido e CTA iscrizione." },
+    { label: "Esperienza outdoor", prompt: "Crea un Reel per mostrare adrenalina, gruppo e atmosfera dell'attivita." },
+  ],
+  sports_promo: [
+    { label: "Promo weekend", prompt: "Crea una promo commerciale per il weekend con valore chiaro e urgenza." },
+    { label: "Compleanni", prompt: "Crea una promo per pacchetti compleanno con booking semplice e benefit evidenti." },
+    { label: "Team building", prompt: "Crea una promo B2B per team building aziendale con tono professionale." },
+    { label: "Prenotazione campi", prompt: "Crea una promo per prenotazioni campi infrasettimanali con incentivo immediato." },
+    { label: "Recupero clienti inattivi", prompt: "Crea una promo win-back per clienti che non prenotano da tempo." },
+  ],
+  sports_client_message: [
+    { label: "Reminder prenotazione", prompt: "Scrivi un messaggio WhatsApp per ricordare una prenotazione e ridurre i no-show." },
+    { label: "Compleanno", prompt: "Scrivi un messaggio per proporre un pacchetto compleanno in modo diretto e coinvolgente." },
+    { label: "Team building", prompt: "Scrivi un messaggio commerciale per aziende interessate a un team building." },
+    { label: "Promo weekend", prompt: "Scrivi un messaggio WhatsApp per spingere una promo weekend con posti limitati." },
+    { label: "Recupero clienti inattivi", prompt: "Scrivi un messaggio per riattivare clienti che non prenotano da settimane." },
   ],
   hair_caption: [
     { label: "Promo balayage", prompt: "Scrivi una caption premium per promuovere una promo balayage con posti limitati questa settimana." },
@@ -120,4 +194,3 @@ export const generatorQuickTemplates: Partial<Record<AIContentType, QuickTemplat
 export function getQuickTemplatesForType(type: AIContentType) {
   return generatorQuickTemplates[type] ?? [];
 }
-
