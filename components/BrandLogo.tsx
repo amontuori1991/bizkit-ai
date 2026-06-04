@@ -9,7 +9,7 @@ type BrandLockupProps = {
   className?: string;
   imageClassName?: string;
   taglineClassName?: string;
-  tagline?: string;
+  tagline?: string | null;
   centered?: boolean;
 };
 
@@ -60,16 +60,18 @@ export function BrandLockup({
         sizes={`${width}px`}
         className={joinClasses("h-auto w-auto max-w-full object-contain", imageClassName)}
       />
-      <p
-        className={joinClasses(
-          "leading-5",
-          taglineTone,
-          taglineSizeClasses[size],
-          taglineClassName,
-        )}
-      >
-        {tagline}
-      </p>
+      {tagline ? (
+        <p
+          className={joinClasses(
+            "leading-5",
+            taglineTone,
+            taglineSizeClasses[size],
+            taglineClassName,
+          )}
+        >
+          {tagline}
+        </p>
+      ) : null}
     </div>
   );
 }

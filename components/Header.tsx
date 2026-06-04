@@ -19,9 +19,9 @@ export async function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">
       <div className="container-shell flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <Link href="/" className="flex items-center gap-3">
-          <BrandLockup size="md" tagline="AI Marketing Platform for Local Businesses" />
-        </Link>
+          <Link href="/" className="flex items-center gap-3">
+            <BrandLockup size="md" tagline={null} />
+          </Link>
         <nav className="flex flex-wrap items-center gap-4 text-sm font-semibold text-slate-600">
           {navigation.map((item) => (
             <Link key={item.href} href={item.href} className="hover:text-blue-700">
