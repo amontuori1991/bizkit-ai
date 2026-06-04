@@ -4,9 +4,13 @@ import { useState } from "react";
 
 type BillingPortalButtonProps = {
   enabled: boolean;
+  label?: string;
 };
 
-export function BillingPortalButton({ enabled }: BillingPortalButtonProps) {
+export function BillingPortalButton({
+  enabled,
+  label = "Gestisci abbonamento",
+}: BillingPortalButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -46,7 +50,7 @@ export function BillingPortalButton({ enabled }: BillingPortalButtonProps) {
         disabled={!enabled || isLoading}
         className="button-secondary disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isLoading ? "Apertura portal..." : "Gestisci abbonamento"}
+        {isLoading ? "Apertura portal..." : label}
       </button>
       {errorMessage ? (
         <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
