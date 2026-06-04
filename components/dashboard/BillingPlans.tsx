@@ -60,25 +60,35 @@ export function BillingPlans({
         </p>
       ) : null}
       <div className="grid gap-5 lg:grid-cols-3">
-        {plans.map((plan) => (
-          <div
-            key={plan.id}
-            className={`relative overflow-hidden rounded-[2rem] border p-6 shadow-soft ${
+        {plans.map((plan) => {
+          const isCurrentPlan = currentPlanId === plan.id;
+          const hasTopBadges = plan.highlight || isCurrentPlan;
+
+          return (
+            <div
+              key={plan.id}
+              className={`relative overflow-hidden rounded-[2rem] border p-6 shadow-soft ${
               plan.highlight
                 ? "border-blue-500 bg-slate-950 text-white"
                 : "border-slate-200 bg-white text-slate-950"
-            }`}
-          >
-            {plan.highlight ? (
-              <span className="absolute right-5 top-5 rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white">
-                Most popular
-              </span>
-            ) : null}
-            {currentPlanId === plan.id ? (
-              <span className="absolute left-5 top-5 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white">
-                Piano attuale
-              </span>
-            ) : null}
+            } ${hasTopBadges ? "pt-16" : ""}`}
+            >
+              {hasTopBadges ? (
+                <div className="absolute inset-x-5 top-5 flex flex-wrap items-center justify-between gap-2">
+                  {isCurrentPlan ? (
+                    <span className="rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white">
+                      Piano attuale
+                    </span>
+                  ) : (
+                    <span />
+                  )}
+                  {plan.highlight ? (
+                    <span className="rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white">
+                      Most popular
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
             <p className={`text-sm font-semibold uppercase tracking-[0.18em] ${plan.highlight ? "text-blue-200" : "text-blue-500"}`}>
               {plan.badge}
             </p>
@@ -132,8 +142,9 @@ export function BillingPlans({
                   ? "Apertura checkout..."
                   : plan.ctaLabel}
             </button>
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
