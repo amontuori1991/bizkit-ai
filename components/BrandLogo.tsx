@@ -54,7 +54,7 @@ export function BrandIcon({ size = "md", className, priority = false }: BrandIco
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src="/favicon/android-chrome-192x192.png"
+      src="/icon.png"
       alt="BizKit AI logo"
       width={pixels}
       height={pixels}
