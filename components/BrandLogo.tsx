@@ -3,33 +3,21 @@ import Image from "next/image";
 type BrandSize = "sm" | "md" | "lg" | "xl";
 type BrandTone = "light" | "dark";
 
-type BrandWordmarkProps = {
-  size?: BrandSize;
-  className?: string;
-  priority?: boolean;
-};
-
 type BrandLockupProps = {
   size?: BrandSize;
   tone?: BrandTone;
   className?: string;
+  imageClassName?: string;
   taglineClassName?: string;
   tagline?: string;
   centered?: boolean;
 };
 
-const wordmarkWidth: Record<BrandSize, number> = {
-  sm: 112,
-  md: 136,
-  lg: 164,
-  xl: 188,
-};
-
-const wordmarkHeight: Record<BrandSize, number> = {
-  sm: 42,
-  md: 50,
-  lg: 60,
-  xl: 68,
+const widthBySize: Record<BrandSize, number> = {
+  sm: 88,
+  md: 104,
+  lg: 124,
+  xl: 156,
 };
 
 const taglineSizeClasses: Record<BrandSize, string> = {
@@ -43,33 +31,17 @@ function joinClasses(...classes: Array<string | undefined | null | false>) {
   return classes.filter(Boolean).join(" ");
 }
 
-export function BrandWordmark({
-  size = "md",
-  className,
-  priority = false,
-}: BrandWordmarkProps) {
-  return (
-    <Image
-      src="/favicon/android-chrome-512x512.png"
-      alt="BizKit AI"
-      width={wordmarkWidth[size]}
-      height={wordmarkHeight[size]}
-      priority={priority}
-      sizes={`${wordmarkWidth[size]}px`}
-      className={joinClasses("h-auto w-auto max-w-full object-contain", className)}
-    />
-  );
-}
-
 export function BrandLockup({
   size = "md",
   tone = "dark",
   className,
+  imageClassName,
   taglineClassName,
   tagline = "AI Marketing Platform for Local Businesses",
   centered = false,
 }: BrandLockupProps) {
   const taglineTone = tone === "light" ? "text-slate-300" : "text-slate-500";
+  const width = widthBySize[size];
 
   return (
     <div
@@ -79,10 +51,18 @@ export function BrandLockup({
         className,
       )}
     >
-      <BrandWordmark size={size} priority={size === "xl"} />
+      <Image
+        src="/favicon/android-chrome-512x512.png"
+        alt="BizKit AI"
+        width={width}
+        height={width}
+        priority={size === "xl"}
+        sizes={`${width}px`}
+        className={joinClasses("h-auto w-auto max-w-full object-contain", imageClassName)}
+      />
       <p
         className={joinClasses(
-          "max-w-[20rem] leading-5",
+          "leading-5",
           taglineTone,
           taglineSizeClasses[size],
           taglineClassName,
