@@ -2,31 +2,45 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DashboardIcon } from "@/components/dashboard/DashboardIcon";
-
-const navItems = [
-  { href: "/dashboard", label: "Overview", icon: "spark" },
-  { href: "/dashboard/caption", label: "Caption AI", icon: "caption" },
-  { href: "/dashboard/reels", label: "Reel AI", icon: "reel" },
-  { href: "/dashboard/promos", label: "Promo AI", icon: "promo" },
-  { href: "/dashboard/hair-captions", label: "Hair Captions", icon: "caption" },
-  { href: "/dashboard/hair-reels", label: "Hair Reels", icon: "reel" },
-  { href: "/dashboard/hair-promos", label: "Hair Promos", icon: "promo" },
-  { href: "/dashboard/hair-client-messages", label: "Hair Messages", icon: "message" },
-  { href: "/dashboard/sports-captions", label: "Sports Captions", icon: "caption" },
-  { href: "/dashboard/sports-reels", label: "Sports Reels", icon: "reel" },
-  { href: "/dashboard/sports-promos", label: "Sports Promos", icon: "promo" },
-  { href: "/dashboard/sports-client-messages", label: "Sports Messages", icon: "message" },
-  { href: "/dashboard/social-calendar", label: "Social Calendar", icon: "calendar" },
-  { href: "/dashboard/calendars", label: "Calendars", icon: "history" },
-  { href: "/dashboard/crm", label: "CRM", icon: "crm" },
-  { href: "/dashboard/history", label: "Cronologia", icon: "history" },
-  { href: "/dashboard/settings/business-profile", label: "Business Profile", icon: "settings" },
-  { href: "/dashboard/billing", label: "Billing", icon: "billing" },
-] as const;
+import {
+  getBusinessTypeLabel,
+  isHairBusinessType,
+  isSportsBusinessType,
+} from "@/lib/business-verticals";
 
 const THEME_KEY = "bizkit-ai-saas-theme";
+
+type SidebarContext = {
+  hasProfile: boolean;
+  activeBusinessType: string | null;
+  hasCompleteProfile: boolean;
+};
+
+type DashboardShellIconName =
+  | "spark"
+  | "caption"
+  | "reel"
+  | "promo"
+  | "crm"
+  | "message"
+  | "calendar"
+  | "history"
+  | "settings"
+  | "billing";
+
+type NavItem = {
+  href: string;
+  label: string;
+  icon: DashboardShellIconName;
+};
+
+type VerticalMeta = {
+  badge: "Hair" | "Sports" | "Fitness" | null;
+  accentClass: string;
+  navItems: NavItem[];
+};
 
 type DashboardShellProps = {
   title: string;
@@ -34,6 +48,72 @@ type DashboardShellProps = {
   userEmail: string;
   children: React.ReactNode;
 };
+
+const COMMON_NAV_ITEMS: NavItem[] = [
+  { href: "/dashboard", label: "Overview", icon: "spark" },
+  { href: "/dashboard/social-calendar", label: "Social Calendar", icon: "calendar" },
+  { href: "/dashboard/calendars", label: "Calendars", icon: "history" },
+  { href: "/dashboard/crm", label: "CRM", icon: "crm" },
+  { href: "/dashboard/history", label: "Cronologia", icon: "history" },
+  { href: "/dashboard/settings/business-profile", label: "Business Profile", icon: "settings" },
+  { href: "/dashboard/billing", label: "Billing", icon: "billing" },
+];
+
+const FITNESS_NAV_ITEMS: NavItem[] = [
+  { href: "/dashboard/caption", label: "Caption AI", icon: "caption" },
+  { href: "/dashboard/reels", label: "Reel AI", icon: "reel" },
+  { href: "/dashboard/promos", label: "Promo AI", icon: "promo" },
+];
+
+const HAIR_NAV_ITEMS: NavItem[] = [
+  { href: "/dashboard/hair-captions", label: "Hair Captions", icon: "caption" },
+  { href: "/dashboard/hair-reels", label: "Hair Reels", icon: "reel" },
+  { href: "/dashboard/hair-promos", label: "Hair Promos", icon: "promo" },
+  { href: "/dashboard/hair-client-messages", label: "Hair Messages", icon: "message" },
+];
+
+const SPORTS_NAV_ITEMS: NavItem[] = [
+  { href: "/dashboard/sports-captions", label: "Sports Captions", icon: "caption" },
+  { href: "/dashboard/sports-reels", label: "Sports Reels", icon: "reel" },
+  { href: "/dashboard/sports-promos", label: "Sports Promos", icon: "promo" },
+  { href: "/dashboard/sports-client-messages", label: "Sports Messages", icon: "message" },
+];
+
+function getVerticalMeta(businessType: string | null): VerticalMeta {
+  if (isHairBusinessType(businessType)) {
+    return {
+      badge: "Hair",
+      accentClass: "border-pink-200 bg-pink-50 text-pink-700",
+      navItems: [...COMMON_NAV_ITEMS.slice(0, 1), ...HAIR_NAV_ITEMS, ...COMMON_NAV_ITEMS.slice(1)],
+    };
+  }
+
+  if (isSportsBusinessType(businessType)) {
+    return {
+      badge: "Sports",
+      accentClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
+      navItems: [...COMMON_NAV_ITEMS.slice(0, 1), ...SPORTS_NAV_ITEMS, ...COMMON_NAV_ITEMS.slice(1)],
+    };
+  }
+
+  if (businessType) {
+    return {
+      badge: "Fitness",
+      accentClass: "border-blue-200 bg-blue-50 text-blue-700",
+      navItems: [...COMMON_NAV_ITEMS.slice(0, 1), ...FITNESS_NAV_ITEMS, ...COMMON_NAV_ITEMS.slice(1)],
+    };
+  }
+
+  return {
+    badge: null,
+    accentClass: "border-slate-200 bg-slate-50 text-slate-700",
+    navItems: [
+      { href: "/dashboard", label: "Overview", icon: "spark" },
+      { href: "/dashboard/settings/business-profile", label: "Business Profile", icon: "settings" },
+      { href: "/dashboard/billing", label: "Billing", icon: "billing" },
+    ],
+  };
+}
 
 export function DashboardShell({
   title,
@@ -43,6 +123,11 @@ export function DashboardShell({
 }: DashboardShellProps) {
   const pathname = usePathname();
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [sidebarContext, setSidebarContext] = useState<SidebarContext>({
+    hasProfile: false,
+    activeBusinessType: null,
+    hasCompleteProfile: false,
+  });
 
   useEffect(() => {
     const stored = window.localStorage.getItem(THEME_KEY);
@@ -50,6 +135,42 @@ export function DashboardShell({
       setTheme(stored);
     }
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadSidebarContext() {
+      try {
+        const response = await fetch("/api/dashboard/sidebar-context", {
+          method: "GET",
+          cache: "no-store",
+        });
+        if (!response.ok) {
+          return;
+        }
+
+        const data = (await response.json()) as SidebarContext;
+        if (isMounted) {
+          setSidebarContext(data);
+        }
+      } catch {
+        // keep fallback state
+      }
+    }
+
+    void loadSidebarContext();
+
+    function handleProfileUpdate() {
+      void loadSidebarContext();
+    }
+
+    window.addEventListener("bizkit:business-profile-updated", handleProfileUpdate);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener("bizkit:business-profile-updated", handleProfileUpdate);
+    };
+  }, [pathname]);
 
   function toggleTheme() {
     const nextTheme = theme === "dark" ? "light" : "dark";
@@ -65,6 +186,11 @@ export function DashboardShell({
     ? "border-white/10 bg-slate-950/70 backdrop-blur-xl"
     : "border-white/60 bg-white/80 backdrop-blur-xl";
   const subtle = isDark ? "text-slate-400" : "text-slate-500";
+
+  const verticalMeta = useMemo(
+    () => getVerticalMeta(sidebarContext.activeBusinessType),
+    [sidebarContext.activeBusinessType],
+  );
 
   async function logout() {
     await fetch("/auth/logout", { method: "POST" });
@@ -109,17 +235,30 @@ export function DashboardShell({
             <div className="mt-5 grid grid-cols-2 gap-3">
               <div className={`rounded-2xl px-4 py-3 ${isDark ? "bg-white/5" : "bg-white"}`}>
                 <p className={`text-xs uppercase tracking-[0.18em] ${subtle}`}>Status</p>
-                <p className="mt-2 text-sm font-semibold">AI ready</p>
+                <p className="mt-2 text-sm font-semibold">
+                  {sidebarContext.hasCompleteProfile ? "AI ready" : "Setup needed"}
+                </p>
               </div>
               <div className={`rounded-2xl px-4 py-3 ${isDark ? "bg-white/5" : "bg-white"}`}>
-                <p className={`text-xs uppercase tracking-[0.18em] ${subtle}`}>Mode</p>
-                <p className="mt-2 text-sm font-semibold">Operational</p>
+                <p className={`text-xs uppercase tracking-[0.18em] ${subtle}`}>Verticale</p>
+                <p className="mt-2 text-sm font-semibold">
+                  {sidebarContext.activeBusinessType
+                    ? getBusinessTypeLabel(sidebarContext.activeBusinessType)
+                    : "Da definire"}
+                </p>
               </div>
             </div>
+            {verticalMeta.badge ? (
+              <div
+                className={`mt-4 inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${verticalMeta.accentClass}`}
+              >
+                Verticale attiva: {verticalMeta.badge}
+              </div>
+            ) : null}
           </div>
 
           <nav className="mt-6 grid gap-2">
-            {navItems.map((item) => {
+            {verticalMeta.navItems.map((item) => {
               const active = pathname === item.href;
               return (
                 <Link
@@ -141,12 +280,18 @@ export function DashboardShell({
           </nav>
 
           <div className="mt-6 rounded-[1.5rem] border border-dashed border-blue-300/50 p-4">
-            <p className="text-sm font-semibold">Vuoi andare piu veloce?</p>
-            <p className={`mt-2 text-sm leading-6 ${subtle}`}>
-              Completa il Business Profile e usa i template rapidi per sbloccare output piu
-              coerenti fin dalla prima generazione.
+            <p className="text-sm font-semibold">
+              {sidebarContext.hasProfile ? "Vuoi andare piu veloce?" : "Completa il profilo prima di partire"}
             </p>
-            <Link href="/dashboard/settings/business-profile" className="mt-4 inline-flex text-sm font-semibold text-blue-600">
+            <p className={`mt-2 text-sm leading-6 ${subtle}`}>
+              {sidebarContext.hasProfile
+                ? "Completa il Business Profile e usa i template rapidi per sbloccare output piu coerenti fin dalla prima generazione."
+                : "Imposta prima il Business Profile primario per attivare i generatori della verticale corretta e vedere la sidebar completa."}
+            </p>
+            <Link
+              href="/dashboard/settings/business-profile"
+              className="mt-4 inline-flex text-sm font-semibold text-blue-600"
+            >
               Apri il setup
             </Link>
           </div>

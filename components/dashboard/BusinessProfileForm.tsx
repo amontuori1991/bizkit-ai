@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { BusinessProfile } from "@/lib/business-profile";
 import { type PaidPlanId, type RuntimePlanId, type UsageProgress } from "@/lib/plan-limits";
@@ -97,6 +98,7 @@ export function BusinessProfileForm({
   usageProgress,
   upgradePlan,
 }: BusinessProfileFormProps) {
+  const router = useRouter();
   const sortedInitialProfiles = useMemo(() => sortProfiles(initialProfiles), [initialProfiles]);
   const [profiles, setProfiles] = useState(sortedInitialProfiles);
   const [selectedProfileId, setSelectedProfileId] = useState<string>(
@@ -162,6 +164,8 @@ export function BusinessProfileForm({
           ? "Business profile salvato come contesto primario per tutte le generazioni AI."
           : "Business profile aggiornato correttamente.",
       );
+      window.dispatchEvent(new CustomEvent("bizkit:business-profile-updated"));
+      router.refresh();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Errore durante il salvataggio.");
     } finally {
