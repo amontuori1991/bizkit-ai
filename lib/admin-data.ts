@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { gymKitDownloads } from "@/data/downloads";
 import { products } from "@/data/products";
+import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
 import { readLeads, type LeadEntry } from "@/lib/leads";
 import { getSiteSettingsStorageMode, readSiteSettings } from "@/lib/site-settings";
 
@@ -18,6 +19,15 @@ export type DownloadStat = {
   assetId: string;
   count: number;
   updatedAt: string;
+};
+
+export type AdminUser = {
+  id: string;
+  email: string | null;
+  fullName: string | null;
+  businessName: string | null;
+  subscriptionTier: string | null;
+  createdAt: string;
 };
 
 const dataDir = path.join(process.cwd(), ".data");
@@ -88,12 +98,50 @@ export async function getDownloadStats() {
   return readJsonFile<DownloadStat[]>(downloadsFile, defaultDownloads);
 }
 
+async function getAdminUsers() {
+  const supabase = createSupabaseServiceRoleClient();
+  if (!supabase) {
+    return {
+      configured: false,
+      users: [] as AdminUser[],
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, email, full_name, business_name, subscription_tier, created_at")
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  if (error) {
+    console.error("Admin users load error:", error);
+    return {
+      configured: true,
+      users: [] as AdminUser[],
+    };
+  }
+
+  return {
+    configured: true,
+    users:
+      data?.map((user) => ({
+        id: user.id,
+        email: user.email,
+        fullName: user.full_name,
+        businessName: user.business_name,
+        subscriptionTier: user.subscription_tier,
+        createdAt: user.created_at,
+      })) ?? [],
+  };
+}
+
 export async function getAdminDashboardData() {
-  const [sales, downloads, leads, siteSettings] = await Promise.all([
+  const [sales, downloads, leads, siteSettings, adminUsers] = await Promise.all([
     getMockSales(),
     getDownloadStats(),
     readLeads(),
     readSiteSettings(),
+    getAdminUsers(),
   ]);
 
   const paidSales = sales.filter((sale) => sale.status === "paid");
@@ -117,5 +165,7 @@ export async function getAdminDashboardData() {
     kitAssets: gymKitDownloads,
     siteSettings,
     siteSettingsStorageMode: getSiteSettingsStorageMode(),
+    users: adminUsers.users,
+    usersConfigured: adminUsers.configured,
   };
 }

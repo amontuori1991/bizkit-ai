@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AdminSiteSettingsForm } from "@/components/AdminSiteSettingsForm";
 import { AdminThemeToggle } from "@/components/AdminThemeToggle";
+import { AdminUsersPanel } from "@/components/AdminUsersPanel";
 import type { DownloadFile } from "@/data/downloads";
 import type { Product } from "@/data/products";
 import type { LeadEntry } from "@/lib/leads";
-import type { DownloadStat, MockSale } from "@/lib/admin-data";
+import type { AdminUser, DownloadStat, MockSale } from "@/lib/admin-data";
 import type { SiteSettings, SiteSettingsStorageMode } from "@/lib/site-settings";
 
 type AdminDashboardViewProps = {
@@ -26,6 +27,8 @@ type AdminDashboardViewProps = {
   kitAssets: DownloadFile[];
   siteSettings: SiteSettings;
   siteSettingsStorageMode: SiteSettingsStorageMode;
+  users: AdminUser[];
+  usersConfigured: boolean;
 };
 
 const THEME_KEY = "bizkit-ai-admin-theme";
@@ -39,6 +42,8 @@ export function AdminDashboardView({
   kitAssets,
   siteSettings,
   siteSettingsStorageMode,
+  users,
+  usersConfigured,
 }: AdminDashboardViewProps) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
@@ -106,6 +111,10 @@ export function AdminDashboardView({
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="mt-8">
+          <AdminUsersPanel initialUsers={users} configured={usersConfigured} isDark={isDark} />
         </div>
 
         <div className="mt-8">
