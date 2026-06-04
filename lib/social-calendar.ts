@@ -6,7 +6,12 @@ import {
 } from "@/lib/business-verticals";
 
 export type SocialCalendarDays = 7 | 14 | 30;
-export type SocialContentFormat = "Post Instagram" | "Reel" | "Story" | "TikTok";
+export type SocialContentFormat =
+  | "Post Instagram"
+  | "Reel"
+  | "Story"
+  | "TikTok"
+  | "WhatsApp follow-up";
 export type SocialCalendarBusinessVertical = "fitness" | "hair" | "sports";
 
 export type SocialCalendarEntry = {
@@ -40,8 +45,32 @@ export const socialCalendarObjectives = [
 
 export const socialCalendarDayOptions: SocialCalendarDays[] = [7, 14, 30];
 
-function getCalendarPillars(vertical: SocialCalendarBusinessVertical) {
+function getPaintballCalendarPillars() {
+  return [
+    "promo weekend",
+    "educazione prima volta",
+    "intrattenimento di gruppo",
+    "recensioni clienti",
+    "backstage",
+    "eventi privati",
+    "sicurezza e attrezzatura",
+    "conversione prenotazioni",
+    "compleanni bambini",
+    "addii al celibato",
+    "team building aziendale",
+    "tornei",
+    "modalita di gioco",
+    "gruppi numerosi",
+    "esperienza outdoor",
+  ];
+}
+
+function getCalendarPillars(vertical: SocialCalendarBusinessVertical, profile: BusinessProfile | null) {
   if (vertical === "sports") {
+    if (profile?.sports_subcategory?.trim() === "paintball") {
+      return getPaintballCalendarPillars();
+    }
+
     return [
       "promo weekend",
       "compleanni",
@@ -98,13 +127,14 @@ export function buildCalendarSystemPrompt(
   objective: string,
 ) {
   const vertical = inferCalendarVertical(profile);
+  const paintballMode = profile?.sports_subcategory?.trim() === "paintball";
   const verticalLabel =
     vertical === "hair"
       ? "saloni parrucchieri e barber shop"
       : vertical === "sports"
         ? "centri sportivi e attivita outdoor"
         : "palestre e business fitness";
-  const pillars = getCalendarPillars(vertical).join(", ");
+  const pillars = getCalendarPillars(vertical, profile).join(", ");
   const businessContext = buildBusinessProfileContext(profile);
   const sportsSubcategory = profile?.sports_subcategory?.trim();
 
@@ -113,13 +143,17 @@ export function buildCalendarSystemPrompt(
     "Scrivi in italiano.",
     "Crea un calendario editoriale premium, coerente con il business profile, concreto e pronto da usare.",
     "Usa automaticamente citta, servizi, target, CTA preferita, tone of voice e hashtag del profilo quando disponibili.",
-    "Alterna i formati tra Post Instagram, Reel, Story e TikTok in modo credibile.",
+    paintballMode
+      ? "Alterna i formati tra Post Instagram, Reel, Story, TikTok e WhatsApp follow-up in modo credibile, orientato a conversione e gestione gruppi."
+      : "Alterna i formati tra Post Instagram, Reel, Story e TikTok in modo credibile.",
     `Il calendario deve coprire ${days} giorni e supportare questo obiettivo: ${objective}.`,
     `Per questo verticale usa soprattutto questi pillar: ${pillars}.`,
     vertical === "hair"
       ? "Per hair usa hook piu beauty/fashion, CTA piu orientate al booking, hashtag beauty/hair e tono moderno."
       : vertical === "sports"
-        ? `Per sports/outdoor adatta tutto alla sottocategoria ${getSportsSubcategoryLabel(sportsSubcategory)}. Usa CTA orientate a prenotazioni, gruppi, eventi, compleanni, lezioni, campi o promo weekend a seconda del contesto.`
+        ? paintballMode
+          ? `Per sports/outdoor adatta tutto alla sottocategoria ${getSportsSubcategoryLabel(sportsSubcategory)}. Alterna contenuti tra promo, educazione, intrattenimento, recensioni, backstage, eventi, sicurezza e conversione prenotazioni. Inserisci casi d'uso concreti come compleanni bambini, addii al celibato, team building aziendale, gruppi di amici, tornei, FAQ prima volta, modalita di gioco e weekend booking.`
+          : `Per sports/outdoor adatta tutto alla sottocategoria ${getSportsSubcategoryLabel(sportsSubcategory)}. Usa CTA orientate a prenotazioni, gruppi, eventi, compleanni, lezioni, campi o promo weekend a seconda del contesto.`
         : "Per fitness usa tono energico ma professionale, CTA su prova gratuita/open day/DM e hashtag fitness locali.",
     "Restituisci solo JSON valido senza markdown o testo extra.",
     `Usa esattamente questo schema:
@@ -132,7 +166,7 @@ export function buildCalendarSystemPrompt(
       "day": 1,
       "date": "YYYY-MM-DD",
       "title": "string",
-      "format": "Post Instagram | Reel | Story | TikTok",
+      "format": "Post Instagram | Reel | Story | TikTok${paintballMode ? " | WhatsApp follow-up" : ""}",
       "pillar": "string",
       "caption": "string breve, max 220 caratteri",
       "cta": "string",
@@ -181,8 +215,18 @@ export function parseSocialCalendarResponse(raw: string): SocialCalendarPayload 
 function normalizeFormat(value: unknown): SocialContentFormat {
   const text = String(value ?? "").trim();
 
-  if (text === "Post Instagram" || text === "Reel" || text === "Story" || text === "TikTok") {
+  if (
+    text === "Post Instagram" ||
+    text === "Reel" ||
+    text === "Story" ||
+    text === "TikTok" ||
+    text === "WhatsApp follow-up"
+  ) {
     return text;
+  }
+
+  if (/whatsapp|follow-up/i.test(text)) {
+    return "WhatsApp follow-up";
   }
 
   if (/story/i.test(text)) {
@@ -202,6 +246,10 @@ function normalizeFormat(value: unknown): SocialContentFormat {
 
 export function buildFullContentPrompt(entry: SocialCalendarEntry, profile: BusinessProfile | null) {
   const profileName = profile?.business_name?.trim() || "attivita";
+  const practicalNote =
+    entry.format === "WhatsApp follow-up"
+      ? "\nSe stai scrivendo un WhatsApp follow-up, rendilo pratico e includi quando utili data, orario, numero partecipanti, arrivo anticipato, abbigliamento consigliato, sicurezza, saldo o caparra e conferma disponibilita."
+      : "";
   return `Sviluppa questo contenuto del calendario per ${profileName}.
 
 Titolo: ${entry.title}
@@ -211,7 +259,7 @@ Caption breve attuale: ${entry.caption}
 CTA: ${entry.cta}
 Hashtag: ${entry.hashtags}
 
-Crea una versione completa pronta da pubblicare, mantenendo l'obiettivo e il tono del business profile.`;
+Crea una versione completa pronta da pubblicare, mantenendo l'obiettivo e il tono del business profile.${practicalNote}`;
 }
 
 export function getGenerationTypeFromFormat(
@@ -219,6 +267,10 @@ export function getGenerationTypeFromFormat(
   format: SocialContentFormat,
 ) {
   if (vertical === "sports") {
+    if (format === "WhatsApp follow-up") {
+      return "sports_client_message" as const;
+    }
+
     if (format === "Reel" || format === "TikTok") {
       return "sports_reel_script" as const;
     }

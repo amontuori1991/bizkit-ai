@@ -14,7 +14,7 @@ import {
   pickPrimaryBusinessProfile,
   type BusinessProfile,
 } from "@/lib/business-profile";
-import { type AIContentType } from "@/lib/business-verticals";
+import { getSportsSubcategoryLabel, type AIContentType } from "@/lib/business-verticals";
 import { isOpenAIConfigured, isSupabaseConfigured } from "@/lib/env";
 import { getOpenAIClient, getOpenAIModel } from "@/lib/openai";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -179,13 +179,17 @@ export async function POST(request: Request) {
 
     const tokenUsage = getTokenUsage(response);
     const variants = parseOutputVariants(result);
+    const titlePrefix =
+      profile?.business_type === "sports_center" && profile?.sports_subcategory
+        ? `${body.type} ${getSportsSubcategoryLabel(profile.sports_subcategory)}`
+        : body.type;
 
     const { data, error } = await supabase
       .from("generated_contents")
       .insert({
         user_id: user.id,
         type: body.type,
-        title: `${body.type} ${new Date().toLocaleDateString("it-IT")}`,
+        title: `${titlePrefix} ${new Date().toLocaleDateString("it-IT")}`,
         input_prompt: body.prompt.trim(),
         output_text: result,
         is_saved: false,

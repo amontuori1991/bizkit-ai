@@ -10,31 +10,31 @@ import { faqs, products } from "@/data/products";
 export const metadata: Metadata = {
   title: "AI Kit Centri Sportivi & Outdoor",
   description:
-    "Acquista AI Kit Centri Sportivi & Outdoor a 29 EUR: prompt, caption, Reel, promo e messaggi clienti per paintball, padel, calcetto e attivita multisport.",
+    "Acquista AI Kit Centri Sportivi & Outdoor a 29 EUR: prompt, caption, Reel, promo e messaggi clienti per paintball, padel, calcetto e attivita multisport, con focus forte su gruppi ed eventi paintball.",
 };
 
 const includedGenerators = [
-  "Caption AI per promo weekend, compleanni, tornei ed eventi gruppo",
-  "Reel e hook video per adrenalina, backstage, prenotazioni e community locale",
-  "Promo AI per slot, campi, team building, compleanni e offerte last minute",
-  "Messaggi clienti per reminder, recupero inattivi e follow-up prenotazioni",
+  "Caption AI per promo weekend, compleanni, tornei, addii al celibato ed eventi gruppo",
+  "Reel e hook video per adrenalina, backstage, POV partita, prenotazioni e community locale",
+  "Promo AI per slot, campi, team building, compleanni, eventi privati e offerte last minute",
+  "Messaggi clienti per reminder, recupero inattivi, follow-up prenotazioni e richieste recensione",
 ];
 
 const benefits = [
   {
     title: "Piu prenotazioni",
     description:
-      "Contenuti e CTA pensati per spingere booking, richieste WhatsApp, gruppi e weekend sold-out.",
+      "Contenuti e CTA pensati per spingere booking, richieste WhatsApp, gruppi, eventi privati e weekend sold-out.",
   },
   {
     title: "Format piu adatti al tuo sport",
     description:
-      "Hook, promo e messaggi si adattano a paintball, padel, calcetto, tennis, multisport e attivita outdoor.",
+      "Hook, promo e messaggi si adattano a paintball, padel, calcetto, tennis, multisport e attivita outdoor, con un focus forte su Paintball reale.",
   },
   {
     title: "Eventi e clienti gestiti meglio",
     description:
-      "Hai template pronti per team building, compleanni, tornei, no-show, promo slot liberi e follow-up.",
+      "Hai template pronti per team building, compleanni, addii al celibato, tornei, no-show, promo slot liberi e follow-up.",
   },
 ];
 
@@ -73,6 +73,8 @@ export default function ProductSportsCenterPage() {
                 <p className="mt-3 leading-7 text-slate-700">
                   Paintball, softair, laser tag, padel, calcetto, tennis, beach volley, go kart,
                   adventure park e strutture multisport che vogliono piu contenuti e piu prenotazioni.
+                  Il caso d uso piu forte e Paintball, con scenari gia pensati per compleanni,
+                  addii al celibato, team building, promo weekend e gruppi numerosi.
                 </p>
               </div>
               <div className="card-surface p-5">
@@ -106,6 +108,8 @@ export default function ProductSportsCenterPage() {
             <p className="leading-7 text-slate-600">
               Prompt, format e asset pronti per trasformare attivita sportive e outdoor in contenuti
               piu frequenti, promo piu forti e comunicazioni clienti piu semplici da gestire.
+              Per Paintball trovi un taglio ancora piu pratico su sicurezza, prima volta, briefing,
+              pacchetti gruppo e prenotazioni del weekend.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -141,7 +145,9 @@ export default function ProductSportsCenterPage() {
             </h2>
             <p className="leading-7 text-slate-600">
               Oltre al download, puoi testare la demo pubblica e poi passare ai generatori completi
-              della dashboard per sport center, attivita outdoor e strutture multisport.
+              della dashboard per sport center, attivita outdoor e strutture multisport. Se il tuo
+              business profile usa la sottocategoria Paintball, la piattaforma rende piu specifici
+              caption, Reel, promo, calendario editoriale e messaggi clienti.
             </p>
           </div>
           <div className="grid gap-4">

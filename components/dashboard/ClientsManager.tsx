@@ -43,17 +43,76 @@ export function ClientsManager({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [nextUpgradePlan, setNextUpgradePlan] = useState<PaidPlanId | null>(upgradePlan);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const paintballMode = businessProfile?.sports_subcategory === "paintball";
   const sportsSuggestions = isSportsBusinessType(businessProfile?.business_type)
     ? [
-        businessProfile?.sports_subcategory === "paintball"
-          ? "Segmenta lead per compleanni, addii al celibato e team building."
+        paintballMode
+          ? "Segmenta lead per compleanni, addii al celibato, team building e gruppi amici."
           : "Segmenta lead per prenotazioni singole, gruppi ed eventi.",
         businessProfile?.sports_subcategory === "padel"
           ? "Traccia disponibilita campi, lezioni e tornei per follow-up piu mirati."
-          : "Traccia richieste gruppi, promo weekend e slot speciali per follow-up piu veloci.",
+          : paintballMode
+            ? "Traccia richieste gruppi, promo weekend, caparre e slot orari per follow-up piu veloci."
+            : "Traccia richieste gruppi, promo weekend e slot speciali per follow-up piu veloci.",
         "Usa note e stato cliente per distinguere preventivi inviati, reminder da fare e ritorni stagionali.",
       ]
     : [];
+  const paintballMessageTemplates = paintballMode
+    ? [
+        {
+          title: "Conferma prenotazione",
+          body:
+            "Ciao [Nome], ti confermiamo la prenotazione Paintball per [Data] alle [Orario] per [Numero] partecipanti. Ti chiediamo di arrivare 20 minuti prima per briefing sicurezza e organizzazione squadre. Consigliamo abbigliamento comodo e scarpe sportive. Caparra/saldo: [Dettagli]. Rispondi a questo messaggio per confermare definitivamente la disponibilita.",
+        },
+        {
+          title: "Reminder evento",
+          body:
+            "Ciao [Nome], promemoria per la vostra partita Paintball di [Data] alle [Orario]. Partecipanti previsti: [Numero]. Arrivate 20 minuti prima per registrazione, briefing sicurezza e consegna attrezzatura. Vestiti consigliati: comodi, sportivi, con scarpe chiuse. Per qualsiasi variazione scrivici qui.",
+        },
+        {
+          title: "Follow-up post partita",
+          body:
+            "Ciao [Nome], grazie per aver giocato con noi oggi. Speriamo che il gruppo si sia divertito tra adrenalina, strategia e sfide sul campo. Se vuoi, possiamo gia proporti una nuova data per torneo, compleanno o rivincita tra amici.",
+        },
+        {
+          title: "Richiesta recensione",
+          body:
+            "Ciao [Nome], grazie ancora per la tua esperienza Paintball con noi. Se ti sei trovato bene, ci farebbe davvero comodo una recensione: aiuta altri gruppi a sceglierci per compleanni, addii al celibato ed eventi outdoor. Link recensione: [Link].",
+        },
+        {
+          title: "Recupero clienti inattivi",
+          body:
+            "Ciao [Nome], e un po' che non ci vediamo sul campo. Questo mese abbiamo promo weekend e slot dedicati a gruppi amici, compleanni e team building. Se vuoi ti mando subito disponibilita e pacchetti aggiornati.",
+        },
+        {
+          title: "Proposta team building",
+          body:
+            "Ciao [Nome], ti contatto per proporti un team building outdoor Paintball per il tuo team. Possiamo organizzare esperienza con briefing sicurezza, modalita di gioco, gestione gruppi e slot personalizzati in base al numero partecipanti. Se ti interessa, ti invio una proposta rapida con disponibilita e costi.",
+        },
+        {
+          title: "Proposta compleanno",
+          body:
+            "Ciao [Nome], per compleanni Paintball possiamo organizzare un'esperienza divertente e sicura con gruppi dedicati, briefing iniziale, attrezzatura inclusa e slot nel weekend. Se vuoi, ti mando opzioni disponibili in base a data, eta dei partecipanti e numero del gruppo.",
+        },
+        {
+          title: "Proposta addio al celibato",
+          body:
+            "Ciao [Nome], per un addio al celibato Paintball possiamo preparare un'esperienza adrenalinica per il gruppo con match dedicati, modalita speciali e slot weekend. Se mi dici data indicativa e numero partecipanti, ti mando subito disponibilita e proposta.",
+        },
+      ]
+    : [];
+
+  async function copyTemplate(template: string) {
+    try {
+      await navigator.clipboard.writeText(template);
+      setCopyFeedback("Template copiato negli appunti.");
+      window.setTimeout(() => setCopyFeedback(null), 2500);
+    } catch {
+      setCopyFeedback("Copia non riuscita. Riprova.");
+      window.setTimeout(() => setCopyFeedback(null), 2500);
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -138,6 +197,42 @@ export function ClientsManager({
             <div className="mt-2 grid gap-2">
               {sportsSuggestions.map((suggestion) => (
                 <p key={suggestion}>{suggestion}</p>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        {paintballMessageTemplates.length > 0 ? (
+          <div className="mt-5 rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  CRM Paintball
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Template rapidi per conferme, reminder, follow-up, recensioni e proposte di gruppo.
+                </p>
+              </div>
+              {copyFeedback ? (
+                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                  {copyFeedback}
+                </span>
+              ) : null}
+            </div>
+            <div className="mt-4 grid gap-3">
+              {paintballMessageTemplates.map((template) => (
+                <div key={template.title} className="rounded-[1.25rem] border border-slate-200 bg-white p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="font-semibold text-slate-950">{template.title}</p>
+                    <button
+                      type="button"
+                      onClick={() => copyTemplate(template.body)}
+                      className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-blue-500 hover:text-blue-700"
+                    >
+                      Copia template
+                    </button>
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-slate-600">{template.body}</p>
+                </div>
               ))}
             </div>
           </div>
