@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 type BrandIconSize = "sm" | "md" | "lg" | "xl";
 type BrandTone = "light" | "dark";
 
@@ -25,6 +23,13 @@ const iconSizeClasses: Record<BrandIconSize, string> = {
   xl: "h-16 w-16 rounded-[1.5rem]",
 };
 
+const iconPixels: Record<BrandIconSize, number> = {
+  sm: 40,
+  md: 48,
+  lg: 56,
+  xl: 64,
+};
+
 const titleSizeClasses: Record<BrandIconSize, string> = {
   sm: "text-base",
   md: "text-lg",
@@ -44,31 +49,23 @@ function joinClasses(...classes: Array<string | undefined | null | false>) {
 }
 
 export function BrandIcon({ size = "md", className, priority = false }: BrandIconProps) {
+  const pixels = iconPixels[size];
+
   return (
-    <div
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/favicon/android-chrome-192x192.png"
+      alt="BizKit AI logo"
+      width={pixels}
+      height={pixels}
+      loading={priority ? "eager" : "lazy"}
+      decoding="async"
       className={joinClasses(
-        "relative overflow-hidden",
+        "shrink-0 object-contain",
         iconSizeClasses[size],
         className,
       )}
-    >
-      <Image
-        src="/favicon/favicon-32x32.png"
-        alt="BizKit AI logo"
-        fill
-        priority={priority}
-        sizes={
-          size === "xl"
-            ? "64px"
-            : size === "lg"
-              ? "56px"
-              : size === "md"
-                ? "48px"
-                : "40px"
-        }
-        className="object-contain"
-      />
-    </div>
+    />
   );
 }
 
