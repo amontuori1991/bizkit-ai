@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type AuthFormProps = {
@@ -49,6 +50,7 @@ export function AuthForm({ mode, disabled = false, disabledMessage }: AuthFormPr
           throw error;
         }
 
+        trackEvent("login_completed", {}, { logToServer: true });
         window.location.href = "/dashboard";
         return;
       }
@@ -68,6 +70,7 @@ export function AuthForm({ mode, disabled = false, disabledMessage }: AuthFormPr
         throw error;
       }
 
+      trackEvent("signup_completed", {}, { logToServer: true });
       setSuccessMessage("Account creato. Se la conferma email e attiva in Supabase, controlla la tua inbox.");
       window.setTimeout(() => {
         window.location.href = "/dashboard";

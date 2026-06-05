@@ -1,4 +1,5 @@
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
+import { env, isAnalyticsConfigured } from "@/lib/env";
 import { normalizePlanId } from "@/lib/plan-limits";
 
 type DailyPoint = {
@@ -19,6 +20,12 @@ type CreditUsagePoint = {
 
 export type AdminAnalyticsData = {
   configured: boolean;
+  ga: {
+    configured: boolean;
+    measurementId: string | null;
+    lastEventName: string | null;
+    lastEventAt: string | null;
+  };
   summary: {
     registeredUsers: number;
     activeUsers7d: number;
@@ -70,6 +77,11 @@ type UsageRow = {
   plan_id: string | null;
   generation_count: number | null;
   total_tokens: number | null;
+};
+
+type AnalyticsEventLogRow = {
+  event_name: string;
+  created_at: string;
 };
 
 function formatDay(date: Date) {
@@ -244,11 +256,38 @@ async function getOwnerRows(table: "content_calendars" | "saved_contents") {
   return (data as Array<{ user_id: string }> | null) ?? [];
 }
 
+async function getLatestAnalyticsEvent() {
+  const supabase = createSupabaseServiceRoleClient();
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("analytics_event_logs")
+    .select("event_name,created_at")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Admin analytics latest event error:", error);
+    return null;
+  }
+
+  return (data as AnalyticsEventLogRow | null) ?? null;
+}
+
 export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
   const supabase = createSupabaseServiceRoleClient();
   if (!supabase) {
     return {
       configured: false,
+    ga: {
+        configured: isAnalyticsConfigured(),
+        measurementId: env.gaId || null,
+        lastEventName: null,
+        lastEventAt: null,
+      },
     summary: {
       registeredUsers: 0,
       activeUsers7d: 0,
@@ -288,6 +327,7 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
     usageRows,
     savedContentOwners,
     calendarOwners,
+    latestAnalyticsEvent,
   ] =
     await Promise.all([
       getProfiles(),
@@ -301,6 +341,7 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
       getUsageRows(),
       getOwnerRows("saved_contents"),
       getOwnerRows("content_calendars"),
+      getLatestAnalyticsEvent(),
     ]);
 
   const registeredUsers = profiles.length;
@@ -381,6 +422,12 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
 
   return {
     configured: true,
+    ga: {
+      configured: isAnalyticsConfigured(),
+      measurementId: env.gaId || null,
+      lastEventName: latestAnalyticsEvent?.event_name ?? null,
+      lastEventAt: latestAnalyticsEvent?.created_at ?? null,
+    },
     summary: {
       registeredUsers,
       activeUsers7d,

@@ -148,6 +148,14 @@ values (
 )
 on conflict (id) do nothing;
 
+create table if not exists public.analytics_event_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  event_name text not null,
+  source text not null default 'client',
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.email_logs (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete set null,
@@ -282,6 +290,7 @@ alter table public.ai_usage_daily enable row level security;
 alter table public.ai_request_logs enable row level security;
 alter table public.business_profiles enable row level security;
 alter table public.site_settings enable row level security;
+alter table public.analytics_event_logs enable row level security;
 alter table public.email_logs enable row level security;
 alter table public.saved_contents enable row level security;
 alter table public.content_calendars enable row level security;

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 import type { BusinessProfile } from "@/lib/business-profile";
 import { type PaidPlanId, type RuntimePlanId, type UsageProgress } from "@/lib/plan-limits";
 import {
@@ -159,6 +160,9 @@ export function BusinessProfileForm({
       setSelectedProfileId(data.profile.id);
       setForm(getInitialForm(data.profile));
       setUsage(data.usage?.progress.businessProfiles ?? usageProgress);
+      trackEvent(selectedProfileId === "new" ? "business_profile_created" : "business_profile_updated", {
+        business_type: data.profile.business_type ?? "unknown",
+      });
       setMessage(
         data.profile.is_primary
           ? "Business profile salvato come contesto primario per tutte le generazioni AI."

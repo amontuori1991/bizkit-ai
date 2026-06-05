@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Plan } from "@/data/plans";
+import { trackEvent } from "@/lib/analytics";
 import { type PlanUsageSummary, formatUsageShort } from "@/lib/plan-limits";
 
 type BillingPlansProps = {
@@ -44,6 +45,9 @@ export function BillingPlans({
         throw new Error(data.error ?? "Checkout subscription non disponibile.");
       }
 
+      trackEvent("subscription_started", {
+        plan_id: planId,
+      });
       window.location.href = data.url;
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Errore durante il billing.");

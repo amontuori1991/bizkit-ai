@@ -182,6 +182,10 @@ export function SocialCalendarBuilder({
         row_count: data.calendar.entries.length,
         mode: demoMode ? "demo" : "dashboard",
       });
+      trackEvent("calendar_generated", {
+        business_type: profile?.business_type ?? "gym",
+        period_days: days,
+      });
 
       if (data.usage) {
         setMessage(

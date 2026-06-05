@@ -1,5 +1,7 @@
 "use client";
 
+import { isSaasAnalyticsEventName, type SaasAnalyticsEventName } from "@/lib/analytics-events";
+
 export const ANALYTICS_CONSENT_KEY = "bizkit-ai-analytics-consent";
 
 export type AnalyticsConsent = "granted" | "denied";
@@ -22,11 +24,35 @@ export type TrackEventValue =
 
 export type TrackEventParams = Record<string, TrackEventValue>;
 
+type TrackEventOptions = {
+  logToServer?: boolean;
+};
+
 declare global {
   interface Window {
     dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
     fbq?: (...args: unknown[]) => void;
+  }
+}
+
+function queueServerAnalyticsEvent(eventName: SaasAnalyticsEventName) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    void fetch("/api/analytics/event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        eventName,
+        source: "client",
+      }),
+      keepalive: true,
+    });
+  } catch {
+    // Best effort only.
   }
 }
 
@@ -52,13 +78,35 @@ export function analyticsEnabled() {
   return getStoredAnalyticsConsent() === "granted";
 }
 
-export function trackEvent(eventName: string, params: TrackEventParams = {}) {
+export function trackPageView(url?: string) {
+  if (typeof window === "undefined" || !analyticsEnabled()) {
+    return;
+  }
+
+  if (typeof window.gtag === "function") {
+    window.gtag("event", "page_view", {
+      page_title: document.title,
+      page_location: url ?? window.location.href,
+      page_path: window.location.pathname + window.location.search,
+    });
+  }
+}
+
+export function trackEvent(
+  eventName: string,
+  params: TrackEventParams = {},
+  options: TrackEventOptions = {},
+) {
   if (typeof window === "undefined" || !analyticsEnabled()) {
     return;
   }
 
   if (typeof window.gtag === "function") {
     window.gtag("event", eventName, params);
+  }
+
+  if (options.logToServer !== false && isSaasAnalyticsEventName(eventName)) {
+    queueServerAnalyticsEvent(eventName);
   }
 }
 

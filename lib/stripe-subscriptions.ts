@@ -2,6 +2,7 @@ import type Stripe from "stripe";
 import { sendSubscriptionEmail } from "@/lib/email";
 import { env } from "@/lib/env";
 import type { PaidPlanId } from "@/lib/plan-limits";
+import { trackServerEvent } from "@/lib/server-analytics";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
 
 type SyncOptions = {
@@ -21,6 +22,7 @@ type SyncedSubscriptionResult = {
 type ExistingSubscriptionRow = {
   plan_id: string | null;
   status: string | null;
+  cancel_at_period_end?: boolean | null;
 };
 
 function isPaidPlanId(value?: string | null): value is PaidPlanId {
@@ -76,6 +78,44 @@ function shouldSendSubscriptionActivatedEmail(input: {
   }
 
   return input.previous.plan_id !== input.nextPlanId;
+}
+
+function resolveSubscriptionLifecycleEvent(input: {
+  previous: ExistingSubscriptionRow | null;
+  nextPlanId: PaidPlanId;
+  nextStatus: string;
+  cancelAtPeriodEnd: boolean;
+}) {
+  const nextIsPaid = input.nextStatus === "active" || input.nextStatus === "trialing";
+
+  if (input.cancelAtPeriodEnd && input.previous?.cancel_at_period_end !== true) {
+    return "subscription_cancelled" as const;
+  }
+
+  if (!nextIsPaid) {
+    if (input.previous?.status === "active" || input.previous?.status === "trialing") {
+      return "subscription_cancelled" as const;
+    }
+
+    return null;
+  }
+
+  if (!input.previous) {
+    return "subscription_started" as const;
+  }
+
+  const previousIsPaid =
+    input.previous.status === "active" || input.previous.status === "trialing";
+
+  if (!previousIsPaid) {
+    return "subscription_started" as const;
+  }
+
+  if (input.previous.plan_id !== input.nextPlanId) {
+    return "subscription_upgraded" as const;
+  }
+
+  return null;
 }
 
 export function mapStripePriceToPlan(priceId?: string | null): PaidPlanId | null {
@@ -223,7 +263,7 @@ export async function syncStripeSubscription(
 
   const { data: existingSubscription } = await supabase
     .from("subscriptions")
-    .select("plan_id,status")
+    .select("plan_id,status,cancel_at_period_end")
     .eq("stripe_subscription_id", subscription.id)
     .maybeSingle<ExistingSubscriptionRow>();
 
@@ -259,6 +299,25 @@ export async function syncStripeSubscription(
 
   if (profileError) {
     throw profileError;
+  }
+
+  const lifecycleEvent = resolveSubscriptionLifecycleEvent({
+    previous: existingSubscription ?? null,
+    nextPlanId: planId,
+    nextStatus: subscription.status,
+    cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
+  });
+
+  if (lifecycleEvent) {
+    try {
+      await trackServerEvent({
+        eventName: lifecycleEvent,
+        userId,
+        source: "webhook",
+      });
+    } catch (error) {
+      console.error("Subscription analytics event error:", error);
+    }
   }
 
   if (

@@ -60,6 +60,7 @@ RESEND_API_KEY=
 ADMIN_PASSWORD=
 NEXT_PUBLIC_GA_ID=
 NEXT_PUBLIC_META_PIXEL_ID=
+GA_API_SECRET=
 ```
 
 Variabili aggiuntive utili:
@@ -80,6 +81,7 @@ Il progetto non deve andare in crash:
 - senza Stripe, checkout one-time e subscription risultano disattivati
 - senza Resend, il lead viene salvato ma l'invio email resta spento
 - senza admin password, il login admin segnala la configurazione mancante
+- senza `GA_API_SECRET`, GA4 continua a tracciare dal browser ma gli eventi server-side Stripe restano solo nei log interni admin
 
 Per vedere tutto in un unico posto:
 
@@ -143,6 +145,10 @@ Per attivarla servono:
 - `STRIPE_PRICE_PRO`
 - `STRIPE_PRICE_AGENCY`
 - `STRIPE_WEBHOOK_SECRET`
+
+Per tracciare anche gli eventi server-side del webhook Stripe in GA4 serve inoltre:
+
+- `GA_API_SECRET`
 
 ### AI Business Coach
 
@@ -257,6 +263,37 @@ Eventi supportati:
 - `customer.subscription.deleted`
 - `invoice.payment_succeeded`
 - `invoice.payment_failed`
+
+Quando `GA_API_SECRET` e configurata, il webhook registra anche in GA4:
+
+- `subscription_started`
+- `subscription_upgraded`
+- `subscription_cancelled`
+
+### Analytics GA4
+
+Il progetto integra GA4 con:
+
+- page view automatiche compatibili con Next.js App Router
+- helper centralizzato in `lib/analytics.ts`
+- eventi SaaS per signup, login, business profile, generazioni, contenuti salvati, calendari, CRM, feedback, Coach, subscription e download
+- log interni in:
+
+```bash
+public.analytics_event_logs
+```
+
+In:
+
+```bash
+/admin/analytics
+```
+
+puoi verificare:
+
+- GA configurato
+- Measurement ID
+- ultimo evento registrato
 
 In locale puoi inoltrare i webhook con Stripe CLI:
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import { Footer } from "@/components/Footer";
@@ -68,7 +69,9 @@ export default function RootLayout({
           >
             Vai al contenuto principale
           </a>
-          <AnalyticsProvider />
+          <Suspense fallback={null}>
+            <AnalyticsProvider />
+          </Suspense>
           <Header />
           <LeadMagnetPopup />
           <main id="main-content">{children}</main>

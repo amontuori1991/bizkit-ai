@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { trackDownload } from "@/lib/analytics";
+import { trackDownload, trackEvent } from "@/lib/analytics";
 
 type ProtectedDownloadButtonProps = {
   productSlug: string;
@@ -57,6 +57,11 @@ export function ProtectedDownloadButton({
         itemId: productSlug,
         itemName: productName,
         assetName,
+      });
+      trackEvent("download_started", {
+        item_id: productSlug,
+        item_name: productName,
+        asset_name: assetName,
       });
 
       setStatus("success");

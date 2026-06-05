@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 import type { BusinessProfile } from "@/lib/business-profile";
 import { type PaidPlanId, type UsageProgress } from "@/lib/plan-limits";
 import { isHairBusinessType, isSportsBusinessType } from "@/lib/business-verticals";
@@ -150,6 +151,10 @@ export function ClientsManager({
         membership_plan: "",
         status: "lead",
         notes: "",
+      });
+      trackEvent("crm_client_created", {
+        business_type: businessProfile?.business_type ?? "unknown",
+        client_status: data.client.status,
       });
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Errore durante il salvataggio.");

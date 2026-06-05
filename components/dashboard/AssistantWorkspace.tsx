@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { trackEvent } from "@/lib/analytics";
 import { DashboardIcon } from "@/components/dashboard/DashboardIcon";
 import { FloatingFeedback } from "@/components/ui/FloatingFeedback";
 import { SimpleMarkdown } from "@/components/ui/SimpleMarkdown";
@@ -157,6 +158,7 @@ export function AssistantWorkspace({
       throw new Error(data.error ?? "Impossibile creare una nuova conversazione.");
     }
 
+    trackEvent("assistant_conversation_started", {}, { logToServer: true });
     await refreshConversations(data.conversation.id);
     setMessages([]);
     return data.conversation.id;
@@ -226,6 +228,7 @@ export function AssistantWorkspace({
           `Coach attivo. ${data.usage.usedThisMonth}/${data.usage.monthlyLimit} messaggi usati questo mese.`,
         );
       }
+      trackEvent("assistant_message_sent", {}, { logToServer: true });
       await refreshConversations(conversationId);
     } catch (error) {
       setMessages(previousMessages);

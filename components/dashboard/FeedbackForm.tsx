@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
+import { trackEvent } from "@/lib/analytics";
 import {
   FEEDBACK_CATEGORIES,
   FEEDBACK_PRIORITIES,
@@ -81,6 +82,10 @@ export function FeedbackForm({
       setCategory("improvement");
       setPriority("medium");
       setSuccessMessage("Grazie! Il tuo feedback è stato registrato.");
+      trackEvent("feedback_submitted", {
+        category,
+        priority,
+      });
       onCreated?.(data.feedback);
       window.dispatchEvent(new CustomEvent("bizkit:feedback-created", { detail: data.feedback }));
     } catch (error) {

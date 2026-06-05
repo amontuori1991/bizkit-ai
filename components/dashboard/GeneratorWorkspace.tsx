@@ -179,6 +179,10 @@ export function GeneratorWorkspace({
         template_used: lastTemplateLabel ?? "custom",
         variant_count: data.variants?.length ?? 0,
       });
+      trackEvent("content_generated", {
+        business_type: inferredBusinessType,
+        generation_type: selectedType,
+      });
 
       if (data.usage) {
         setMessage(
@@ -239,6 +243,10 @@ export function GeneratorWorkspace({
 
       trackEvent("ai_feature_used", {
         feature_name: "save_content",
+        business_type: inferredBusinessType,
+        generation_type: selectedType,
+      });
+      trackEvent("content_saved", {
         business_type: inferredBusinessType,
         generation_type: selectedType,
       });

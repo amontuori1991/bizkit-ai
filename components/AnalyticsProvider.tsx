@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { AnalyticsScripts } from "@/components/AnalyticsScripts";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import {
   getStoredAnalyticsConsent,
+  trackPageView,
   type AnalyticsConsent,
 } from "@/lib/analytics";
 
@@ -12,6 +14,8 @@ const gaMeasurementId = process.env.NEXT_PUBLIC_GA_ID || process.env.NEXT_PUBLIC
 const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
 export function AnalyticsProvider() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [consent, setConsent] = useState<AnalyticsConsent | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -19,6 +23,16 @@ export function AnalyticsProvider() {
     setConsent(getStoredAnalyticsConsent());
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted || consent !== "granted") {
+      return;
+    }
+
+    const query = searchParams?.toString();
+    const url = query ? `${pathname}?${query}` : pathname;
+    trackPageView(url);
+  }, [consent, mounted, pathname, searchParams]);
 
   return (
     <>

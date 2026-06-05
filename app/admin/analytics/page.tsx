@@ -21,6 +21,20 @@ function maxCount(values: Array<{ count: number }>) {
   return values.reduce((max, item) => Math.max(max, item.count), 1);
 }
 
+function formatDateTime(value?: string | null) {
+  if (!value) {
+    return "Nessun invio registrato";
+  }
+
+  return new Date(value).toLocaleString("it-IT", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default async function AdminAnalyticsPage() {
   const cookieStore = await cookies();
 
@@ -77,6 +91,13 @@ export default async function AdminAnalyticsPage() {
 
             <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {[
+                {
+                  label: "GA4",
+                  value: analytics.ga.configured ? "Configurato" : "Non configurato",
+                  helper: analytics.ga.measurementId
+                    ? `Measurement ID ${analytics.ga.measurementId}`
+                    : "NEXT_PUBLIC_GA_ID mancante",
+                },
                 {
                   label: "Utenti registrati",
                   value: analytics.summary.registeredUsers,
@@ -264,6 +285,15 @@ export default async function AdminAnalyticsPage() {
             <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
               <h2 className="text-2xl font-bold text-slate-950">Lettura rapida del funnel</h2>
               <div className="mt-6 grid gap-4 md:grid-cols-2">
+                <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 md:col-span-2">
+                  <p className="text-sm text-slate-500">Ultimo invio evento GA</p>
+                  <p className="mt-3 text-2xl font-bold text-slate-950">
+                    {analytics.ga.lastEventName ?? "Nessun evento"}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-500">
+                    {formatDateTime(analytics.ga.lastEventAt)}
+                  </p>
+                </div>
                 <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
                   <p className="text-sm text-slate-500">Base utenti</p>
                   <p className="mt-3 text-3xl font-bold text-slate-950">

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { trackPurchase } from "@/lib/analytics";
+import { trackEvent } from "@/lib/analytics";
 
 type PurchaseTrackerProps = {
   sessionId: string;
@@ -31,6 +32,11 @@ export function PurchaseTracker({
       itemName,
       category,
       price,
+    });
+    trackEvent("kit_purchased", {
+      item_id: itemId,
+      item_name: itemName,
+      item_category: category,
     });
 
     window.sessionStorage.setItem(storageKey, "true");

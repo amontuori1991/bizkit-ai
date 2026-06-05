@@ -32,7 +32,7 @@ export function AnalyticsScripts({
               window.gtag = gtag;
               gtag('js', new Date());
               gtag('config', '${gaMeasurementId}', {
-                send_page_view: true
+                send_page_view: false
               });
             `}
           </Script>

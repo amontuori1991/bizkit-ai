@@ -214,6 +214,12 @@ Vai su [Meta Events Manager](https://business.facebook.com/events_manager2/) e c
 NEXT_PUBLIC_META_PIXEL_ID=
 ```
 
+Per inviare a GA4 anche gli eventi server-side generati dal webhook Stripe:
+
+```bash
+GA_API_SECRET=
+```
+
 ## 7. Configurazione Vercel
 
 ### Dove configurare
@@ -289,6 +295,12 @@ La pagina mostra:
 - stato Admin password
 - numero template email attivi
 - bottoni test per welcome, subscription e kit
+
+Per le analytics mostra anche:
+
+- GA configurato
+- Measurement ID rilevato
+- ultimo evento registrato in piattaforma
 
 ## 10. AI Business Coach
 
