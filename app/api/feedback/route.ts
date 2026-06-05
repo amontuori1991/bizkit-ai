@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
 import {
   buildFeedbackTicketCode,
   buildFeedbackTitle,
@@ -107,10 +108,14 @@ export async function POST(request: Request) {
     }
 
     const now = new Date().toISOString();
+    const feedbackId = randomUUID();
+    const ticketCode = buildFeedbackTicketCode(feedbackId);
     const { data: insertedFeedback, error } = await supabase
       .from("feedback_items")
       .insert({
+        id: feedbackId,
         user_id: user.id,
+        ticket_code: ticketCode,
         category: body.category,
         priority: body.priority,
         status: "open",
@@ -118,6 +123,8 @@ export async function POST(request: Request) {
         description: body.description.trim(),
         page_url: body.pageUrl?.trim() || null,
         browser_info: body.browserInfo?.trim() || null,
+        created_at: now,
+        updated_at: now,
       })
       .select("*")
       .single();
@@ -125,21 +132,9 @@ export async function POST(request: Request) {
     if (error) {
       throw error;
     }
-
     const feedback = insertedFeedback as FeedbackItem;
-    const ticketCode = buildFeedbackTicketCode(feedback.id);
 
-    const [{ data: updatedFeedback, error: updateError }, { error: eventError }] = await Promise.all([
-      supabase
-        .from("feedback_items")
-        .update({
-          ticket_code: ticketCode,
-          updated_at: now,
-        })
-        .eq("id", feedback.id)
-        .select("*")
-        .single(),
-      supabase.from("feedback_status_events").insert({
+    const { error: eventError } = await supabase.from("feedback_status_events").insert({
         feedback_id: feedback.id,
         user_id: user.id,
         from_status: null,
@@ -147,29 +142,22 @@ export async function POST(request: Request) {
         actor_type: "system",
         note_snapshot: null,
         created_at: now,
-      }),
-    ]);
-
-    if (updateError) {
-      throw updateError;
-    }
+      });
 
     if (eventError) {
       throw eventError;
     }
 
-    const completeFeedback = updatedFeedback as FeedbackItem;
-
     try {
       await notifyAdminAboutNewFeedback({
-        feedback: completeFeedback,
+        feedback,
         userEmail: user.email ?? null,
       });
     } catch (notificationError) {
       console.error("Feedback admin notification error:", notificationError);
     }
 
-    return NextResponse.json({ feedback: completeFeedback });
+    return NextResponse.json({ feedback });
   } catch (error) {
     console.error("Feedback create error:", error);
     return NextResponse.json({ error: "Impossibile inviare il feedback." }, { status: 500 });
