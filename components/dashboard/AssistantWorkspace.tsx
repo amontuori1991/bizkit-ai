@@ -247,11 +247,11 @@ export function AssistantWorkspace({
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[320px_1fr]">
+    <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
       <FloatingFeedback type="success" message={message} onClose={() => setMessage(null)} />
       <FloatingFeedback type="error" message={errorMessage} onClose={() => setErrorMessage(null)} />
 
-      <aside className="space-y-6">
+      <aside className="min-w-0 space-y-6">
         <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-soft">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -338,7 +338,7 @@ export function AssistantWorkspace({
         </div>
       </aside>
 
-      <section className="space-y-6">
+      <section className="min-w-0 space-y-6">
         <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -377,8 +377,8 @@ export function AssistantWorkspace({
           </div>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
-          <div className="rounded-[2rem] border border-slate-200 bg-white shadow-soft">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="min-w-0 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-soft">
             <div className="border-b border-slate-200 px-6 py-5">
               <div className="flex items-center justify-between gap-4">
                 <div>
@@ -509,7 +509,7 @@ export function AssistantWorkspace({
             </div>
           </div>
 
-          <aside className="space-y-6">
+          <aside className="min-w-0 space-y-6">
             <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-soft">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
                 Consigli del Coach
