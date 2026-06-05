@@ -268,9 +268,11 @@ export function DashboardShell({
                   href={item.href}
                   className={`flex items-center gap-3 rounded-[1.25rem] px-4 py-3 text-sm font-semibold transition ${
                     active
-                      ? "bg-slate-950 text-white shadow-lg shadow-slate-900/20"
+                      ? isDark
+                        ? "bg-white text-slate-950 shadow-lg shadow-black/30"
+                        : "bg-slate-950 text-white shadow-lg shadow-slate-900/20"
                       : isDark
-                        ? "text-slate-300 hover:bg-white/5"
+                        ? "text-slate-300 hover:bg-white/8 hover:text-white"
                         : "text-slate-700 hover:bg-white"
                   }`}
                 >
