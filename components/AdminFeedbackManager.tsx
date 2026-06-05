@@ -62,10 +62,12 @@ export function AdminFeedbackManager({
     return feedback.filter((item) => {
       const matchesSearch =
         normalizedSearch.length === 0 ||
+        item.ticket_code?.toLowerCase().includes(normalizedSearch) ||
         item.title.toLowerCase().includes(normalizedSearch) ||
         item.description.toLowerCase().includes(normalizedSearch) ||
         item.userEmail?.toLowerCase().includes(normalizedSearch) ||
-        item.page_url?.toLowerCase().includes(normalizedSearch);
+        item.page_url?.toLowerCase().includes(normalizedSearch) ||
+        item.admin_notes?.toLowerCase().includes(normalizedSearch);
 
       const matchesCategory = categoryFilter === "all" || item.category === categoryFilter;
       const matchesStatus = statusFilter === "all" || item.status === statusFilter;
@@ -271,6 +273,11 @@ export function AdminFeedbackManager({
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap gap-2">
+                    {item.ticket_code ? (
+                      <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
+                        {item.ticket_code}
+                      </span>
+                    ) : null}
                     <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${getFeedbackCategoryBadgeClass(item.category)}`}>
                       {formatFeedbackCategory(item.category)}
                     </span>
@@ -373,4 +380,3 @@ export function AdminFeedbackManager({
     </div>
   );
 }
-

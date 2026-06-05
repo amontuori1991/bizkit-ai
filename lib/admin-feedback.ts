@@ -62,6 +62,34 @@ export async function listAdminFeedbackItems() {
   };
 }
 
+export async function getAdminFeedbackItem(feedbackId: string) {
+  const supabase = assertAdminSupabase();
+
+  const { data, error } = await supabase.from("feedback_items").select("*").eq("id", feedbackId).single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as FeedbackItem;
+}
+
+export async function getAdminFeedbackUserEmail(userId: string) {
+  const supabase = assertAdminSupabase();
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return (data as { email: string | null } | null)?.email ?? null;
+}
+
 export async function updateAdminFeedbackItem(
   feedbackId: string,
   input: {
@@ -101,6 +129,30 @@ export async function updateAdminFeedbackItem(
   return data as FeedbackItem;
 }
 
+export async function createAdminFeedbackStatusEvent(input: {
+  feedbackId: string;
+  userId: string;
+  fromStatus: FeedbackStatus | null;
+  toStatus: FeedbackStatus;
+  noteSnapshot?: string | null;
+}) {
+  const supabase = assertAdminSupabase();
+
+  const { error } = await supabase.from("feedback_status_events").insert({
+    feedback_id: input.feedbackId,
+    user_id: input.userId,
+    from_status: input.fromStatus,
+    to_status: input.toStatus,
+    actor_type: "admin",
+    note_snapshot: input.noteSnapshot?.trim() || null,
+    created_at: new Date().toISOString(),
+  });
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function deleteAdminFeedbackItem(feedbackId: string) {
   const supabase = assertAdminSupabase();
 
@@ -110,4 +162,3 @@ export async function deleteAdminFeedbackItem(feedbackId: string) {
     throw error;
   }
 }
-

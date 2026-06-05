@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
-import { deleteAdminFeedbackItem, updateAdminFeedbackItem } from "@/lib/admin-feedback";
+import {
+  createAdminFeedbackStatusEvent,
+  deleteAdminFeedbackItem,
+  getAdminFeedbackItem,
+  getAdminFeedbackUserEmail,
+  updateAdminFeedbackItem,
+} from "@/lib/admin-feedback";
 import { isFeedbackStatus } from "@/lib/feedback";
+import { notifyUserAboutFeedbackStatusChange } from "@/lib/feedback-notifications";
 import { requireAdminRequest } from "@/lib/admin-users";
 
 type RouteContext = {
@@ -26,10 +33,32 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Stato feedback non valido." }, { status: 400 });
     }
 
+    const previousFeedback = await getAdminFeedbackItem(feedbackId);
     const feedback = await updateAdminFeedbackItem(feedbackId, {
       status: body.status && isFeedbackStatus(body.status) ? body.status : undefined,
       adminNotes: body.adminNotes,
     });
+
+    if (previousFeedback.status !== feedback.status) {
+      await createAdminFeedbackStatusEvent({
+        feedbackId: feedback.id,
+        userId: feedback.user_id,
+        fromStatus: previousFeedback.status,
+        toStatus: feedback.status,
+        noteSnapshot: feedback.admin_notes,
+      });
+
+      try {
+        const userEmail = await getAdminFeedbackUserEmail(feedback.user_id);
+        await notifyUserAboutFeedbackStatusChange({
+          feedback,
+          userEmail,
+          previousStatus: previousFeedback.status,
+        });
+      } catch (notificationError) {
+        console.error("Feedback status notification error:", notificationError);
+      }
+    }
 
     return NextResponse.json({ feedback });
   } catch (error) {

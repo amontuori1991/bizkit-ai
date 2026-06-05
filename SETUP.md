@@ -310,6 +310,11 @@ Pagine disponibili:
 
 La dashboard mostra anche un pulsante fisso `Invia feedback` in basso a destra.
 
+Se `RESEND_API_KEY` e attiva:
+
+- il team riceve un'email su `support_email` quando arriva un nuovo feedback
+- l'utente riceve un'email quando lo stato del ticket cambia da admin
+
 ## 12. Controlli finali
 
 Prima del deploy:

@@ -9,14 +9,17 @@ import {
   getFeedbackPriorityBadgeClass,
   getFeedbackStatusBadgeClass,
   type FeedbackItem,
+  type FeedbackStatusEvent,
 } from "@/lib/feedback";
 
 type FeedbackWorkspaceProps = {
   initialFeedback: FeedbackItem[];
+  initialStatusEvents: FeedbackStatusEvent[];
 };
 
 type FeedbackListResponse = {
   feedback?: FeedbackItem[];
+  statusEvents?: FeedbackStatusEvent[];
   error?: string;
 };
 
@@ -30,8 +33,9 @@ function formatDate(value: string) {
   });
 }
 
-export function FeedbackWorkspace({ initialFeedback }: FeedbackWorkspaceProps) {
+export function FeedbackWorkspace({ initialFeedback, initialStatusEvents }: FeedbackWorkspaceProps) {
   const [feedback, setFeedback] = useState(initialFeedback);
+  const [statusEvents, setStatusEvents] = useState(initialStatusEvents);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   async function refreshFeedback() {
@@ -44,6 +48,7 @@ export function FeedbackWorkspace({ initialFeedback }: FeedbackWorkspaceProps) {
       const data = (await response.json()) as FeedbackListResponse;
       if (response.ok && data.feedback) {
         setFeedback(data.feedback);
+        setStatusEvents(data.statusEvents ?? []);
       }
     } finally {
       setIsRefreshing(false);
@@ -137,6 +142,11 @@ export function FeedbackWorkspace({ initialFeedback }: FeedbackWorkspaceProps) {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="flex flex-wrap gap-2">
+                      {item.ticket_code ? (
+                        <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
+                          {item.ticket_code}
+                        </span>
+                      ) : null}
                       <span
                         className={`rounded-full border px-3 py-1 text-xs font-semibold ${getFeedbackCategoryBadgeClass(item.category)}`}
                       >
@@ -170,6 +180,34 @@ export function FeedbackWorkspace({ initialFeedback }: FeedbackWorkspaceProps) {
                     Aggiornato: <span className="font-semibold text-slate-700">{formatDate(item.updated_at)}</span>
                   </span>
                 </div>
+                {statusEvents.filter((event) => event.feedback_id === item.id).length > 0 ? (
+                  <div className="mt-4 rounded-[1.25rem] border border-slate-200 bg-white p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Cronologia stato
+                    </p>
+                    <div className="mt-3 grid gap-3">
+                      {statusEvents
+                        .filter((event) => event.feedback_id === item.id)
+                        .slice(0, 6)
+                        .map((event) => (
+                          <div key={event.id} className="rounded-[1rem] border border-slate-200 bg-slate-50 px-3 py-3 text-sm">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <p className="font-semibold text-slate-900">
+                                {event.from_status ? `${formatFeedbackStatus(event.from_status)} -> ` : ""}
+                                {formatFeedbackStatus(event.to_status)}
+                              </p>
+                              <span className="text-xs text-slate-500">{formatDate(event.created_at)}</span>
+                            </div>
+                            {event.note_snapshot ? (
+                              <p className="mt-2 whitespace-pre-wrap leading-6 text-slate-600">
+                                {event.note_snapshot}
+                              </p>
+                            ) : null}
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ) : null}
               </article>
             ))
           )}

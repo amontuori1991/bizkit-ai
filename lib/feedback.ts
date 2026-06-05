@@ -23,6 +23,7 @@ export type FeedbackStatus = (typeof FEEDBACK_STATUSES)[number];
 export type FeedbackItem = {
   id: string;
   user_id: string;
+  ticket_code: string | null;
   category: FeedbackCategory;
   priority: FeedbackPriority;
   status: FeedbackStatus;
@@ -33,6 +34,17 @@ export type FeedbackItem = {
   admin_notes: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type FeedbackStatusEvent = {
+  id: string;
+  feedback_id: string;
+  user_id: string;
+  from_status: FeedbackStatus | null;
+  to_status: FeedbackStatus;
+  actor_type: "system" | "admin";
+  note_snapshot: string | null;
+  created_at: string;
 };
 
 export type AdminFeedbackItem = FeedbackItem & {
@@ -145,3 +157,6 @@ export function buildFeedbackTitle(title: string) {
   return trimmed.length > 0 ? trimmed : "Nuovo feedback";
 }
 
+export function buildFeedbackTicketCode(feedbackId: string) {
+  return `FB-${feedbackId.replace(/-/g, "").slice(0, 8).toUpperCase()}`;
+}

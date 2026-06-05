@@ -178,12 +178,19 @@ Funzioni incluse:
 - invio feedback con categoria, priorita e descrizione
 - allegato automatico della pagina corrente
 - storico personale dei feedback con stato aggiornato
+- ticket code leggibile tipo `FB-XXXXXXX`
+- cronologia cambi stato visibile all'utente
 - pulsante rapido `Invia feedback` fisso in basso a destra nella dashboard
 - gestione admin completa in:
 
 ```bash
 /admin/feedback
 ```
+
+Se `RESEND_API_KEY` e configurata:
+
+- l'admin riceve una mail quando arriva un nuovo feedback
+- l'utente riceve una mail quando il team cambia stato al ticket
 
 ### Stripe Customer Portal
 

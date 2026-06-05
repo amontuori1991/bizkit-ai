@@ -242,6 +242,7 @@ create table if not exists public.assistant_messages (
 create table if not exists public.feedback_items (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
+  ticket_code text unique,
   category text not null,
   priority text not null,
   status text not null default 'open',
@@ -253,6 +254,28 @@ create table if not exists public.feedback_items (
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+create table if not exists public.feedback_status_events (
+  id uuid primary key default gen_random_uuid(),
+  feedback_id uuid not null references public.feedback_items(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  from_status text,
+  to_status text not null,
+  actor_type text not null default 'system',
+  note_snapshot text,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.feedback_items add column if not exists ticket_code text;
+alter table public.feedback_items add column if not exists admin_notes text;
+
+create unique index if not exists feedback_items_ticket_code_idx
+  on public.feedback_items(ticket_code)
+  where ticket_code is not null;
+
+update public.feedback_items
+set ticket_code = concat('FB-', upper(substr(replace(id::text, '-', ''), 1, 8)))
+where ticket_code is null;
 
 create table if not exists public.subscriptions (
   id uuid primary key default gen_random_uuid(),
@@ -314,6 +337,7 @@ alter table public.content_calendars enable row level security;
 alter table public.assistant_conversations enable row level security;
 alter table public.assistant_messages enable row level security;
 alter table public.feedback_items enable row level security;
+alter table public.feedback_status_events enable row level security;
 alter table public.customers enable row level security;
 alter table public.subscriptions enable row level security;
 
@@ -478,6 +502,16 @@ using (auth.uid() = user_id);
 drop policy if exists "Feedback items insert owned by user" on public.feedback_items;
 create policy "Feedback items insert owned by user"
 on public.feedback_items for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Feedback status events owned by user" on public.feedback_status_events;
+create policy "Feedback status events owned by user"
+on public.feedback_status_events for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Feedback status events insert owned by user" on public.feedback_status_events;
+create policy "Feedback status events insert owned by user"
+on public.feedback_status_events for insert
 with check (auth.uid() = user_id);
 
 drop policy if exists "Customers owned by user" on public.customers;
