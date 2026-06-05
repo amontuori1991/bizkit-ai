@@ -158,12 +158,13 @@ export function ClientsManager({
 
   async function handleImport(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formElement = event.currentTarget;
     setIsImporting(true);
     setErrorMessage(null);
     setImportFeedback(null);
 
     try {
-      const formData = new FormData(event.currentTarget);
+      const formData = new FormData(formElement);
       const file = formData.get("file");
 
       if (!(file instanceof File) || !file.name) {
@@ -207,7 +208,7 @@ export function ClientsManager({
           ? `${feedbackBase} ${data.skippedRows} righe sono state ignorate perche incomplete.`
           : feedbackBase,
       );
-      event.currentTarget.reset();
+      formElement.reset();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Errore durante l'import.");
     } finally {
