@@ -489,7 +489,7 @@ export function AssistantWorkspace({
                   onChange={(event) => setInput(event.target.value)}
                   rows={4}
                   placeholder="Chiedi al Coach come ottenere piu prenotazioni, quali contenuti ti mancano o che campagna lanciare questo mese."
-                  className="rounded-[1.5rem] border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500"
+                  className="rounded-[1.5rem] border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-blue-500"
                   disabled={isSending}
                 />
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
