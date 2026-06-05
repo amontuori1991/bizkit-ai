@@ -86,22 +86,37 @@ export function parseCrmImportFile(buffer: ArrayBuffer, fileName?: string | null
   }
 
   const worksheet = workbook.Sheets[firstSheetName];
-  const records = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, {
+  const matrix = XLSX.utils.sheet_to_json<Array<unknown>>(worksheet, {
+    header: 1,
     defval: "",
+    blankrows: false,
   });
+
+  const headerRowIndex = matrix.findIndex((row) => {
+    const normalizedHeaders = row.map((cell) => normalizeHeader(String(cell ?? "")));
+    return normalizedHeaders.includes("name") || normalizedHeaders.includes("nome");
+  });
+
+  if (headerRowIndex === -1) {
+    return { rows: [] as CrmImportRow[], skippedRows: 0 };
+  }
+
+  const headerRow = matrix[headerRowIndex].map((cell) => String(cell ?? ""));
+  const dataRows = matrix.slice(headerRowIndex + 1);
 
   const rows: CrmImportRow[] = [];
   let skippedRows = 0;
 
-  for (const record of records) {
+  for (const rowValues of dataRows) {
     const mapped: Partial<CrmImportRow> = {};
 
-    for (const [rawHeader, rawValue] of Object.entries(record)) {
+    for (const [index, rawHeader] of headerRow.entries()) {
       const field = HEADER_ALIASES[normalizeHeader(rawHeader)];
       if (!field) {
         continue;
       }
 
+      const rawValue = rowValues[index];
       mapped[field] = sanitizeText(rawValue) as never;
     }
 
