@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { BusinessProfile } from "@/lib/business-profile";
 import { type PaidPlanId, type UsageProgress } from "@/lib/plan-limits";
-import { isSportsBusinessType } from "@/lib/business-verticals";
+import { isHairBusinessType, isSportsBusinessType } from "@/lib/business-verticals";
 import { getSportsKnowledgePack } from "@/lib/sportsKnowledgePacks";
 
 type ClientRecord = {
@@ -24,6 +24,41 @@ type ClientsManagerProps = {
   upgradePlan: PaidPlanId | null;
   businessProfile: BusinessProfile | null;
 };
+
+function getCrmCopy(profile: BusinessProfile | null) {
+  if (isSportsBusinessType(profile?.business_type)) {
+    return {
+      entityLabel: "contatto",
+      formTitle: "Nuovo contatto",
+      listTitle: "Contatti salvati",
+      planLabel: "Pacchetto / esperienza",
+      planPlaceholder: "Weekend gruppi paintball",
+      notesPlaceholder:
+        "Data evento, numero partecipanti, caparra, disponibilita, preferenze del gruppo",
+    };
+  }
+
+  if (isHairBusinessType(profile?.business_type)) {
+    return {
+      entityLabel: "cliente",
+      formTitle: "Nuova cliente",
+      listTitle: "Clienti salvati",
+      planLabel: "Servizio / trattamento",
+      planPlaceholder: "Balayage + piega",
+      notesPlaceholder:
+        "Preferenze, ultimo trattamento, frequenza visita, note commerciali o follow-up",
+    };
+  }
+
+  return {
+    entityLabel: "cliente",
+    formTitle: "Nuovo cliente",
+    listTitle: "Clienti salvati",
+    planLabel: "Abbonamento / piano",
+    planPlaceholder: "Mensile premium",
+    notesPlaceholder: "Obiettivi, stato trattativa, appunti operativi",
+  };
+}
 
 export function ClientsManager({
   initialClients,
@@ -53,6 +88,7 @@ export function ClientsManager({
     : [];
   const sportsMessageTemplates =
     sportsPack?.crmTemplates.filter((template) => Boolean(template.body)) ?? [];
+  const crmCopy = getCrmCopy(businessProfile);
 
   async function copyTemplate(template: string) {
     try {
@@ -121,7 +157,7 @@ export function ClientsManager({
             <div>
               <h2 className="text-2xl font-bold text-slate-950">Capacita CRM</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Tieni sotto controllo quanti clienti hai gia in piattaforma rispetto al piano attivo.
+                Tieni sotto controllo quante anagrafiche hai gia in piattaforma rispetto al piano attivo.
               </p>
             </div>
             <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
@@ -191,13 +227,13 @@ export function ClientsManager({
       </div>
 
         <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
-          <h2 className="text-2xl font-bold text-slate-950">Nuovo cliente</h2>
+          <h2 className="text-2xl font-bold text-slate-950">{crmCopy.formTitle}</h2>
           <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
             {[
               ["name", "Nome cliente", "Mario Rossi"],
               ["email", "Email", "cliente@email.it"],
               ["phone", "Telefono", "+39 333 1234567"],
-              ["membership_plan", "Piano", "Mensile premium"],
+              ["membership_plan", crmCopy.planLabel, crmCopy.planPlaceholder],
             ].map(([key, label, placeholder]) => (
               <label key={key} className="grid gap-2 text-sm font-medium text-slate-700">
                 {label}
@@ -232,12 +268,12 @@ export function ClientsManager({
                 value={form.notes}
                 onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
                 rows={4}
-                placeholder="Obiettivi, stato trattativa, appunti operativi"
+                placeholder={crmCopy.notesPlaceholder}
                 className="rounded-[1.5rem] border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-500"
               />
             </label>
             <button type="submit" disabled={isLoading} className="button-primary disabled:cursor-not-allowed disabled:opacity-70">
-              {isLoading ? "Salvataggio..." : "Aggiungi cliente"}
+              {isLoading ? "Salvataggio..." : `Aggiungi ${crmCopy.entityLabel}`}
             </button>
             {errorMessage ? (
               <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -254,11 +290,11 @@ export function ClientsManager({
       </div>
 
       <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
-        <h2 className="text-2xl font-bold text-slate-950">Clienti salvati</h2>
+        <h2 className="text-2xl font-bold text-slate-950">{crmCopy.listTitle}</h2>
         <div className="mt-6 grid gap-4">
           {clients.length === 0 ? (
             <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 text-sm text-slate-500">
-              Nessun cliente ancora presente. Aggiungi il primo dal form.
+              Nessun {crmCopy.entityLabel} ancora presente. Aggiungi il primo dal form.
             </div>
           ) : (
             clients.map((client) => (
@@ -272,7 +308,7 @@ export function ClientsManager({
                 <div className="mt-3 grid gap-2 text-sm text-slate-600">
                   <p>Email: {client.email || "-"}</p>
                   <p>Telefono: {client.phone || "-"}</p>
-                  <p>Piano: {client.membership_plan || "-"}</p>
+                  <p>{crmCopy.planLabel}: {client.membership_plan || "-"}</p>
                   <p>Note: {client.notes || "-"}</p>
                 </div>
               </div>
