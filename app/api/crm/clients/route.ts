@@ -84,3 +84,54 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Errore durante il salvataggio cliente." }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { error: "Supabase non configurato. Il CRM e disattivato." },
+        { status: 503 },
+      );
+    }
+
+    const supabase = await createSupabaseServerClient();
+    if (!supabase) {
+      return NextResponse.json({ error: "Supabase non disponibile." }, { status: 503 });
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Utente non autenticato." }, { status: 401 });
+    }
+
+    const body = (await request.json().catch(() => ({}))) as {
+      id?: string;
+    };
+
+    if (!body.id?.trim()) {
+      return NextResponse.json({ error: "ID contatto obbligatorio." }, { status: 400 });
+    }
+
+    const { error, count } = await supabase
+      .from("clients")
+      .delete({ count: "exact" })
+      .eq("id", body.id.trim())
+      .eq("user_id", user.id);
+
+    if (error) {
+      throw error;
+    }
+
+    if (!count) {
+      return NextResponse.json({ error: "Contatto non trovato." }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, deletedId: body.id.trim() });
+  } catch (error) {
+    console.error("Delete client error:", error);
+    return NextResponse.json({ error: "Errore durante l'eliminazione del contatto." }, { status: 500 });
+  }
+}

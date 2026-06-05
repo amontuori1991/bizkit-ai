@@ -78,10 +78,12 @@ export function ClientsManager({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [deletingClientId, setDeletingClientId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [nextUpgradePlan, setNextUpgradePlan] = useState<PaidPlanId | null>(upgradePlan);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [importFeedback, setImportFeedback] = useState<string | null>(null);
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null);
   const sportsPack = isSportsBusinessType(businessProfile?.business_type)
     ? getSportsKnowledgePack(businessProfile?.sports_subcategory)
     : null;
@@ -216,6 +218,51 @@ export function ClientsManager({
     }
   }
 
+  async function handleDeleteClient(clientId: string, clientName: string) {
+    const confirmed = window.confirm(`Vuoi davvero eliminare il contatto "${clientName}"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingClientId(clientId);
+    setErrorMessage(null);
+    setActionFeedback(null);
+
+    try {
+      const response = await fetch("/api/crm/clients", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: clientId }),
+      });
+
+      const data = (await response.json()) as {
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Eliminazione non riuscita.");
+      }
+
+      setClients((current) => current.filter((client) => client.id !== clientId));
+      setUsage((current) => {
+        const nextUsed = Math.max(0, current.used - 1);
+        return {
+          ...current,
+          used: nextUsed,
+          remaining: current.remaining === null ? null : current.remaining + 1,
+          percent:
+            current.limit === null ? 0 : Math.min(100, Math.round((nextUsed / current.limit) * 100)),
+          reached: current.limit === null ? false : nextUsed >= current.limit,
+        };
+      });
+      setActionFeedback(`Contatto "${clientName}" eliminato con successo.`);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Errore durante l'eliminazione.");
+    } finally {
+      setDeletingClientId(null);
+    }
+  }
+
   return (
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
       <div className="space-y-6">
@@ -289,6 +336,11 @@ export function ClientsManager({
                 </div>
               ))}
             </div>
+          </div>
+        ) : null}
+        {actionFeedback ? (
+          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            {actionFeedback}
           </div>
         ) : null}
       </div>
@@ -415,9 +467,19 @@ export function ClientsManager({
               <div key={client.id} className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="font-semibold text-slate-950">{client.name}</p>
-                  <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                    {client.status}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                      {client.status}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteClient(client.id, client.name)}
+                      disabled={deletingClientId === client.id}
+                      className="rounded-full border border-red-200 bg-white px-3 py-1 text-xs font-semibold text-red-700 transition hover:border-red-400 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {deletingClientId === client.id ? "Eliminazione..." : "Elimina"}
+                    </button>
+                  </div>
                 </div>
                 <div className="mt-3 grid gap-2 text-sm text-slate-600">
                   <p>Email: {client.email || "-"}</p>
