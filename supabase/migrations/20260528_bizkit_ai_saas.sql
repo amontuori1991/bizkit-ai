@@ -188,6 +188,21 @@ create table if not exists public.assistant_messages (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.feedback_items (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  category text not null,
+  priority text not null,
+  status text not null default 'open',
+  title text not null,
+  description text not null,
+  page_url text,
+  browser_info text,
+  admin_notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -238,6 +253,7 @@ alter table public.saved_contents enable row level security;
 alter table public.content_calendars enable row level security;
 alter table public.assistant_conversations enable row level security;
 alter table public.assistant_messages enable row level security;
+alter table public.feedback_items enable row level security;
 alter table public.subscriptions enable row level security;
 
 drop policy if exists "profiles select own" on public.profiles;
@@ -287,6 +303,14 @@ create policy "assistant conversations all own" on public.assistant_conversation
 drop policy if exists "assistant messages all own" on public.assistant_messages;
 create policy "assistant messages all own" on public.assistant_messages
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "feedback items select own" on public.feedback_items;
+create policy "feedback items select own" on public.feedback_items
+  for select using (auth.uid() = user_id);
+
+drop policy if exists "feedback items insert own" on public.feedback_items;
+create policy "feedback items insert own" on public.feedback_items
+  for insert with check (auth.uid() = user_id);
 
 drop policy if exists "subscriptions select own" on public.subscriptions;
 create policy "subscriptions select own" on public.subscriptions

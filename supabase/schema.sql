@@ -239,6 +239,21 @@ create table if not exists public.assistant_messages (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.feedback_items (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  category text not null,
+  priority text not null,
+  status text not null default 'open',
+  title text not null,
+  description text not null,
+  page_url text,
+  browser_info text,
+  admin_notes text,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
 create table if not exists public.subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -298,6 +313,7 @@ alter table public.saved_contents enable row level security;
 alter table public.content_calendars enable row level security;
 alter table public.assistant_conversations enable row level security;
 alter table public.assistant_messages enable row level security;
+alter table public.feedback_items enable row level security;
 alter table public.customers enable row level security;
 alter table public.subscriptions enable row level security;
 
@@ -452,6 +468,16 @@ using (auth.uid() = user_id);
 drop policy if exists "Assistant messages insert owned by user" on public.assistant_messages;
 create policy "Assistant messages insert owned by user"
 on public.assistant_messages for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Feedback items owned by user" on public.feedback_items;
+create policy "Feedback items owned by user"
+on public.feedback_items for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Feedback items insert owned by user" on public.feedback_items;
+create policy "Feedback items insert owned by user"
+on public.feedback_items for insert
 with check (auth.uid() = user_id);
 
 drop policy if exists "Customers owned by user" on public.customers;

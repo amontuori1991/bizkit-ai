@@ -108,6 +108,21 @@ export default async function AdminAnalyticsPage() {
                   helper: "Totale assistant_messages",
                 },
                 {
+                  label: "Feedback totali",
+                  value: analytics.summary.feedbackCount,
+                  helper: `${analytics.summary.feedbackLast30Days} negli ultimi 30 giorni`,
+                },
+                {
+                  label: "Bug aperti",
+                  value: analytics.summary.openBugs,
+                  helper: "Bug ancora aperti o in review",
+                },
+                {
+                  label: "Feature request",
+                  value: analytics.summary.featureRequests,
+                  helper: "Richieste raccolte dai beta tester",
+                },
+                {
                   label: "Utenti paid",
                   value: analytics.summary.upgradedUsers,
                   helper: `${analytics.summary.freeToPaidConversionRate}% conversione free -> paid`,

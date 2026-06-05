@@ -293,7 +293,24 @@ Pagina disponibile:
 /dashboard/assistant
 ```
 
-## 11. Controlli finali
+## 11. Feedback beta tester
+
+Per attivare la nuova area feedback servono:
+
+- schema SQL aggiornato con:
+  - `feedback_items`
+- policy RLS attive sulla tabella
+
+Pagine disponibili:
+
+```bash
+/dashboard/feedback
+/admin/feedback
+```
+
+La dashboard mostra anche un pulsante fisso `Invia feedback` in basso a destra.
+
+## 12. Controlli finali
 
 Prima del deploy:
 

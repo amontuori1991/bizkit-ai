@@ -9,6 +9,7 @@ type DashboardIconName =
   | "history"
   | "settings"
   | "billing"
+  | "feedback"
   | "check"
   | "copy"
   | "save"
@@ -97,6 +98,13 @@ export function DashboardIcon({ name, className = "h-5 w-5" }: DashboardIconProp
         <rect x="3" y="6" width="18" height="12" rx="2" />
         <path d="M3 10h18" />
         <path d="M7 15h4" />
+      </>
+    ),
+    feedback: (
+      <>
+        <path d="M4 6h16v10H8l-4 4V6z" />
+        <path d="M9 10h6" />
+        <path d="M12 9v4" />
       </>
     ),
     check: <path d="M5 12l4 4L19 6" />,

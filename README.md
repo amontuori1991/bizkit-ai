@@ -104,6 +104,7 @@ Tabelle principali incluse:
 - `generated_contents`
 - `assistant_conversations`
 - `assistant_messages`
+- `feedback_items`
 - `customers`
 - `subscriptions`
 
@@ -163,6 +164,26 @@ Limiti per piano:
 - Starter: `100` messaggi Coach / mese
 - Pro: `500` messaggi Coach / mese
 - Agency: `2000` messaggi Coach / mese
+
+### Feedback beta tester
+
+La dashboard include una nuova sezione:
+
+```bash
+/dashboard/feedback
+```
+
+Funzioni incluse:
+
+- invio feedback con categoria, priorita e descrizione
+- allegato automatico della pagina corrente
+- storico personale dei feedback con stato aggiornato
+- pulsante rapido `Invia feedback` fisso in basso a destra nella dashboard
+- gestione admin completa in:
+
+```bash
+/admin/feedback
+```
 
 ### Stripe Customer Portal
 

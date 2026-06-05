@@ -91,6 +91,9 @@ export function AdminDashboardView({
               <Link href="/admin/analytics" className="button-secondary">
                 Apri analytics
               </Link>
+              <Link href="/admin/feedback" className="button-secondary">
+                Feedback utenti
+              </Link>
               <Link href="/admin/users" className="button-secondary">
                 Gestione utenti
               </Link>
@@ -139,9 +142,14 @@ export function AdminDashboardView({
               </div>
             </div>
             <div className="mt-5">
-              <Link href="/admin/users" className="button-primary">
-                Apri gestione utenti
-              </Link>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link href="/admin/users" className="button-primary">
+                  Apri gestione utenti
+                </Link>
+                <Link href="/admin/feedback" className="button-secondary">
+                  Apri feedback
+                </Link>
+              </div>
             </div>
           </section>
         </div>

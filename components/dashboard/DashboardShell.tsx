@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { BrandLockup } from "@/components/BrandLogo";
 import { DashboardIcon } from "@/components/dashboard/DashboardIcon";
+import { QuickFeedbackWidget } from "@/components/dashboard/QuickFeedbackWidget";
 import {
   getBusinessTypeLabel,
   isHairBusinessType,
@@ -29,7 +30,8 @@ type DashboardShellIconName =
   | "calendar"
   | "history"
   | "settings"
-  | "billing";
+  | "billing"
+  | "feedback";
 
 type NavItem = {
   href: string;
@@ -57,6 +59,7 @@ const COMMON_NAV_ITEMS: NavItem[] = [
   { href: "/dashboard/calendars", label: "Calendars", icon: "history" },
   { href: "/dashboard/crm", label: "CRM", icon: "crm" },
   { href: "/dashboard/history", label: "Cronologia", icon: "history" },
+  { href: "/dashboard/feedback", label: "Feedback", icon: "feedback" },
   { href: "/dashboard/purchases", label: "I miei acquisti", icon: "history" },
   { href: "/dashboard/settings/business-profile", label: "Business Profile", icon: "settings" },
   { href: "/dashboard/billing", label: "Billing", icon: "billing" },
@@ -342,6 +345,7 @@ export function DashboardShell({
           <div className="mt-6">{children}</div>
         </main>
       </div>
+      <QuickFeedbackWidget />
     </div>
   );
 }

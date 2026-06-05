@@ -26,6 +26,10 @@ export type AdminAnalyticsData = {
     savedContents: number;
     assistantConversations: number;
     assistantMessages: number;
+    feedbackCount: number;
+    openBugs: number;
+    featureRequests: number;
+    feedbackLast30Days: number;
     upgradedUsers: number;
     freeToPaidConversionRate: number;
     starterUsers: number;
@@ -39,6 +43,12 @@ export type AdminAnalyticsData = {
   businessTypes: BusinessTypePoint[];
   topBusinessType: BusinessTypePoint | null;
   creditUsageByPlan: CreditUsagePoint[];
+};
+
+type FeedbackRow = {
+  category: string | null;
+  status: string | null;
+  created_at: string;
 };
 
 type ProfileRow = {
@@ -183,6 +193,24 @@ async function getAssistantCount(table: "assistant_conversations" | "assistant_m
   return count ?? 0;
 }
 
+async function getFeedbackRows() {
+  const supabase = createSupabaseServiceRoleClient();
+  if (!supabase) {
+    return [] as FeedbackRow[];
+  }
+
+  const { data, error } = await supabase
+    .from("feedback_items")
+    .select("category,status,created_at");
+
+  if (error) {
+    console.error("Admin analytics feedback rows error:", error);
+    return [] as FeedbackRow[];
+  }
+
+  return (data as FeedbackRow[] | null) ?? [];
+}
+
 async function getUsageRows() {
   const supabase = createSupabaseServiceRoleClient();
   if (!supabase) {
@@ -228,6 +256,10 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
       savedContents: 0,
       assistantConversations: 0,
       assistantMessages: 0,
+      feedbackCount: 0,
+      openBugs: 0,
+      featureRequests: 0,
+      feedbackLast30Days: 0,
       upgradedUsers: 0,
         freeToPaidConversionRate: 0,
         starterUsers: 0,
@@ -252,6 +284,7 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
     savedContents,
     assistantConversations,
     assistantMessages,
+    feedbackRows,
     usageRows,
     savedContentOwners,
     calendarOwners,
@@ -264,6 +297,7 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
       getCount("saved_contents"),
       getAssistantCount("assistant_conversations"),
       getAssistantCount("assistant_messages"),
+      getFeedbackRows(),
       getUsageRows(),
       getOwnerRows("saved_contents"),
       getOwnerRows("content_calendars"),
@@ -280,6 +314,13 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
   const activeUsers7d = new Set(
     requestLogs.filter((item) => item.status === "success").map((item) => item.user_id),
   ).size;
+  const feedbackCount = feedbackRows.length;
+  const openBugs = feedbackRows.filter((row) => row.category === "bug" && row.status !== "completed" && row.status !== "rejected").length;
+  const featureRequests = feedbackRows.filter((row) => row.category === "feature_request").length;
+  const feedbackLast30Days = feedbackRows.filter((row) => {
+    const createdAt = new Date(row.created_at).getTime();
+    return createdAt >= Date.now() - 30 * 24 * 60 * 60 * 1000;
+  }).length;
 
   const dayBuckets = new Map<string, number>();
   for (const day of getLast7Days()) {
@@ -347,6 +388,10 @@ export async function getAdminAnalyticsData(): Promise<AdminAnalyticsData> {
       savedContents,
       assistantConversations,
       assistantMessages,
+      feedbackCount,
+      openBugs,
+      featureRequests,
+      feedbackLast30Days,
       upgradedUsers,
       freeToPaidConversionRate,
       starterUsers,
