@@ -26,7 +26,7 @@ export default async function CrmPage() {
   return (
     <DashboardShell
       title="CRM clienti"
-      description="Una vista semplice per raccogliere lead, seguire clienti e tenere traccia di note operative."
+      description="Una vista semplice per raccogliere lead, seguire clienti, importare contatti da Excel e tenere traccia di note operative."
       userEmail={user.email ?? "utente"}
     >
       <ClientsManager

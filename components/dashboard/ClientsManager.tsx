@@ -77,9 +77,11 @@ export function ClientsManager({
     notes: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [nextUpgradePlan, setNextUpgradePlan] = useState<PaidPlanId | null>(upgradePlan);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const [importFeedback, setImportFeedback] = useState<string | null>(null);
   const sportsPack = isSportsBusinessType(businessProfile?.business_type)
     ? getSportsKnowledgePack(businessProfile?.sports_subcategory)
     : null;
@@ -89,6 +91,11 @@ export function ClientsManager({
   const sportsMessageTemplates =
     sportsPack?.crmTemplates.filter((template) => Boolean(template.body)) ?? [];
   const crmCopy = getCrmCopy(businessProfile);
+  const templateDownloadHref = isSportsBusinessType(businessProfile?.business_type)
+    ? "/downloads/ai-kit-per-centri-sportivi-outdoor/template-import-contatti-centri-sportivi.xlsx"
+    : isHairBusinessType(businessProfile?.business_type)
+      ? "/downloads/ai-kit-per-parrucchieri/template-import-contatti-parrucchieri.xlsx"
+      : "/downloads/ai-kit-per-palestre/template-import-contatti-palestre.xlsx";
 
   async function copyTemplate(template: string) {
     try {
@@ -146,6 +153,65 @@ export function ClientsManager({
       setErrorMessage(error instanceof Error ? error.message : "Errore durante il salvataggio.");
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleImport(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsImporting(true);
+    setErrorMessage(null);
+    setImportFeedback(null);
+
+    try {
+      const formData = new FormData(event.currentTarget);
+      const file = formData.get("file");
+
+      if (!(file instanceof File) || !file.name) {
+        throw new Error("Seleziona prima un file .xlsx o .csv da importare.");
+      }
+
+      const response = await fetch("/api/crm/clients/import", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = (await response.json()) as {
+        clients?: ClientRecord[];
+        importedCount?: number;
+        skippedRows?: number;
+        error?: string;
+        upgradePlan?: PaidPlanId | null;
+      };
+
+      if (!response.ok || !data.clients) {
+        setNextUpgradePlan(data.upgradePlan ?? nextUpgradePlan);
+        throw new Error(data.error ?? "Import non riuscito.");
+      }
+
+      setClients((current) => [...(data.clients as ClientRecord[]), ...current]);
+      setUsage((current) => {
+        const nextUsed = current.used + (data.importedCount ?? 0);
+        return {
+          ...current,
+          used: nextUsed,
+          remaining: current.remaining === null ? null : Math.max(0, current.remaining - (data.importedCount ?? 0)),
+          percent:
+            current.limit === null ? 0 : Math.min(100, Math.round((nextUsed / current.limit) * 100)),
+          reached: current.limit === null ? false : nextUsed >= current.limit,
+        };
+      });
+
+      const feedbackBase = `${data.importedCount ?? 0} contatti importati con successo.`;
+      setImportFeedback(
+        (data.skippedRows ?? 0) > 0
+          ? `${feedbackBase} ${data.skippedRows} righe sono state ignorate perche incomplete.`
+          : feedbackBase,
+      );
+      event.currentTarget.reset();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Errore durante l'import.");
+    } finally {
+      setIsImporting(false);
     }
   }
 
@@ -283,6 +349,53 @@ export function ClientsManager({
                     Passa a {nextUpgradePlan.toUpperCase()}
                   </Link>
                 ) : null}
+              </div>
+            ) : null}
+          </form>
+        </div>
+
+        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-950">Import dedicato</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Scarica il template Excel della tua verticale, compila i contatti e importali in blocco nel CRM.
+              </p>
+            </div>
+            <a href={templateDownloadHref} className="button-secondary" download>
+              Scarica template .xlsx
+            </a>
+          </div>
+          <form onSubmit={handleImport} className="mt-6 grid gap-4">
+            <label className="grid gap-2 text-sm font-medium text-slate-700">
+              File contatti
+              <input
+                name="file"
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition file:mr-4 file:rounded-full file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white focus:border-blue-500"
+                required
+              />
+            </label>
+            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-600">
+              <p className="font-semibold text-slate-900">Colonne supportate</p>
+              <p className="mt-2">
+                `name`, `email`, `phone`, `{crmCopy.planLabel}`, `status`, `notes`
+              </p>
+              <p className="mt-2">
+                Puoi usare anche intestazioni in italiano come `Nome`, `Telefono`, `Stato`, `Note`, `Pacchetto`, `Servizio` o `Abbonamento`.
+              </p>
+            </div>
+            <button
+              type="submit"
+              disabled={isImporting}
+              className="button-primary disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isImporting ? "Import in corso..." : "Importa contatti"}
+            </button>
+            {importFeedback ? (
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                {importFeedback}
               </div>
             ) : null}
           </form>
