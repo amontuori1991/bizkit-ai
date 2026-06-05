@@ -148,6 +148,16 @@ values (
 )
 on conflict (id) do nothing;
 
+create table if not exists public.email_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  email text not null,
+  type text not null,
+  status text not null,
+  provider text not null default 'resend',
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.saved_contents (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -272,6 +282,7 @@ alter table public.ai_usage_daily enable row level security;
 alter table public.ai_request_logs enable row level security;
 alter table public.business_profiles enable row level security;
 alter table public.site_settings enable row level security;
+alter table public.email_logs enable row level security;
 alter table public.saved_contents enable row level security;
 alter table public.content_calendars enable row level security;
 alter table public.assistant_conversations enable row level security;

@@ -169,6 +169,19 @@ RESEND_API_KEY=
 
 Se la chiave manca, il progetto continua a funzionare ma non invia email.
 
+Con Resend configurato il progetto gestisce:
+
+- welcome email utenti
+- attivazione piano dopo sync Stripe
+- conferma acquisto kit digitale
+- notifiche feedback / ticket
+
+Inoltre salva un log interno in:
+
+```bash
+public.email_logs
+```
+
 ## 5. Admin password
 
 Imposta una password semplice per la dashboard admin:
@@ -274,6 +287,8 @@ La pagina mostra:
 - stato Resend
 - stato Analytics
 - stato Admin password
+- numero template email attivi
+- bottoni test per welcome, subscription e kit
 
 ## 10. AI Business Coach
 

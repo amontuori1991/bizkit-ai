@@ -359,6 +359,7 @@ export async function deleteManagedUserCompletely(userId: string) {
     supabase.from("customers").delete().eq("user_id", userId),
     supabase.from("downloads").delete().eq("user_id", userId),
     supabase.from("orders").delete().eq("user_id", userId),
+    supabase.from("email_logs").delete().eq("user_id", userId),
     supabase.from("feedback_items").delete().eq("user_id", userId),
     supabase.from("business_profiles").delete().eq("user_id", userId),
     supabase.from("generated_contents").delete().eq("user_id", userId),

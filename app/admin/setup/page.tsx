@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import Link from "next/link";
+import { AdminEmailTestPanel } from "@/components/AdminEmailTestPanel";
+import { isAdminAuthenticated } from "@/lib/admin";
+import { getActiveEmailTemplateCount } from "@/lib/email";
 import { env, getEnvironmentStatuses } from "@/lib/env";
 
 export const metadata: Metadata = {
@@ -25,8 +29,11 @@ function SetupBadge({ configured }: { configured: boolean }) {
   );
 }
 
-export default function AdminSetupPage() {
+export default async function AdminSetupPage() {
+  const cookieStore = await cookies();
+  const isAdminSession = isAdminAuthenticated(cookieStore);
   const statuses = getEnvironmentStatuses();
+  const activeEmailTemplates = getActiveEmailTemplateCount();
   const setupItems = [
     { key: "stripe", label: "Stripe Checkout" },
     { key: "stripeSubscriptions", label: "Stripe Subscriptions" },
@@ -94,10 +101,18 @@ export default function AdminSetupPage() {
                     Configurazione presente. Questo blocco del prodotto puo essere attivato.
                   </div>
                 )}
+                {item.key === "resend" ? (
+                  <div className="mt-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                    <p className="font-semibold text-slate-950">Template email attivi</p>
+                    <p className="mt-2">{activeEmailTemplates} template transazionali pronti: Welcome, Subscription Activated e Digital Kit Purchase.</p>
+                  </div>
+                ) : null}
               </div>
             );
           })}
         </div>
+
+        <AdminEmailTestPanel enabled={statuses.resend.configured && isAdminSession} />
 
         <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-soft">
           <h2 className="text-2xl font-bold text-slate-950">Prossimi step</h2>

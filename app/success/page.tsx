@@ -6,6 +6,7 @@ import { PurchaseTracker } from "@/components/PurchaseTracker";
 import { getDownloadsByProductSlug } from "@/data/downloads";
 import { isStripeCheckoutConfigured } from "@/lib/env";
 import { syncDigitalPurchaseFromCheckoutSession } from "@/lib/digital-purchases";
+import { sendKitPurchaseEmail } from "@/lib/email";
 import { readSiteSettings } from "@/lib/site-settings";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getStripeProductBySlug, getStripeServer } from "@/lib/stripe";
@@ -69,6 +70,18 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
         });
 
         purchaseStored = Boolean(syncResult);
+
+        if (syncResult?.createdDownload && syncResult.customerEmail) {
+          try {
+            await sendKitPurchaseEmail({
+              userId: syncResult.userId,
+              email: syncResult.customerEmail,
+              productSlug: syncResult.productSlug,
+            });
+          } catch (emailError) {
+            console.error("Digital purchase email error:", emailError);
+          }
+        }
       }
     } catch (syncError) {
       console.error("Digital purchase sync error:", syncError);

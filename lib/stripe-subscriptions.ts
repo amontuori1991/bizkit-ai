@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { sendSubscriptionEmail } from "@/lib/email";
 import { env } from "@/lib/env";
 import type { PaidPlanId } from "@/lib/plan-limits";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
@@ -15,6 +16,11 @@ type SyncedSubscriptionResult = {
   status: string;
   stripeCustomerId: string | null;
   userId: string;
+};
+
+type ExistingSubscriptionRow = {
+  plan_id: string | null;
+  status: string | null;
 };
 
 function isPaidPlanId(value?: string | null): value is PaidPlanId {
@@ -46,6 +52,30 @@ function getSubscriptionPeriod(subscription: Stripe.Subscription) {
 
 function shouldKeepPaidPlan(status: string) {
   return status === "active" || status === "trialing" || status === "past_due";
+}
+
+function shouldSendSubscriptionActivatedEmail(input: {
+  previous: ExistingSubscriptionRow | null;
+  nextPlanId: PaidPlanId;
+  nextStatus: string;
+}) {
+  const nextIsPaid = input.nextStatus === "active" || input.nextStatus === "trialing";
+  if (!nextIsPaid) {
+    return false;
+  }
+
+  if (!input.previous) {
+    return true;
+  }
+
+  const previousIsPaid =
+    input.previous.status === "active" || input.previous.status === "trialing";
+
+  if (!previousIsPaid) {
+    return true;
+  }
+
+  return input.previous.plan_id !== input.nextPlanId;
 }
 
 export function mapStripePriceToPlan(priceId?: string | null): PaidPlanId | null {
@@ -191,6 +221,12 @@ export async function syncStripeSubscription(
     email: options.customerEmailHint ?? null,
   });
 
+  const { data: existingSubscription } = await supabase
+    .from("subscriptions")
+    .select("plan_id,status")
+    .eq("stripe_subscription_id", subscription.id)
+    .maybeSingle<ExistingSubscriptionRow>();
+
   const payload = {
     user_id: userId,
     customer_id: customerId,
@@ -223,6 +259,33 @@ export async function syncStripeSubscription(
 
   if (profileError) {
     throw profileError;
+  }
+
+  if (
+    shouldSendSubscriptionActivatedEmail({
+      previous: existingSubscription ?? null,
+      nextPlanId: planId,
+      nextStatus: subscription.status,
+    })
+  ) {
+    const recipientEmail =
+      options.customerEmailHint ??
+      (
+        await supabase.from("profiles").select("email").eq("id", userId).maybeSingle()
+      ).data?.email ??
+      null;
+
+    if (recipientEmail) {
+      try {
+        await sendSubscriptionEmail({
+          userId,
+          email: recipientEmail,
+          planId,
+        });
+      } catch (error) {
+        console.error("Subscription activated email error:", error);
+      }
+    }
   }
 
   return {

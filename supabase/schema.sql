@@ -53,6 +53,16 @@ create table if not exists public.downloads (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.email_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  email text not null,
+  type text not null,
+  status text not null,
+  provider text not null default 'resend',
+  created_at timestamptz not null default timezone('utc', now())
+);
+
 create table if not exists public.leads (
   id uuid primary key default gen_random_uuid(),
   email text not null unique,
@@ -325,6 +335,7 @@ alter table public.profiles enable row level security;
 alter table public.products enable row level security;
 alter table public.orders enable row level security;
 alter table public.downloads enable row level security;
+alter table public.email_logs enable row level security;
 alter table public.leads enable row level security;
 alter table public.site_settings enable row level security;
 alter table public.generated_contents enable row level security;

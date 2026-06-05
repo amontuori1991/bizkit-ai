@@ -105,6 +105,7 @@ Tabelle principali incluse:
 - `assistant_conversations`
 - `assistant_messages`
 - `feedback_items`
+- `email_logs`
 - `customers`
 - `subscriptions`
 
@@ -191,6 +192,32 @@ Se `RESEND_API_KEY` e configurata:
 
 - l'admin riceve una mail quando arriva un nuovo feedback
 - l'utente riceve una mail quando il team cambia stato al ticket
+
+### Email transazionali fondamentali
+
+Con `RESEND_API_KEY` attiva, BizKit AI invia anche:
+
+- welcome email al primo accesso dashboard dopo la registrazione
+- email attivazione subscription quando Stripe sincronizza un piano `starter`, `pro` o `agency`
+- email conferma acquisto kit quando il download viene collegato all'account
+
+I log vengono salvati in:
+
+```bash
+public.email_logs
+```
+
+In:
+
+```bash
+/admin/setup
+```
+
+trovi anche:
+
+- stato Resend
+- numero template attivi
+- bottoni test per welcome, subscription e kit
 
 ### Stripe Customer Portal
 

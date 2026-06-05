@@ -71,6 +71,12 @@ export async function syncDigitalPurchaseFromCheckoutSession(args: {
     status: args.session.payment_status === "paid" ? "paid" : "pending",
   };
 
+  const { data: existingOrder } = await supabase
+    .from("orders")
+    .select("id")
+    .eq("stripe_checkout_session_id", args.session.id)
+    .maybeSingle();
+
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .upsert(orderPayload, { onConflict: "stripe_checkout_session_id" })
@@ -109,6 +115,9 @@ export async function syncDigitalPurchaseFromCheckoutSession(args: {
     productSlug,
     orderId: order.id,
     fileName: bundle.zipFileName,
+    customerEmail: args.session.customer_details?.email ?? args.session.customer_email ?? null,
+    isNewOrder: !existingOrder,
+    createdDownload: !existingDownload,
   };
 }
 
