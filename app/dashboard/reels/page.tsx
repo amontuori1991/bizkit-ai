@@ -2,6 +2,7 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { GeneratorWorkspace } from "@/components/dashboard/GeneratorWorkspace";
 import { isBusinessProfileComplete, pickPrimaryBusinessProfile, type BusinessProfile } from "@/lib/business-profile";
 import { isOpenAIConfigured } from "@/lib/env";
+import { getQuickTemplatesForProfile, resolveKnowledgePack } from "@/lib/knowledge-packs";
 import { requireDashboardUser } from "@/lib/saas";
 
 export default async function ReelsPage() {
@@ -16,18 +17,20 @@ export default async function ReelsPage() {
     .limit(5);
   const profile = pickPrimaryBusinessProfile((profiles as BusinessProfile[] | null) ?? []);
   const profileReady = isBusinessProfileComplete(profile);
+  const pack = resolveKnowledgePack(profile);
 
   return (
     <DashboardShell
       title="Reel AI"
-      description="Crea idee Reel con hook iniziali, struttura e CTA per attirare lead locali e migliorare la comunicazione."
+      description={`Crea idee Reel con hook iniziali, struttura e CTA, valorizzando insight come ${pack.reelIdeas.slice(0, 4).join(", ")}.`}
       userEmail={user.email ?? "utente"}
     >
       <GeneratorWorkspace
         type="reel"
         title="Generatore Reel"
-        helper="Scrivi solo il concept operativo del Reel. Il sistema usera automaticamente il Business Profile per target, tono, servizi e CTA."
+        helper={`Scrivi solo il concept operativo del Reel. Il sistema usera automaticamente il Business Profile e il knowledge pack ${pack.label} per target, tono, servizi e CTA.`}
         placeholder="Esempio: Crea un Reel per spiegare come funziona la prima visita in palestra."
+        quickTemplates={getQuickTemplatesForProfile("reel", profile)}
         enabled={aiEnabled}
         disabledMessage="OpenAI non e configurato. Aggiungi OPENAI_API_KEY per attivare il generatore Reel."
         profileReady={profileReady}

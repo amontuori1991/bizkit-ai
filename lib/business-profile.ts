@@ -6,7 +6,7 @@ import {
   isSportsBusinessType,
   type AIContentType,
 } from "@/lib/business-verticals";
-import { getSportsKnowledgePack } from "@/lib/sportsKnowledgePacks";
+import { resolveKnowledgePack } from "@/lib/knowledge-packs";
 
 export type BusinessProfile = {
   id: string;
@@ -112,9 +112,8 @@ function getSportsSubcategoryAngle(profile: BusinessProfile | null) {
     return "";
   }
 
-  const subcategory = profile.sports_subcategory?.trim();
-  const pack = getSportsKnowledgePack(subcategory);
-  const subcategoryLabel = getSportsSubcategoryLabel(subcategory);
+  const pack = resolveKnowledgePack(profile);
+  const subcategoryLabel = getSportsSubcategoryLabel(profile.sports_subcategory?.trim());
   const quickTemplateLabels = getQuickTemplatesForType("sports_caption")
     .concat(pack.quickTemplates.sports_caption ?? [])
     .slice(0, 6)
@@ -192,8 +191,8 @@ function getHairPrompt(type: AIContentType) {
 }
 
 function getSportsPrompt(type: AIContentType, profile: BusinessProfile | null) {
-  const pack = getSportsKnowledgePack(profile?.sports_subcategory?.trim());
-  const advancedGroupExperience = ["paintball", "go_kart", "softair"].includes(pack.subcategory);
+  const pack = resolveKnowledgePack(profile);
+  const advancedGroupExperience = ["paintball", "go-kart", "softair"].includes(pack.slug);
   const whatsappHeavy = pack.supportedCalendarFormats.includes("WhatsApp follow-up");
   const shared = [
     "Scrivi in italiano.",
@@ -237,6 +236,23 @@ function getSportsPrompt(type: AIContentType, profile: BusinessProfile | null) {
   return [typeInstruction[type], typeSpecialization[type], ...shared].filter(Boolean).join("\n\n");
 }
 
+function getKnowledgePackLines(profile: BusinessProfile | null) {
+  if (!profile) {
+    return [];
+  }
+
+  const pack = resolveKnowledgePack(profile);
+  return [
+    `Knowledge pack attivo: ${pack.label}`,
+    `Posizionamento da usare: ${pack.positioning}`,
+    `Content pillars: ${pack.contentPillars.join(", ")}`,
+    `Idee Reel da favorire: ${pack.reelIdeas.join(", ")}`,
+    `Idee promo da favorire: ${pack.promoIdeas.join(", ")}`,
+    `Campagne stagionali: ${pack.seasonalCampaigns.join(", ")}`,
+    `Hint consulenziali: ${pack.assistantHints.join(", ")}`,
+  ];
+}
+
 function getFormatInstructions(type: AIContentType) {
   const hairType =
     type === "sports_reel_script" ||
@@ -266,6 +282,7 @@ function getFormatInstructions(type: AIContentType) {
 
 export function buildGenerationSystemPrompt(type: AIContentType, profile: BusinessProfile | null) {
   const context = buildBusinessProfileContext(profile);
+  const packContext = getKnowledgePackLines(profile).join("\n");
   const hairVertical = type.startsWith("hair_") || isHairBusinessType(profile?.business_type);
   const sportsVertical = type.startsWith("sports_") || isSportsBusinessType(profile?.business_type);
   const basePrompt = hairVertical
@@ -274,7 +291,7 @@ export function buildGenerationSystemPrompt(type: AIContentType, profile: Busine
       ? getSportsPrompt(type, profile)
       : getFitnessPrompt(type);
 
-  return [basePrompt, getFormatInstructions(type), context]
+  return [basePrompt, getFormatInstructions(type), packContext, context]
     .filter((item) => item && item.trim())
     .join("\n\n");
 }

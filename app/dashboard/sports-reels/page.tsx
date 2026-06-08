@@ -6,11 +6,8 @@ import {
   type BusinessProfile,
 } from "@/lib/business-profile";
 import { isOpenAIConfigured } from "@/lib/env";
+import { getQuickTemplatesForProfile, resolveKnowledgePack } from "@/lib/knowledge-packs";
 import { requireDashboardUser } from "@/lib/saas";
-import {
-  getSportsKnowledgePack,
-  getSportsQuickTemplatesForSubcategory,
-} from "@/lib/sportsKnowledgePacks";
 
 export default async function SportsReelsPage() {
   const { supabase, user } = await requireDashboardUser();
@@ -24,7 +21,7 @@ export default async function SportsReelsPage() {
     .limit(5);
   const profile = pickPrimaryBusinessProfile((profiles as BusinessProfile[] | null) ?? []);
   const profileReady = isBusinessProfileComplete(profile);
-  const sportsPack = getSportsKnowledgePack(profile?.sports_subcategory);
+  const sportsPack = resolveKnowledgePack(profile);
   const specializedMode = profile?.sports_subcategory != null;
 
   return (
@@ -46,11 +43,11 @@ export default async function SportsReelsPage() {
             : "Scrivi solo la richiesta operativa. L'AI usa automaticamente sottocategoria, CTA, servizi, target e contesto locale del Business Profile."
         }
         placeholder={
-          sportsPack.subcategory === "paintball"
+          sportsPack.slug === "paintball"
             ? "Esempio: Crea un Reel POV per mostrare una partita paintball tra amici con hook forte e CTA prenotazione weekend."
             : "Esempio: Crea un Reel per promuovere un torneo padel del sabato con iscrizioni aperte."
         }
-        quickTemplates={getSportsQuickTemplatesForSubcategory("sports_reel_script", profile?.sports_subcategory)}
+        quickTemplates={getQuickTemplatesForProfile("sports_reel_script", profile)}
         enabled={aiEnabled}
         disabledMessage="OpenAI non e configurato. Aggiungi OPENAI_API_KEY per attivare il generatore Reel sport & outdoor."
         profileReady={profileReady}

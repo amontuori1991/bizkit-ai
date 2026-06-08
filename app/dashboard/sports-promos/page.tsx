@@ -6,11 +6,8 @@ import {
   type BusinessProfile,
 } from "@/lib/business-profile";
 import { isOpenAIConfigured } from "@/lib/env";
+import { getQuickTemplatesForProfile, resolveKnowledgePack } from "@/lib/knowledge-packs";
 import { requireDashboardUser } from "@/lib/saas";
-import {
-  getSportsKnowledgePack,
-  getSportsQuickTemplatesForSubcategory,
-} from "@/lib/sportsKnowledgePacks";
 
 export default async function SportsPromosPage() {
   const { supabase, user } = await requireDashboardUser();
@@ -24,7 +21,7 @@ export default async function SportsPromosPage() {
     .limit(5);
   const profile = pickPrimaryBusinessProfile((profiles as BusinessProfile[] | null) ?? []);
   const profileReady = isBusinessProfileComplete(profile);
-  const sportsPack = getSportsKnowledgePack(profile?.sports_subcategory);
+  const sportsPack = resolveKnowledgePack(profile);
   const specializedMode = profile?.sports_subcategory != null;
 
   return (
@@ -46,11 +43,11 @@ export default async function SportsPromosPage() {
             : "Scrivi solo la richiesta operativa. Il sistema usera automaticamente sottocategoria, servizi, CTA, target e tono del Business Profile."
         }
         placeholder={
-          sportsPack.subcategory === "paintball"
+          sportsPack.slug === "paintball"
             ? "Esempio: Crea una promo weekend per gruppi paintball da 8+ persone con prenotazione anticipata e slot limitati."
             : "Esempio: Crea una promo weekend per il paintball con formula gruppi e prenotazione anticipata."
         }
-        quickTemplates={getSportsQuickTemplatesForSubcategory("sports_promo", profile?.sports_subcategory)}
+        quickTemplates={getQuickTemplatesForProfile("sports_promo", profile)}
         enabled={aiEnabled}
         disabledMessage="OpenAI non e configurato. Aggiungi OPENAI_API_KEY per attivare il generatore promo sport & outdoor."
         profileReady={profileReady}

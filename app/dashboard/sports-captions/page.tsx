@@ -6,11 +6,8 @@ import {
   type BusinessProfile,
 } from "@/lib/business-profile";
 import { isOpenAIConfigured } from "@/lib/env";
+import { getQuickTemplatesForProfile, resolveKnowledgePack } from "@/lib/knowledge-packs";
 import { requireDashboardUser } from "@/lib/saas";
-import {
-  getSportsKnowledgePack,
-  getSportsQuickTemplatesForSubcategory,
-} from "@/lib/sportsKnowledgePacks";
 
 export default async function SportsCaptionsPage() {
   const { supabase, user } = await requireDashboardUser();
@@ -24,7 +21,7 @@ export default async function SportsCaptionsPage() {
     .limit(5);
   const profile = pickPrimaryBusinessProfile((profiles as BusinessProfile[] | null) ?? []);
   const profileReady = isBusinessProfileComplete(profile);
-  const sportsPack = getSportsKnowledgePack(profile?.sports_subcategory);
+  const sportsPack = resolveKnowledgePack(profile);
   const specializedMode = profile?.sports_subcategory != null;
 
   return (
@@ -46,11 +43,11 @@ export default async function SportsCaptionsPage() {
             : "Scrivi solo la richiesta operativa. Il sistema usera automaticamente business type, sottocategoria, citta, target, servizi, CTA e hashtag del Business Profile."
         }
         placeholder={
-          sportsPack.subcategory === "paintball"
+          sportsPack.slug === "paintball"
             ? "Esempio: Scrivi una caption per promuovere un addio al celibato paintball con slot disponibili sabato pomeriggio."
             : "Esempio: Scrivi una caption per promuovere un pacchetto compleanno paintball con posti limitati questo weekend."
         }
-        quickTemplates={getSportsQuickTemplatesForSubcategory("sports_caption", profile?.sports_subcategory)}
+        quickTemplates={getQuickTemplatesForProfile("sports_caption", profile)}
         enabled={aiEnabled}
         disabledMessage="OpenAI non e configurato. Aggiungi OPENAI_API_KEY per attivare il generatore sport & outdoor."
         profileReady={profileReady}

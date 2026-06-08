@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildBusinessProfileContext, type BusinessProfile } from "@/lib/business-profile";
+import { resolveKnowledgePack } from "@/lib/knowledge-packs";
 import { getPlanLimits, getCurrentUsageMonth, normalizePlanId, type RuntimePlanId } from "@/lib/plan-limits";
 
 export type AssistantConversation = {
@@ -312,6 +313,7 @@ function formatList(values: Array<string | null | undefined>, fallback = "nessun
 }
 
 export function buildAssistantSystemPrompt(snapshot: AssistantBusinessSnapshot) {
+  const activePack = resolveKnowledgePack(snapshot.profile);
   const profileContext = buildBusinessProfileContext(snapshot.profile) || "Business Profile non ancora completo.";
   const recentContentTypes = formatList(snapshot.recentGeneratedContents.slice(0, 6).map((item) => item.type));
   const savedTopics = formatList(snapshot.recentSavedContents.slice(0, 6).map((item) => item.title));
@@ -339,6 +341,10 @@ export function buildAssistantSystemPrompt(snapshot: AssistantBusinessSnapshot) 
     "Se l'utente chiede CRM o clienti, suggerisci follow-up, win-back, referral, upsell o reminder concreti.",
     "Se l'utente chiede piu prenotazioni o lead, proponi campagne pratiche per i prossimi 7-30 giorni.",
     "Usa markdown semplice con titoli brevi e bullet quando aiuta la leggibilita.",
+    `Knowledge pack attivo: ${activePack.label}.`,
+    `Pilastri chiave della nicchia: ${activePack.contentPillars.join(", ")}.`,
+    `Campagne stagionali rilevanti: ${activePack.seasonalCampaigns.join(", ")}.`,
+    `Hint consulenziali prioritari: ${activePack.assistantHints.join(", ")}.`,
     profileContext,
     `Statistiche correnti: clienti CRM ${snapshot.counts.crmClients}, contenuti salvati ${snapshot.counts.savedContents}, calendari ${snapshot.counts.calendars}, generazioni AI ${snapshot.counts.generatedContents}, crediti AI usati oggi ${snapshot.counts.aiCreditsToday}, messaggi coach usati questo mese ${snapshot.counts.coachMessagesMonth}.`,
     `Tipi di contenuto generati di recente: ${recentContentTypes}.`,

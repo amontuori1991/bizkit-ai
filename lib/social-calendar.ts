@@ -3,7 +3,7 @@ import {
   isHairBusinessType,
   isSportsBusinessType,
 } from "@/lib/business-verticals";
-import { getSportsKnowledgePack } from "@/lib/sportsKnowledgePacks";
+import { resolveKnowledgePack } from "@/lib/knowledge-packs";
 
 export type SocialCalendarDays = 7 | 14 | 30;
 export type SocialContentFormat =
@@ -45,34 +45,8 @@ export const socialCalendarObjectives = [
 
 export const socialCalendarDayOptions: SocialCalendarDays[] = [7, 14, 30];
 
-function getCalendarPillars(vertical: SocialCalendarBusinessVertical, profile: BusinessProfile | null) {
-  if (vertical === "sports") {
-    return getSportsKnowledgePack(profile?.sports_subcategory?.trim()).socialCalendarIdeas;
-  }
-
-  if (vertical === "hair") {
-    return [
-      "prima/dopo",
-      "balayage",
-      "colore",
-      "trattamenti",
-      "promo",
-      "trend",
-      "recensioni",
-      "backstage",
-    ];
-  }
-
-  return [
-    "trasformazioni",
-    "motivazione",
-    "promo",
-    "testimonial",
-    "consigli allenamento",
-    "alimentazione",
-    "open day",
-    "prova gratuita",
-  ];
+function getCalendarPillars(_vertical: SocialCalendarBusinessVertical, profile: BusinessProfile | null) {
+  return resolveKnowledgePack(profile).calendarIdeas;
 }
 
 export function inferCalendarVertical(profile: BusinessProfile | null): SocialCalendarBusinessVertical {
@@ -96,15 +70,15 @@ export function buildCalendarSystemPrompt(
   const vertical = inferCalendarVertical(profile);
   const verticalLabel =
     vertical === "hair"
-      ? "saloni parrucchieri e barber shop"
+      ? "saloni, beauty business e professionisti hair"
       : vertical === "sports"
         ? "centri sportivi e attivita outdoor"
-        : "palestre e business fitness";
+        : "palestre, personal trainer e fitness studio";
   const pillars = getCalendarPillars(vertical, profile).join(", ");
   const businessContext = buildBusinessProfileContext(profile);
-  const sportsPack = vertical === "sports" ? getSportsKnowledgePack(profile?.sports_subcategory?.trim()) : null;
+  const activePack = resolveKnowledgePack(profile);
   const sportsFormats =
-    sportsPack?.supportedCalendarFormats.join(" | ") ?? "Post Instagram | Reel | Story | TikTok";
+    activePack.supportedCalendarFormats.join(" | ") ?? "Post Instagram | Reel | Story | TikTok";
 
   return [
     `Sei un senior social media strategist per ${verticalLabel}.`,
@@ -117,10 +91,10 @@ export function buildCalendarSystemPrompt(
     `Il calendario deve coprire ${days} giorni e supportare questo obiettivo: ${objective}.`,
     `Per questo verticale usa soprattutto questi pillar: ${pillars}.`,
     vertical === "hair"
-      ? "Per hair usa hook piu beauty/fashion, CTA piu orientate al booking, hashtag beauty/hair e tono moderno."
+      ? `Per beauty usa il knowledge pack ${activePack.label}. Valorizza soprattutto idee come ${activePack.calendarIdeas.join(", ")} e promo come ${activePack.promoIdeas.join(", ")} con CTA orientate al booking.`
       : vertical === "sports"
-        ? `Per sports/outdoor adatta tutto alla sottocategoria ${sportsPack?.label}. Usa questo posizionamento: ${sportsPack?.positioning} Inserisci soprattutto idee come ${sportsPack?.socialCalendarIdeas.join(", ")}. Se coerente, valorizza offerte come ${sportsPack?.offerTypes.join(", ")} e Reel/short-form come ${sportsPack?.reelIdeas.join(", ")}.`
-        : "Per fitness usa tono energico ma professionale, CTA su prova gratuita/open day/DM e hashtag fitness locali.",
+        ? `Per sports/outdoor adatta tutto al knowledge pack attivo ${activePack.label}. Usa questo posizionamento: ${activePack.positioning} Inserisci soprattutto idee come ${activePack.calendarIdeas.join(", ")}. Se coerente, valorizza offerte come ${activePack.offerTypes.join(", ")} e Reel/short-form come ${activePack.reelIdeas.join(", ")}.`
+        : `Per fitness usa il knowledge pack ${activePack.label}, tono energico ma professionale e concentrazione su ${activePack.calendarIdeas.join(", ")} con CTA locali coerenti.`,
     "Restituisci solo JSON valido senza markdown o testo extra.",
     `Usa esattamente questo schema:
 {

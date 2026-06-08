@@ -6,11 +6,8 @@ import {
   type BusinessProfile,
 } from "@/lib/business-profile";
 import { isOpenAIConfigured } from "@/lib/env";
+import { getQuickTemplatesForProfile, resolveKnowledgePack } from "@/lib/knowledge-packs";
 import { requireDashboardUser } from "@/lib/saas";
-import {
-  getSportsKnowledgePack,
-  getSportsQuickTemplatesForSubcategory,
-} from "@/lib/sportsKnowledgePacks";
 
 export default async function SportsClientMessagesPage() {
   const { supabase, user } = await requireDashboardUser();
@@ -24,7 +21,7 @@ export default async function SportsClientMessagesPage() {
     .limit(5);
   const profile = pickPrimaryBusinessProfile((profiles as BusinessProfile[] | null) ?? []);
   const profileReady = isBusinessProfileComplete(profile);
-  const sportsPack = getSportsKnowledgePack(profile?.sports_subcategory);
+  const sportsPack = resolveKnowledgePack(profile);
   const specializedMode = profile?.sports_subcategory != null;
 
   return (
@@ -46,11 +43,11 @@ export default async function SportsClientMessagesPage() {
             : "Scrivi solo la richiesta operativa. L'AI usera automaticamente sottocategoria, CTA, stile e contesto del tuo centro sportivo."
         }
         placeholder={
-          sportsPack.subcategory === "paintball"
+          sportsPack.slug === "paintball"
             ? "Esempio: Scrivi un messaggio WhatsApp di conferma per un compleanno bambini paintball con orario, arrivo anticipato e abbigliamento consigliato."
             : "Esempio: Scrivi un messaggio WhatsApp per proporre un team building paintball a un'azienda locale."
         }
-        quickTemplates={getSportsQuickTemplatesForSubcategory("sports_client_message", profile?.sports_subcategory)}
+        quickTemplates={getQuickTemplatesForProfile("sports_client_message", profile)}
         enabled={aiEnabled}
         disabledMessage="OpenAI non e configurato. Aggiungi OPENAI_API_KEY per attivare i messaggi clienti sport & outdoor."
         profileReady={profileReady}

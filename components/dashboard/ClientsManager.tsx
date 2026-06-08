@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { trackEvent } from "@/lib/analytics";
 import type { BusinessProfile } from "@/lib/business-profile";
+import { resolveKnowledgePack } from "@/lib/knowledge-packs";
 import { type PaidPlanId, type UsageProgress } from "@/lib/plan-limits";
 import { isHairBusinessType, isSportsBusinessType } from "@/lib/business-verticals";
-import { getSportsKnowledgePack } from "@/lib/sportsKnowledgePacks";
 
 type ClientRecord = {
   id: string;
@@ -27,6 +27,8 @@ type ClientsManagerProps = {
 };
 
 function getCrmCopy(profile: BusinessProfile | null) {
+  const pack = profile ? resolveKnowledgePack(profile) : null;
+
   if (isSportsBusinessType(profile?.business_type)) {
     return {
       entityLabel: "contatto",
@@ -40,14 +42,47 @@ function getCrmCopy(profile: BusinessProfile | null) {
   }
 
   if (isHairBusinessType(profile?.business_type)) {
+    const beautyPlanLabel =
+      pack?.slug === "beauty-center"
+        ? "Trattamento / rituale"
+        : pack?.slug === "nail-studio"
+          ? "Servizio / refill"
+          : "Servizio / trattamento";
     return {
       entityLabel: "cliente",
       formTitle: "Nuova cliente",
       listTitle: "Clienti salvati",
-      planLabel: "Servizio / trattamento",
-      planPlaceholder: "Balayage + piega",
+      planLabel: beautyPlanLabel,
+      planPlaceholder:
+        pack?.slug === "beauty-center"
+          ? "Trattamento viso premium"
+          : pack?.slug === "nail-studio"
+            ? "Refill semipermanente"
+            : "Balayage + piega",
       notesPlaceholder:
         "Preferenze, ultimo trattamento, frequenza visita, note commerciali o follow-up",
+    };
+  }
+
+  if (pack?.slug === "personal-trainer") {
+    return {
+      entityLabel: "cliente",
+      formTitle: "Nuovo cliente",
+      listTitle: "Clienti salvati",
+      planLabel: "Percorso / consulenza",
+      planPlaceholder: "Percorso 8 settimane",
+      notesPlaceholder: "Obiettivi, stato call, check-in e note commerciali",
+    };
+  }
+
+  if (pack?.slug === "yoga" || pack?.slug === "pilates") {
+    return {
+      entityLabel: "cliente",
+      formTitle: "Nuovo cliente",
+      listTitle: "Clienti salvati",
+      planLabel: "Percorso / lezione",
+      planPlaceholder: "Lezione prova",
+      notesPlaceholder: "Frequenza pratica, obiettivi, workshop o note di follow-up",
     };
   }
 
@@ -85,9 +120,8 @@ export function ClientsManager({
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [importFeedback, setImportFeedback] = useState<string | null>(null);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
-  const sportsPack = isSportsBusinessType(businessProfile?.business_type)
-    ? getSportsKnowledgePack(businessProfile?.sports_subcategory)
-    : null;
+  const activePack = businessProfile ? resolveKnowledgePack(businessProfile) : null;
+  const sportsPack = isSportsBusinessType(businessProfile?.business_type) ? activePack : null;
   const sportsSuggestions = isSportsBusinessType(businessProfile?.business_type)
     ? sportsPack?.crmSuggestions ?? []
     : [];

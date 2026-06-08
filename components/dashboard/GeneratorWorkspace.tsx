@@ -27,6 +27,7 @@ type GeneratorWorkspaceProps = {
   onboardingTitle?: string;
   onboardingSteps?: string[];
   quickTemplates?: QuickTemplate[];
+  quickTemplatesByType?: Partial<Record<AIContentType, QuickTemplate[]>>;
   typeOptions?: Array<{ value: AIContentType; label: string }>;
   businessType?: string | null;
 };
@@ -79,6 +80,7 @@ export function GeneratorWorkspace({
     "Genera 3 varianti, copia la migliore e salva quella che vuoi riutilizzare.",
   ],
   quickTemplates,
+  quickTemplatesByType,
   typeOptions,
   businessType,
 }: GeneratorWorkspaceProps) {
@@ -110,12 +112,16 @@ export function GeneratorWorkspace({
     isSportsBusinessType(inferredBusinessType) || selectedType.startsWith("sports_");
 
   const templates = useMemo(() => {
+    if (quickTemplatesByType?.[selectedType]) {
+      return quickTemplatesByType[selectedType] ?? [];
+    }
+
     if (quickTemplates && selectedType === type) {
       return quickTemplates;
     }
 
     return getQuickTemplatesForType(selectedType);
-  }, [quickTemplates, selectedType, type]);
+  }, [quickTemplates, quickTemplatesByType, selectedType, type]);
 
   const activeVariant =
     variants.find((item) => item.id === activeVariantId) ?? variants[0] ?? null;
